@@ -530,15 +530,15 @@
             <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
                 
                 <!-- ESP32 Signal Beacon Indicator (Flat) -->
-                <div id="conn-pill" class="flex items-center gap-2 bg-white text-black border-2 border-black px-3 py-1.5 rounded-lg shadow-none">
-                    <span id="conn-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-400 border border-black animate-ping"></span>
+                <div id="conn-pill" class="flex items-center gap-2 bg-red-50 text-black border-2 border-black px-3 py-1.5 rounded-lg shadow-none">
+                    <span id="conn-dot" class="w-2.5 h-2.5 rounded-full bg-red-500 border border-black animate-pulse"></span>
                     <i data-lucide="radio" class="w-3.5 h-3.5 text-zinc-700"></i>
                     <div class="flex flex-col">
-                        <span id="conn-label" class="font-mono text-[10px] font-bold text-black uppercase tracking-wider leading-none">
-                            ESP32 BEAMED IN
+                        <span id="conn-label" class="font-mono text-[10px] font-bold text-red-700 uppercase tracking-wider leading-none">
+                            ESP32 OFFLINE
                         </span>
-                        <span id="conn-sub" class="text-[9px] font-mono text-zinc-500 font-bold leading-tight">
-                            PORT: 443 / SUPABASE
+                        <span id="conn-sub" class="text-[9px] font-mono text-red-500 font-bold leading-tight">
+                            WAITING FOR HARDWARE
                         </span>
                     </div>
                 </div>
@@ -1833,23 +1833,96 @@
         // =========================================================================
         // 6. SUPABASE REALTIME SUBSCRIPTION
         // =========================================================================
+        // Dual Connection State Tracking: Both ESP32 hardware and Supabase must be online, otherwise indicator stays red
+        let isSupabaseConnected = false;
+        let isEspConnected = false;
+        let lastEspHeartbeat = 0;
+        const ESP_HEARTBEAT_TIMEOUT_MS = 60000; // 60 seconds tolerance for hardware updates
+
+        function evaluateConnectionStatus() {
+            const connSub = document.getElementById("conn-sub");
+            if (isSupabaseConnected && isEspConnected) {
+                // Both ESP32 hardware and Supabase cloud are connected -> GREEN
+                connDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 border border-black animate-ping";
+                connLabel.innerText = "ESP32 BEAMED IN";
+                connLabel.className = "font-mono text-[10px] font-bold text-emerald-700 uppercase tracking-wider leading-none";
+                if (connSub) {
+                    connSub.innerText = "PORT: 443 / SUPABASE ONLINE";
+                    connSub.className = "text-[9px] font-mono text-emerald-600 font-bold leading-tight";
+                }
+                connPill.className = "flex items-center gap-2 bg-emerald-50 border-2 border-black px-3 py-1.5 rounded-lg shadow-none";
+            } else {
+                // Otherwise -> STAYS RED
+                connDot.className = "w-2.5 h-2.5 rounded-full bg-red-500 border border-black animate-pulse";
+                connPill.className = "flex items-center gap-2 bg-red-50 border-2 border-black px-3 py-1.5 rounded-lg shadow-none";
+
+                if (!isSupabaseConnected) {
+                    connLabel.innerText = "LINK DROPPED";
+                    if (connSub) {
+                        connSub.innerText = "SUPABASE OFFLINE";
+                        connSub.className = "text-[9px] font-mono text-red-500 font-bold leading-tight";
+                    }
+                } else {
+                    connLabel.innerText = "ESP32 OFFLINE";
+                    if (connSub) {
+                        connSub.innerText = "WAITING FOR HARDWARE";
+                        connSub.className = "text-[9px] font-mono text-red-500 font-bold leading-tight";
+                    }
+                }
+                connLabel.className = "font-mono text-[10px] font-bold text-red-700 uppercase tracking-wider leading-none";
+            }
+        }
+
+        // Hardware Watchdog: checks every 3 seconds if ESP32 timed out
+        setInterval(() => {
+            if (isEspConnected && lastEspHeartbeat && (Date.now() - lastEspHeartbeat > ESP_HEARTBEAT_TIMEOUT_MS)) {
+                console.warn("ESP32 heartbeat timed out (> 60s without events)");
+                isEspConnected = false;
+                evaluateConnectionStatus();
+            }
+        }, 3000);
+
         async function fetchInitialState() {
             try {
-                setConnectionStatus('CONNECTING');
                 const { data, error } = await supabaseClient
                     .from('device_state')
                     .select('*')
                     .eq('id', 1)
                     .single();
 
-                if (error) throw error;
+                if (error) {
+                    console.warn("Supabase fetch error:", error);
+                    isSupabaseConnected = false;
+                    isEspConnected = false;
+                    evaluateConnectionStatus();
+                    return;
+                }
+
+                isSupabaseConnected = true;
+
                 if (data) {
                     applyState(data);
-                    setConnectionStatus('ONLINE');
+
+                    // Check if ESP32 hardware state has recent activity (within 60 seconds)
+                    if (data.updated_at) {
+                        const updatedEpoch = new Date(data.updated_at).getTime();
+                        const diffSec = (Date.now() - updatedEpoch) / 1000;
+                        if (diffSec >= 0 && diffSec <= (ESP_HEARTBEAT_TIMEOUT_MS / 1000)) {
+                            lastEspHeartbeat = updatedEpoch;
+                            isEspConnected = true;
+                        } else {
+                            isEspConnected = false;
+                        }
+                    } else {
+                        isEspConnected = false;
+                    }
                 }
+                evaluateConnectionStatus();
             } catch (err) {
                 console.error("Supabase fetch error:", err);
-                setConnectionStatus('ERROR');
+                isSupabaseConnected = false;
+                isEspConnected = false;
+                evaluateConnectionStatus();
             }
         }
 
@@ -1862,16 +1935,22 @@
                     { event: 'UPDATE', schema: 'public', table: 'device_state', filter: 'id=eq.1' },
                     (payload) => {
                         console.log("ESP32 Hardware Event:", payload.new);
+                        // Live event received directly from hardware device via Supabase
+                        lastEspHeartbeat = Date.now();
+                        isEspConnected = true;
+                        isSupabaseConnected = true;
                         applyState(payload.new);
-                        setConnectionStatus('ONLINE');
+                        evaluateConnectionStatus();
                     }
                 )
                 .subscribe((status) => {
                     if (status === 'SUBSCRIBED') {
-                        setConnectionStatus('ONLINE');
+                        isSupabaseConnected = true;
                     } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-                        setConnectionStatus('SEARCHING');
+                        isSupabaseConnected = false;
+                        isEspConnected = false;
                     }
+                    evaluateConnectionStatus();
                 });
 
             // Live Session Logs Auto-Refresh Listener (ESP32 Background HTTP POST Hook)
@@ -1882,7 +1961,11 @@
                     { event: 'INSERT', schema: 'public', table: 'session_logs' },
                     async (payload) => {
                         console.log("ESP32 Finished Work Session - Hardware Event:", payload.new);
-                        // Auto-refresh the debrief section immediately without full page reload
+                        lastEspHeartbeat = Date.now();
+                        isEspConnected = true;
+                        isSupabaseConnected = true;
+                        evaluateConnectionStatus();
+
                         if (typeof updateTacticalDebrief === 'function') {
                             await updateTacticalDebrief();
                         }
@@ -1911,21 +1994,12 @@
 
         function setConnectionStatus(status) {
             if (status === 'ONLINE') {
-                connDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 border border-black";
-                connLabel.innerText = "ESP32 BEAMED IN";
-                connLabel.className = "font-mono text-[10px] font-bold text-emerald-600 uppercase tracking-wider leading-none";
-                connPill.className = "flex items-center gap-2 bg-emerald-50 border-2 border-black px-3 py-1.5 rounded-lg shadow-none";
-            } else if (status === 'CONNECTING' || status === 'SEARCHING') {
-                connDot.className = "w-2.5 h-2.5 rounded-full bg-amber-400 border border-black animate-ping";
-                connLabel.innerText = "BEACON SEARCH...";
-                connLabel.className = "font-mono text-[10px] font-bold text-amber-600 uppercase tracking-wider leading-none";
-                connPill.className = "flex items-center gap-2 bg-amber-50 border-2 border-black px-3 py-1.5 rounded-lg shadow-none";
-            } else {
-                connDot.className = "w-2.5 h-2.5 rounded-full bg-red-500 border border-black";
-                connLabel.innerText = "LINK DROPPED";
-                connLabel.className = "font-mono text-[10px] font-bold text-red-600 uppercase tracking-wider leading-none";
-                connPill.className = "flex items-center gap-2 bg-red-50 border-2 border-black px-3 py-1.5 rounded-lg shadow-none";
+                isSupabaseConnected = true;
+            } else if (status === 'ERROR' || status === 'OFFLINE') {
+                isSupabaseConnected = false;
+                isEspConnected = false;
             }
+            evaluateConnectionStatus();
         }
 
         async function manualSync() {
@@ -1939,7 +2013,13 @@
             }
             setTimeout(() => {
                 spinner.classList.remove('rotate-180');
-                showToast("HARDWARE SYNCED!", "sync");
+                if (isSupabaseConnected && isEspConnected) {
+                    showToast("ESP32 & SUPABASE SYNCED!", "sync");
+                } else if (isSupabaseConnected) {
+                    showToast("CLOUD ONLINE • ESP32 OFFLINE", "pause");
+                } else {
+                    showToast("CONNECTION FAILED: CHECK NETWORK", "pause");
+                }
             }, 300);
         }
 
@@ -2013,16 +2093,12 @@
                     `;
                 } else if (isActive) {
                     return `
-                        <div class="mission-card w-full bg-[#FEF3C7] text-black border-[3px] border-black rounded-xl px-3 py-2.5 font-mono flex items-center justify-between shadow-[3px_3px_0px_#000] ring-2 ring-amber-400 animate-pulse select-none cursor-default">
+                        <div class="mission-card w-full bg-amber-50 text-black border-[3px] border-black rounded-xl px-3 py-2.5 font-mono flex items-center justify-between ring-4 ring-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.9),2px_2px_0px_#000] animate-pulse select-none cursor-default">
                             <div class="flex items-center gap-2.5 min-w-0">
                                 <span class="w-6 h-6 rounded-lg border-2 border-black bg-amber-400 text-black flex items-center justify-center font-mono font-black text-xs shrink-0 shadow-[1px_1px_0px_#000]">${m.id}</span>
                                 <span class="text-xs sm:text-[13px] font-mono font-bold tracking-wider uppercase whitespace-nowrap text-black">${m.name}</span>
                             </div>
-                            <span class="inline-flex items-center gap-1.5 font-mono text-[9px] font-black uppercase bg-amber-400 text-black border border-black px-2 py-0.5 rounded shadow-[1px_1px_0px_#000] shrink-0 whitespace-nowrap ml-1.5">
-                                <span class="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping"></span>
-                                <i data-lucide="activity" class="w-3 h-3"></i>
-                                <span>ACTIVE</span>
-                            </span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 border border-black animate-ping shrink-0 mr-1" title="Hardware Mission Running"></span>
                         </div>
                     `;
                 } else {
