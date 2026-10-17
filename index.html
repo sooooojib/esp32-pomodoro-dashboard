@@ -718,84 +718,84 @@
             <div id="mission-logs-card" class="bg-white p-6 flex flex-col justify-between flex-1 border-4 border-black rounded-3xl shadow-[6px_6px_0px_0px_#000]">
                 
                 <!-- Standardized Card Header -->
-                <div class="flex items-center justify-between pb-0">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-black p-2 shadow-none">
+                <div class="flex items-center justify-between pb-0 gap-3">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-black p-2 shadow-none shrink-0">
                             <i data-lucide="clipboard-list" class="w-5 h-5"></i>
                         </div>
-                        <div>
+                        <div class="min-w-0">
                             <span class="text-[10px] font-mono text-[#64748B] font-bold block uppercase tracking-wider leading-none mb-1">TACTICAL DEBRIEF</span>
-                            <h3 class="font-comic italic text-lg sm:text-xl text-black font-black leading-tight tracking-wide uppercase">
+                            <h3 class="font-comic italic text-lg sm:text-xl text-black font-black leading-tight tracking-wide uppercase truncate">
                                 S.H.I.E.L.D. MISSION LOGS
                             </h3>
                         </div>
                     </div>
 
-                    <span class="border-2 border-black rounded-lg px-3 py-1 font-mono text-xs font-bold bg-white text-black shadow-none">
-                        TODAY
-                    </span>
+                    <!-- Right Header Badges (Stacked / Responsive) -->
+                    <div class="flex flex-col sm:flex-row items-end sm:items-center gap-1.5 shrink-0">
+                        <span id="ops-cleared-badge" class="border-2 border-black rounded-lg px-2.5 py-1 font-mono text-xs font-bold bg-[#FEF3C7] text-black shadow-none flex items-center gap-1.5 whitespace-nowrap">
+                            <span>🎖️</span> <span id="ops-cleared-text">0 OPS CLEARED</span>
+                        </span>
+                        <span id="today-sessions-badge" class="border-2 border-black rounded-lg px-2.5 py-1 font-mono text-xs font-bold bg-white text-black shadow-none flex items-center gap-1.5 whitespace-nowrap">
+                            <span id="today-sessions-text">TODAY: 0 SESSIONS</span>
+                        </span>
+                    </div>
                 </div>
 
                 <!-- Divider Line -->
                 <div class="border-t-2 border-black my-4 w-full"></div>
 
-                <!-- Combat vs Recharge Ratio Bar -->
-                <div class="mb-4">
-                    <div class="flex justify-between items-center text-xs font-mono font-bold uppercase tracking-wider text-black mb-1.5">
-                        <span class="text-[#E11D48] flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 bg-[#E11D48] border border-black inline-block rounded-xs"></span>
-                            <span>COMBAT ( <span id="ratio-work-pct">100%</span> )</span>
-                        </span>
-                        <span class="text-[#06B6D4] flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 bg-[#06B6D4] border border-black inline-block rounded-xs"></span>
-                            <span>RECHARGE ( <span id="ratio-break-pct">0%</span> )</span>
-                        </span>
-                    </div>
-                    <div class="w-full h-5 bg-white rounded-full border-[3px] border-black p-0 overflow-hidden flex relative shadow-none">
-                        <div id="ratio-work-bar" class="h-full bg-[#E11D48] border-r-2 border-black transition-all duration-500" style="width: 100%;"></div>
-                        <div id="ratio-break-bar" class="h-full bg-[#06B6D4] transition-all duration-500" style="width: 0%;"></div>
-                    </div>
-                </div>
-
-                <!-- Mission Progress & Checklist Inner Container -->
+                <!-- INNER DEPLOYMENT CONTAINER -->
                 <div class="bg-[#F7F4EB] border-[3px] border-black rounded-2xl p-4">
                     <div class="flex justify-between items-center text-xs font-mono font-bold uppercase tracking-wider text-black mb-3.5">
-                        <span class="flex items-center gap-1.5 font-bold">
-                            <i data-lucide="check-circle-2" class="w-4 h-4 text-[#E11D48]"></i>
-                            <span>DAILY TARGET: 4 SESSIONS</span>
+                        <span class="flex items-center gap-1.5 font-bold min-w-0">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-[#E11D48] shrink-0"></i>
+                            <span id="deployment-wave-title" class="truncate">DEPLOYMENT WAVE #1 (4 SESSIONS)</span>
                         </span>
-                        <span id="target-counter" class="text-slate-600 font-mono font-bold text-xs">[ 0 ] / 4 DONE</span>
+                        <span id="wave-objective-counter" class="text-slate-800 font-mono font-bold text-xs shrink-0 whitespace-nowrap">OBJECTIVE: 0 / 4 DONE</span>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5" id="daily-milestones-grid">
                         <button class="mission-btn w-full bg-white text-black border-[3px] border-black rounded-xl p-3 font-comic font-black tracking-wider uppercase flex items-center justify-between shadow-[2px_2px_0px_#000] hover:translate-y-[-1px] transition-all cursor-pointer select-none" onclick="toggleMission(1, event)">
                             <div class="flex items-center gap-2 min-w-0">
-                                <span class="w-6 h-6 rounded-md border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-xs shrink-0">[ 1 ]</span>
+                                <span class="w-6 h-6 rounded-md border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-xs shrink-0">[1]</span>
                                 <span class="text-xs sm:text-sm font-bold truncate">MISSION ALPHA</span>
                             </div>
                             <span class="text-[10px] font-mono text-zinc-500 font-bold hidden sm:inline-block shrink-0">STANDBY</span>
                         </button>
                         <button class="mission-btn w-full bg-white text-black border-[3px] border-black rounded-xl p-3 font-comic font-black tracking-wider uppercase flex items-center justify-between shadow-[2px_2px_0px_#000] hover:translate-y-[-1px] transition-all cursor-pointer select-none" onclick="toggleMission(2, event)">
                             <div class="flex items-center gap-2 min-w-0">
-                                <span class="w-6 h-6 rounded-md border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-xs shrink-0">[ 2 ]</span>
+                                <span class="w-6 h-6 rounded-md border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-xs shrink-0">[2]</span>
                                 <span class="text-xs sm:text-sm font-bold truncate">MISSION BETA</span>
                             </div>
                             <span class="text-[10px] font-mono text-zinc-500 font-bold hidden sm:inline-block shrink-0">STANDBY</span>
                         </button>
                         <button class="mission-btn w-full bg-white text-black border-[3px] border-black rounded-xl p-3 font-comic font-black tracking-wider uppercase flex items-center justify-between shadow-[2px_2px_0px_#000] hover:translate-y-[-1px] transition-all cursor-pointer select-none" onclick="toggleMission(3, event)">
                             <div class="flex items-center gap-2 min-w-0">
-                                <span class="w-6 h-6 rounded-md border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-xs shrink-0">[ 3 ]</span>
+                                <span class="w-6 h-6 rounded-md border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-xs shrink-0">[3]</span>
                                 <span class="text-xs sm:text-sm font-bold truncate">MISSION GAMMA</span>
                             </div>
                             <span class="text-[10px] font-mono text-zinc-500 font-bold hidden sm:inline-block shrink-0">STANDBY</span>
                         </button>
                         <button class="mission-btn w-full bg-white text-black border-[3px] border-black rounded-xl p-3 font-comic font-black tracking-wider uppercase flex items-center justify-between shadow-[2px_2px_0px_#000] hover:translate-y-[-1px] transition-all cursor-pointer select-none" onclick="toggleMission(4, event)">
                             <div class="flex items-center gap-2 min-w-0">
-                                <span class="w-6 h-6 rounded-md border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-xs shrink-0">[ 4 ]</span>
+                                <span class="w-6 h-6 rounded-md border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-xs shrink-0">[4]</span>
                                 <span class="text-xs sm:text-sm font-bold truncate">MISSION DELTA</span>
                             </div>
                             <span class="text-[10px] font-mono text-zinc-500 font-bold hidden sm:inline-block shrink-0">STANDBY</span>
                         </button>
+                    </div>
+                </div>
+
+                <!-- Bottom Metrics Row -->
+                <div class="mt-4 pt-3 border-t-2 border-black flex flex-wrap items-center justify-between gap-3 text-xs font-mono font-bold uppercase tracking-wider text-black">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-amber-500 text-sm">⚡</span>
+                        <span>TOTAL FOCUS: <span id="total-focus-mins-text" class="text-black font-extrabold">0 MINS</span></span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-amber-500 text-sm">⭐</span>
+                        <span>FULL PROTOCOLS CLEARED: <span id="full-protocols-text" class="text-black font-extrabold">0x [4/4]</span></span>
                     </div>
                 </div>
 
@@ -1878,21 +1878,36 @@
                     }
                 });
 
-            // Live Session Logs Auto-Refresh Listener
+            // Live Session Logs Auto-Refresh Listener (ESP32 Background HTTP POST Hook)
             supabaseClient
                 .channel('shield_logs_channel')
                 .on(
                     'postgres_changes',
                     { event: 'INSERT', schema: 'public', table: 'session_logs' },
-                    (payload) => {
-                        console.log("S.H.I.E.L.D. Mission Logged:", payload.new);
+                    async (payload) => {
+                        console.log("ESP32 Finished Work Session - Hardware Event:", payload.new);
                         // Auto-refresh the debrief section immediately without full page reload
                         if (typeof updateTacticalDebrief === 'function') {
-                            updateTacticalDebrief();
+                            await updateTacticalDebrief();
                         }
-                        loadAnalytics();
-                        AudioEngine.fanfare();
-                        showToast("TACTICAL DEBRIEF UPDATED: MISSION LOGGED!", "done");
+                        if (typeof loadAnalytics === 'function') {
+                            await loadAnalytics();
+                        }
+                        
+                        // Automatic Audio Chime & Fanfare
+                        if (typeof AudioEngine !== 'undefined') {
+                            AudioEngine.fanfare();
+                            setTimeout(() => {
+                                if (AudioEngine.repulsorZap) AudioEngine.repulsorZap();
+                            }, 350);
+                        }
+
+                        // Automatic Hero Energy Beam Animation
+                        if (typeof triggerHeroEnergyBeam === 'function') {
+                            triggerHeroEnergyBeam(currentHeroKey);
+                        }
+
+                        showToast("MISSION COMPLETE: S.H.I.E.L.D. DEBRIEF UPDATED!", "done");
                     }
                 )
                 .subscribe();
@@ -1941,94 +1956,102 @@
             pomodoro_count: 0
         };
 
-        let todayStats = {
-            workSessions: 0,
-            breakSessions: 0,
-            workMinutes: 0,
-            breakMinutes: 0
+        let tacticalDebriefState = {
+            totalSingleSessions: 0,
+            fullOperations: 0,
+            currentWaveProgress: 0,
+            currentWave: 1,
+            totalFocusMinutes: 0
         };
 
-        const MISSION_NAMES = [
+        const MISSION_SLOTS = [
             { id: 1, name: "MISSION ALPHA" },
             { id: 2, name: "MISSION BETA" },
             { id: 3, name: "MISSION GAMMA" },
             { id: 4, name: "MISSION DELTA" }
         ];
 
-        let completedMissions = JSON.parse(localStorage.getItem('avengers_completed_missions') || '[]');
-
-        function toggleMission(index, event) {
+        function toggleMission(slotIndex, event) {
             if (event) event.preventDefault();
-            AudioEngine.shieldClang();
+            if (AudioEngine) AudioEngine.shieldClang();
 
-            const pos = completedMissions.indexOf(index);
-            if (pos > -1) {
-                completedMissions.splice(pos, 1);
+            // Toggle manual interactive progress
+            if (slotIndex <= tacticalDebriefState.currentWaveProgress) {
+                tacticalDebriefState.currentWaveProgress = slotIndex - 1;
+                tacticalDebriefState.totalSingleSessions = Math.max(0, tacticalDebriefState.fullOperations * 4 + tacticalDebriefState.currentWaveProgress);
+                tacticalDebriefState.totalFocusMinutes = tacticalDebriefState.totalSingleSessions * 25;
+                showToast(`MISSION ${slotIndex} RESET`, "pause");
             } else {
-                completedMissions.push(index);
-                AudioEngine.repulsorZap();
-            }
-
-            localStorage.setItem('avengers_completed_missions', JSON.stringify(completedMissions));
-            renderTacticalMissions();
-
-            if (completedMissions.length === 4) {
-                AudioEngine.fanfare();
-                triggerHeroEnergyBeam(currentHeroKey);
-                showToast("ALL 4 MISSIONS ACCOMPLISHED!", "done");
-            } else {
-                showToast(`MISSION ${index} ${pos > -1 ? 'RESET' : 'CLEARED'}!`, "start");
-            }
-        }
-
-        function renderTacticalMissions() {
-            const counter = document.getElementById('target-counter');
-            const grid = document.getElementById('daily-milestones-grid');
-
-            const completedCount = completedMissions.length;
-            if (counter) {
-                counter.innerText = `[ ${Math.min(4, completedCount)} ] / 4 DONE`;
-            }
-
-            if (!grid) return;
-
-            const isWorkRunning = hardwareState.is_running && hardwareState.phase === 'WORK';
-
-            // Find first uncompleted mission (1..4) to display as IN PROGRESS if work is active
-            let activeMissionId = null;
-            if (isWorkRunning) {
-                for (let i = 1; i <= 4; i++) {
-                    if (!completedMissions.includes(i)) {
-                        activeMissionId = i;
-                        break;
-                    }
+                tacticalDebriefState.currentWaveProgress = slotIndex;
+                tacticalDebriefState.totalSingleSessions = tacticalDebriefState.fullOperations * 4 + slotIndex;
+                tacticalDebriefState.totalFocusMinutes = tacticalDebriefState.totalSingleSessions * 25;
+                if (AudioEngine) AudioEngine.repulsorZap();
+                
+                if (tacticalDebriefState.currentWaveProgress === 4) {
+                    tacticalDebriefState.fullOperations++;
+                    tacticalDebriefState.currentWaveProgress = 0;
+                    tacticalDebriefState.currentWave = tacticalDebriefState.fullOperations + 1;
+                    if (AudioEngine) AudioEngine.fanfare();
+                    if (typeof triggerHeroEnergyBeam === 'function') triggerHeroEnergyBeam(currentHeroKey);
+                    showToast(`WAVE ACCOMPLISHED! ADVANCING TO WAVE #${tacticalDebriefState.currentWave}!`, "done");
+                } else {
+                    showToast(`MISSION ${slotIndex} ACCOMPLISHED!`, "done");
                 }
             }
 
-            grid.innerHTML = MISSION_NAMES.map(m => {
-                const isDone = completedMissions.includes(m.id);
-                const isActive = !isDone && (m.id === activeMissionId);
+            renderTacticalMissions();
+        }
 
-                if (isDone) {
+        function renderTacticalMissions() {
+            // 1. Update Header Badges
+            const opsText = document.getElementById('ops-cleared-text');
+            const todayText = document.getElementById('today-sessions-text');
+            if (opsText) opsText.innerText = `${tacticalDebriefState.fullOperations} OPS CLEARED`;
+            if (todayText) todayText.innerText = `TODAY: ${tacticalDebriefState.totalSingleSessions} SESSIONS`;
+
+            // 2. Update Inner Deployment Container Header
+            const waveTitle = document.getElementById('deployment-wave-title');
+            const waveObj = document.getElementById('wave-objective-counter');
+            if (waveTitle) waveTitle.innerText = `DEPLOYMENT WAVE #${tacticalDebriefState.currentWave} (4 SESSIONS)`;
+            if (waveObj) waveObj.innerText = `OBJECTIVE: ${tacticalDebriefState.currentWaveProgress} / 4 DONE`;
+
+            // 3. Update Bottom Metrics
+            const focusMinsText = document.getElementById('total-focus-mins-text');
+            const protocolsText = document.getElementById('full-protocols-text');
+            if (focusMinsText) focusMinsText.innerText = `${tacticalDebriefState.totalFocusMinutes} MINS`;
+            if (protocolsText) protocolsText.innerText = `${tacticalDebriefState.fullOperations}x [4/4]`;
+
+            // 4. Update 2x2 Grid of Mission Cards
+            const grid = document.getElementById('daily-milestones-grid');
+            if (!grid) return;
+
+            const isWorkRunning = hardwareState.is_running && hardwareState.phase === 'WORK';
+            const activeSlotId = isWorkRunning ? (tacticalDebriefState.currentWaveProgress + 1) : null;
+
+            grid.innerHTML = MISSION_SLOTS.map(m => {
+                const isAccomplished = m.id <= tacticalDebriefState.currentWaveProgress;
+                const isActive = !isAccomplished && (m.id === activeSlotId);
+
+                if (isAccomplished) {
                     return `
                         <button class="mission-btn w-full bg-[#10B981] text-black border-[3px] border-black rounded-xl p-3 font-comic font-black tracking-wider uppercase flex items-center justify-between shadow-[2px_2px_0px_#000] hover:translate-y-[-1px] transition-all cursor-pointer select-none" onclick="toggleMission(${m.id}, event)" title="Click to toggle">
                             <div class="flex items-center gap-2 min-w-0">
                                 <span class="w-6 h-6 rounded-md border-2 border-black bg-black text-[#10B981] flex items-center justify-center font-mono font-bold text-xs shrink-0">✓</span>
-                                <span class="text-xs sm:text-sm font-bold truncate line-through opacity-85">${m.name}</span>
+                                <span class="text-xs sm:text-sm font-bold truncate line-through opacity-85">[${m.id}] ${m.name}</span>
                             </div>
-                            <span class="font-comic font-black text-[9px] sm:text-[10px] tracking-wider uppercase bg-[#FACC15] text-black border-2 border-black px-1.5 sm:px-2 py-0.5 rounded shadow-[2px_2px_0px_#000] rotate-[-3deg] shrink-0">ACCOMPLISHED</span>
+                            <span class="font-comic font-black text-[9px] sm:text-[10px] tracking-wider uppercase bg-[#FACC15] text-black border-2 border-black px-1.5 sm:px-2 py-0.5 rounded shadow-[2px_2px_0px_#000] rotate-[-2deg] shrink-0">ACCOMPLISHED✓</span>
                         </button>
                     `;
                 } else if (isActive) {
                     return `
-                        <button class="mission-btn w-full bg-[#FEF3C7] text-black border-[3px] border-black rounded-xl p-3 font-comic font-black tracking-wider uppercase flex items-center justify-between shadow-[3px_3px_0px_#000] ring-2 ring-amber-400 animate-pulse hover:translate-y-[-1px] transition-all cursor-pointer select-none" onclick="toggleMission(${m.id}, event)" title="Click to toggle">
+                        <button class="mission-btn w-full bg-[#FEF3C7] text-black border-[3px] border-black rounded-xl p-3 font-comic font-black tracking-wider uppercase flex items-center justify-between shadow-[3px_3px_0px_#000] ring-2 ring-amber-400 animate-pulse hover:translate-y-[-1px] transition-all cursor-pointer select-none" onclick="toggleMission(${m.id}, event)" title="Hardware Focus Session In Progress">
                             <div class="flex items-center gap-2 min-w-0">
-                                <span class="w-6 h-6 rounded-md border-2 border-black bg-amber-400 text-black flex items-center justify-center font-mono font-bold text-xs shrink-0">[ ${m.id} ]</span>
+                                <span class="w-6 h-6 rounded-md border-2 border-black bg-amber-400 text-black flex items-center justify-center font-mono font-bold text-xs shrink-0">[${m.id}]</span>
                                 <span class="text-xs sm:text-sm font-bold truncate text-black">${m.name}</span>
                             </div>
                             <span class="inline-flex items-center gap-1 font-mono text-[9px] font-bold uppercase bg-amber-400 text-black border border-black px-1.5 py-0.5 rounded shadow-[1px_1px_0px_#000] shrink-0">
                                 <span class="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping"></span>
-                                <span>IN PROGRESS</span>
+                                <span>&gt;&gt;&gt; ACTIVE &lt;&lt;&lt;</span>
                             </span>
                         </button>
                     `;
@@ -2036,23 +2059,25 @@
                     return `
                         <button class="mission-btn w-full bg-white text-black border-[3px] border-black rounded-xl p-3 font-comic font-black tracking-wider uppercase flex items-center justify-between shadow-[2px_2px_0px_#000] hover:translate-y-[-1px] transition-all cursor-pointer select-none" onclick="toggleMission(${m.id}, event)" title="Click to toggle">
                             <div class="flex items-center gap-2 min-w-0">
-                                <span class="w-6 h-6 rounded-md border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-xs shrink-0">[ ${m.id} ]</span>
+                                <span class="w-6 h-6 rounded-md border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-xs shrink-0">[${m.id}]</span>
                                 <span class="text-xs sm:text-sm font-bold truncate text-black">${m.name}</span>
                             </div>
-                            <span class="text-[10px] font-mono text-zinc-500 font-bold hidden sm:inline-block shrink-0">STANDBY</span>
+                            <span class="text-[10px] font-mono text-zinc-500 font-bold shrink-0">STANDBY</span>
                         </button>
                     `;
                 }
             }).join('');
+
+            if (window.lucide) lucide.createIcons();
         }
 
         async function updateTacticalDebrief() {
             try {
                 const today = new Date().toISOString().split('T')[0];
-                const { data, error } = await supabaseClient
+                const { data: logs, error } = await supabaseClient
                     .from('session_logs')
                     .select('*')
-                    .gte('completed_at', today + 'T00:00:00Z')
+                    .gte('completed_at', `${today}T00:00:00Z`)
                     .order('completed_at', { ascending: true });
 
                 if (error) {
@@ -2060,57 +2085,20 @@
                     return;
                 }
 
-                let workCount = 0;
-                let breakCount = 0;
-                let workMinutes = 0;
-                let breakMinutes = 0;
+                const workSessions = logs ? logs.filter(l => l.phase === 'WORK').length : 0;
 
-                if (data && data.length > 0) {
-                    data.forEach(session => {
-                        const mins = Number(session.duration_minutes) || (session.phase === 'WORK' ? 25 : (session.phase === 'LONG_BREAK' ? 15 : 5));
-                        if (session.phase === 'WORK') {
-                            workCount++;
-                            workMinutes += mins;
-                        } else {
-                            breakCount++;
-                            breakMinutes += mins;
-                        }
-                    });
-                }
+                // Data Processing & Wave Arithmetic per Prompt Section 3:
+                const totalSingleSessions = workSessions;
+                const fullOperations = Math.floor(totalSingleSessions / 4); // Number of completed 4/4 loops
+                const currentWaveProgress = totalSingleSessions % 4;         // 0 to 3 completed in active wave
+                const currentWave = fullOperations + 1;                     // Wave 1, Wave 2, Wave 3...
+                const totalFocusMinutes = totalSingleSessions * 25;
 
-                todayStats.workSessions = workCount;
-                todayStats.breakSessions = breakCount;
-                todayStats.workMinutes = workMinutes;
-                todayStats.breakMinutes = breakMinutes;
-
-                // Calculate Combat % vs Recharge %
-                const totalMinutes = workMinutes + breakMinutes;
-                let workPct = 100;
-                let breakPct = 0;
-                if (totalMinutes > 0) {
-                    workPct = Math.round((workMinutes / totalMinutes) * 100);
-                    breakPct = 100 - workPct;
-                }
-
-                // Update UI elements
-                const workPctEl = document.getElementById('ratio-work-pct');
-                const breakPctEl = document.getElementById('ratio-break-pct');
-                const workBarEl = document.getElementById('ratio-work-bar');
-                const breakBarEl = document.getElementById('ratio-break-bar');
-
-                if (workPctEl) workPctEl.innerText = `${workPct}%`;
-                if (breakPctEl) breakPctEl.innerText = `${breakPct}%`;
-                if (workBarEl) workBarEl.style.width = `${workPct}%`;
-                if (breakBarEl) breakBarEl.style.width = `${breakPct}%`;
-
-                // Automatically synchronize completed missions with today's completed work count
-                const cappedCount = Math.min(4, workCount);
-                for (let i = 1; i <= cappedCount; i++) {
-                    if (!completedMissions.includes(i)) {
-                        completedMissions.push(i);
-                    }
-                }
-                localStorage.setItem('avengers_completed_missions', JSON.stringify(completedMissions));
+                tacticalDebriefState.totalSingleSessions = totalSingleSessions;
+                tacticalDebriefState.fullOperations = fullOperations;
+                tacticalDebriefState.currentWaveProgress = currentWaveProgress;
+                tacticalDebriefState.currentWave = currentWave;
+                tacticalDebriefState.totalFocusMinutes = totalFocusMinutes;
 
                 renderTacticalMissions();
 
