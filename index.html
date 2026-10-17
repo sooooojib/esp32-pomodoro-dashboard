@@ -2500,14 +2500,21 @@
                                 <!-- Arc Reactor Cyan Overdrive Optics -->
                                 <g><path fill="#00F0FF" class="energy-pulse" d="M53.75,50.167c3.553-0.186,7.936-1.352,10.333-2.542l0.667,2L62,51c-2.308,0.545-5.05,0.834-8,1 L53.75,50.167z" /><polygon points="56,50 60,49 59,50.5 56.5,50.5" fill="#FFFFFF" /></g>
                                 <g><path fill="#00F0FF" class="energy-pulse" d="M46.208,50.167c-3.553-0.186-7.936-1.352-10.333-2.542l-0.667,2L37.958,51 c2.308,0.545,5.05,0.834,8,1L46.208,50.167z" /><polygon points="44,50 40,49 41,50.5 43.5,50.5" fill="#FFFFFF" /></g>
+                                <!-- HUD Targeting Reticles in Visor -->
+                                <path d="M53 46 L51 46 L51 49" fill="none" stroke="#00F0FF" stroke-width="0.8" opacity="0.8" />
+                                <path d="M65 46 L67 46 L67 49" fill="none" stroke="#00F0FF" stroke-width="0.8" opacity="0.8" />
+                                <path d="M35 46 L33 46 L33 49" fill="none" stroke="#00F0FF" stroke-width="0.8" opacity="0.8" />
+                                <path d="M47 46 L49 46 L49 49" fill="none" stroke="#00F0FF" stroke-width="0.8" opacity="0.8" />
                             ` : (mode === 'BREAK' ? `
-                                <!-- Standby Low-Power Cyan Optic -->
-                                <g><path fill="#38BDF8" d="M53.75,50.167c3.553-0.186,7.936-1.352,10.333-2.542l0.667,2L62,51c-2.308,0.545-5.05,0.834-8,1 L53.75,50.167z" /></g>
-                                <g><path fill="#38BDF8" d="M46.208,50.167c-3.553-0.186-7.936-1.352-10.333-2.542l-0.667,2L37.958,51 c2.308,0.545,5.05,0.834,8,1L46.208,50.167z" /></g>
+                                <!-- Standby Relaxed Low-Power Cyan Optic Slits (Tony Resting) -->
+                                <path d="M54 50.8 Q59 49.5 64 50.2" fill="none" stroke="#38BDF8" stroke-width="2.2" stroke-linecap="round" />
+                                <path d="M46 50.8 Q41 49.5 36 50.2" fill="none" stroke="#38BDF8" stroke-width="2.2" stroke-linecap="round" />
                             ` : `
-                                <!-- Standby Amber / Warning Optic -->
+                                <!-- Standby Amber / Warning Optic with Hologram Alert -->
                                 <g><path fill="#F59E0B" d="M53.75,50.167c3.553-0.186,7.936-1.352,10.333-2.542l0.667,2L62,51c-2.308,0.545-5.05,0.834-8,1 L53.75,50.167z" /><polygon points="56,50 60,49 59,50.5 56.5,50.5" fill="#FEF08A" /></g>
                                 <g><path fill="#F59E0B" d="M46.208,50.167c-3.553-0.186-7.936-1.352-10.333-2.542l-0.667,2L37.958,51 c2.308,0.545,5.05,0.834,8,1L46.208,50.167z" /><polygon points="44,50 40,49 41,50.5 43.5,50.5" fill="#FEF08A" /></g>
+                                <!-- Standby Radar Pulse Arc -->
+                                <path d="M42 38 Q50 34 58 38" fill="none" stroke="#F59E0B" stroke-width="1.2" stroke-dasharray="2 2" opacity="0.8" />
                             `)}
                         </g>
                     </g>
@@ -2573,6 +2580,8 @@
                                 <!-- Relaxed Brows -->
                                 <path d="M32 44 Q38 41 44 44" fill="none" stroke="#40396E" stroke-width="2" stroke-linecap="round" />
                                 <path d="M56 44 Q62 41 68 44" fill="none" stroke="#40396E" stroke-width="2" stroke-linecap="round" />
+                                <!-- Friendly Smiling Mouth -->
+                                <path d="M43 67 Q50 72 57 67" fill="none" stroke="#40396E" stroke-width="2.2" stroke-linecap="round" />
                             ` : (mode === 'PAUSED' ? `
                                 <!-- Standby Questioning Eyes -->
                                 <path fill="#f2f2f2" d="M43,50.455c0,0-3.653,0-6.364,0S33,48,33,48s0.909-2.455,4.545-2.455 C40.256,45.545,43,50.455,43,50.455z" />
@@ -2584,6 +2593,8 @@
                                 <circle cx="60.5" cy="47.2" r="2.452" fill="#2b59a1" />
                                 <circle cx="61" cy="46.5" r="0.8" fill="#FFFFFF" />
                                 <path fill="#40396e" d="M56.009,48c0.99,0,3.907-2.2,6.152-3.5c2.042-1.2,4.511-1.2,6.811-0.5 C68.996,44.996,69.009,45,69.009,45s-1.482-2.759-4.862-2.759c-1.689,0-3.759,1.069-7.138,2.759 c-0.79,0.369-1.476,0.896-2.047,1.448C54.004,47.375,54.676,48,56.009,48L56.009,48z" />
+                                <!-- Expectant Mouth -->
+                                <path d="M44 68 Q48 69.5 56 67.5" fill="none" stroke="#40396E" stroke-width="2.2" stroke-linecap="round" />
                             ` : `
                                 <!-- WORK: Determined Soldier Eyes -->
                                 <path fill="#f2f2f2" d="M43,50.455c0,0-3.653,0-6.364,0S33,48,33,48s0.909-2.455,4.545-2.455 C40.256,45.545,43,50.455,43,50.455z" />
@@ -2595,6 +2606,8 @@
                                 <circle cx="62.096" cy="47.998" r="2.452" fill="#2b59a1" />
                                 <circle cx="62.9" cy="47.2" r="0.8" fill="#FFFFFF" />
                                 <path fill="#40396e" d="M56.009,49c0.99,0,3.907-1.715,6.152-3.083c2.042-1.244,4.511-1.586,6.811-0.928 C68.996,44.996,69.009,45,69.009,45s-1.482-2.759-4.862-2.759c-1.689,0-3.759,1.069-7.138,2.759 c-0.79,0.369-1.476,0.896-2.047,1.448C54.004,47.375,54.676,49,56.009,49L56.009,49z" />
+                                <!-- Firm Resolved Mouth Line -->
+                                <path d="M44 68 Q50 67 56 68" fill="none" stroke="#40396E" stroke-width="2.2" stroke-linecap="round" />
                             `)}
                             <!-- Bold Mask Contour -->
                             <path fill="none" stroke="#40396e" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="3" d="M76.275,25.639l8.208-9.145v7.287c0,0.627-0.209,1.255-0.627,1.673l-1.362,1.603l0,0v2.98c0,1.608-1.319,2.294-1.792,3.205 c-0.216,0.415-0.209,0.836-0.209,1.255v1.03c0,1.045-0.418,1.673-1.045,2.3l-2.959,1.755H76.5V44.5c0,0,6-3,6,5 c0,8.534-3.433,11.371-6,11.5v11.043c0,1.591-0.632,3.117-1.757,4.243L63.257,87.771c-1.125,1.125-2.651,1.757-4.243,1.757H40.985 c-1.591,0-3.117-0.632-4.243-1.757L25.257,76.285c-1.125-1.125-1.757-2.651-1.757-4.243V61c-2.278-0.486-6-3.034-6-11.5 c0-8,6-5,6-5v-5.918l-2.959-1.755c-0.627-0.627-1.045-1.255-1.045-2.3v-1.03c0-0.418,0.006-0.84-0.209-1.255 c-0.473-0.91-1.792-1.597-1.792-3.205v-2.98l0,0l-1.362-1.603c-0.418-0.418-0.627-1.045-0.627-1.673v-7.287l8.351,9.304 C26.112,13.446,38.672,8.472,50,8.472c10.667,0,24.345,5.21,26.271,17.137L76.275,25.639z" />
@@ -2664,18 +2677,20 @@
                     <!-- 5. Heroic Nose & Expression -->
                     <path d="M78 82 L80 96 L86 96" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
                     ${mode === 'BREAK' ? `
-                        <path d="M68 106 Q80 116 92 106" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" />
+                        <!-- Joyous Viking Feast Smile -->
+                        <path d="M66 106 Q80 118 94 106" fill="none" stroke="#000" stroke-width="3.5" stroke-linecap="round" />
                     ` : (mode === 'PAUSED' ? `
-                        <line x1="72" y1="108" x2="88" y2="108" stroke="#000" stroke-width="3" stroke-linecap="round" />
+                        <!-- Inquisitive Straight Line -->
+                        <line x1="72" y1="108" x2="88" y2="108" stroke="#000" stroke-width="3.2" stroke-linecap="round" />
                     ` : `
+                        <!-- Focused Warrior Grit Line -->
                         <path d="M68 108 Q80 114 92 108" fill="none" stroke="#000" stroke-width="3.5" stroke-linecap="round" />
                     `)}
 
-                    <!-- 6. Piercing Eyes & Furrowed Warrior Eyebrows -->
-                    <path d="M52 74 L73 80" stroke="#000" stroke-width="4.5" stroke-linecap="round" />
-                    <path d="M108 74 L87 80" stroke="#000" stroke-width="4.5" stroke-linecap="round" />
-
+                    <!-- 6. Piercing Eyes & Mode-Specific Eyebrows -->
                     ${mode === 'WORK' ? `
+                        <path d="M52 74 L73 80" stroke="#000" stroke-width="4.5" stroke-linecap="round" />
+                        <path d="M108 74 L87 80" stroke="#000" stroke-width="4.5" stroke-linecap="round" />
                         <!-- Electric God of Thunder Glowing Eyes -->
                         <polygon points="56,82 72,84 68,90 58,89" fill="#00F0FF" stroke="#000" stroke-width="2" class="energy-pulse" />
                         <polygon points="60,83 69,84 66,88 61,87" fill="#FFFFFF" />
@@ -2683,12 +2698,22 @@
                         <polygon points="100,83 91,84 94,88 99,87" fill="#FFFFFF" />
                         <path d="M50 82 L42 78 L46 86 L38 84" fill="none" stroke="#00F0FF" stroke-width="2" stroke-linecap="round" />
                         <path d="M110 82 L118 78 L114 86 L122 84" fill="none" stroke="#00F0FF" stroke-width="2" stroke-linecap="round" />
+                    ` : (mode === 'BREAK' ? `
+                        <!-- Relaxed Joyful Eyes (^ ^) -->
+                        <path d="M54 77 Q64 73 74 77" stroke="#000" stroke-width="4" stroke-linecap="round" />
+                        <path d="M106 77 Q96 73 86 77" stroke="#000" stroke-width="4" stroke-linecap="round" />
+                        <path d="M56 86 Q64 80 72 86" fill="none" stroke="#000" stroke-width="3.2" stroke-linecap="round" />
+                        <path d="M104 86 Q96 80 88 86" fill="none" stroke="#000" stroke-width="3.2" stroke-linecap="round" />
                     ` : `
-                        <ellipse cx="64" cy="85" rx="5" ry="6" fill="#000" />
-                        <circle cx="62" cy="83" r="1.8" fill="#FFF" />
-                        <ellipse cx="96" cy="85" rx="5" ry="6" fill="#000" />
-                        <circle cx="94" cy="83" r="1.8" fill="#FFF" />
-                    `}
+                        <!-- Puzzled Asymmetrical Eyebrows -->
+                        <path d="M52 77 L73 80" stroke="#000" stroke-width="4.5" stroke-linecap="round" />
+                        <path d="M108 71 L87 77" stroke="#000" stroke-width="4.5" stroke-linecap="round" />
+                        <!-- Inquisitive Eyes Looking Sideways -->
+                        <ellipse cx="66" cy="85" rx="5" ry="6" fill="#000" />
+                        <circle cx="68" cy="83" r="1.8" fill="#FFF" />
+                        <ellipse cx="98" cy="85" rx="5" ry="6" fill="#000" />
+                        <circle cx="100" cy="83" r="1.8" fill="#FFF" />
+                    `)}
 
                     <!-- 7. The Asgardian Steel Helmet -->
                     <path d="M42 66 C42 36, 118 36, 118 66 L112 74 L48 74 Z" fill="#94A3B8" stroke="#000" stroke-width="4" />
@@ -2754,16 +2779,27 @@
                     <line x1="80" y1="30" x2="80" y2="140" stroke="#000" stroke-width="2" />
                     <line x1="30" y1="85" x2="130" y2="85" stroke="#000" stroke-width="2" />
                     <ellipse cx="80" cy="85" rx="35" ry="38" fill="none" stroke="#000" stroke-width="2" />
-                    <path d="M42 68 Q65 65 72 88 Q50 92 42 68 Z" fill="#FFFFFF" stroke="#000" stroke-width="4" />
-                    <path d="M118 68 Q95 65 88 88 Q110 92 118 68 Z" fill="#FFFFFF" stroke="#000" stroke-width="4" />
+                    <!-- Mode-Specific Comic Eyepieces -->
                     ${mode === 'WORK' ? `
-                        <path d="M30 45 Q20 30 35 25" fill="none" stroke="#FFD700" stroke-width="3" stroke-linecap="round" />
-                        <path d="M130 45 Q140 30 125 25" fill="none" stroke="#FFD700" stroke-width="3" stroke-linecap="round" />
-                    ` : ''}
-                    ${mode === 'BREAK' ? `
+                        <!-- Sharp, Narrowed, Aggressive Battle Lenses -->
+                        <path d="M44 72 Q64 68 70 85 Q52 87 44 72 Z" fill="#FFFFFF" stroke="#000" stroke-width="4.5" />
+                        <path d="M116 72 Q96 68 90 85 Q108 87 116 72 Z" fill="#FFFFFF" stroke="#000" stroke-width="4.5" />
+                        <!-- Spider-Sense Electric Intuition Arcs -->
+                        <path d="M30 45 Q20 30 35 25" fill="none" stroke="#FFD700" stroke-width="3" stroke-linecap="round" class="energy-pulse" />
+                        <path d="M130 45 Q140 30 125 25" fill="none" stroke="#FFD700" stroke-width="3" stroke-linecap="round" class="energy-pulse" />
+                    ` : (mode === 'BREAK' ? `
+                        <!-- Happy Curved Lenses (^ ^) Relaxing Web-Head -->
+                        <path d="M40 76 Q56 62 72 76" fill="none" stroke="#000" stroke-width="5" stroke-linecap="round" />
+                        <path d="M120 76 Q104 62 88 76" fill="none" stroke="#000" stroke-width="5" stroke-linecap="round" />
                         <rect x="120" y="105" width="22" height="30" rx="3" fill="#00F0FF" stroke="#000" stroke-width="2" />
                         <line x1="128" y1="105" x2="124" y2="92" stroke="#FFD700" stroke-width="3" stroke-linecap="round" />
-                    ` : ''}
+                    ` : `
+                        <!-- Puzzled Asymmetrical Lenses (One Wide, One Squinting) -->
+                        <path d="M38 65 Q66 60 74 90 Q46 95 38 65 Z" fill="#FFFFFF" stroke="#000" stroke-width="4.5" />
+                        <path d="M118 74 Q96 70 88 84 Q110 86 118 74 Z" fill="#FFFFFF" stroke="#000" stroke-width="4.5" />
+                        <!-- Web Standby Question Mark -->
+                        <text x="74" y="28" font-family="'Impact', 'Bangers', sans-serif" font-size="18" fill="#FFD700" stroke="#000" stroke-width="0.8">?</text>
+                    `)}
                 `
             },
             hulk: {
