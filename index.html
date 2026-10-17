@@ -470,6 +470,125 @@
             animation: intenseEarthquake 0.65s ease-in-out;
         }
 
+        /* DUAL-FIST HULK SMASH COMIC BURST ANIMATION */
+        #hulk-smash-overlay {
+            perspective: 1000px;
+        }
+
+        /* Screen Gamma Flash */
+        .hulk-smash-active #hulk-vignette {
+            animation: hulkScreenFlash 0.75s ease-out forwards;
+        }
+        @keyframes hulkScreenFlash {
+            0% { opacity: 0; }
+            28% { opacity: 0.35; }
+            100% { opacity: 0; }
+        }
+
+        /* Left Fist: Enters from upper-left, slams to center, then recoils */
+        .hulk-smash-active #hulk-fist-left {
+            animation: hulkFistLeftSmash 0.75s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+        }
+        @keyframes hulkFistLeftSmash {
+            0% {
+                transform: translate3d(-130vw, -100px, 0) rotate(-35deg) scale(1.3);
+                opacity: 0;
+            }
+            32% {
+                transform: translate3d(-72%, -50%, 0) rotate(12deg) scale(1.05);
+                opacity: 1;
+            }
+            40% {
+                transform: translate3d(-68%, -50%, 0) rotate(14deg) scale(1.08);
+                opacity: 1;
+            }
+            65% {
+                transform: translate3d(-85%, -50%, 0) rotate(8deg) scale(1);
+                opacity: 0.95;
+            }
+            100% {
+                transform: translate3d(-120vw, -40px, 0) rotate(-15deg) scale(0.9);
+                opacity: 0;
+            }
+        }
+
+        /* Right Fist: Enters from upper-right, slams to center, then recoils */
+        .hulk-smash-active #hulk-fist-right {
+            animation: hulkFistRightSmash 0.75s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+        }
+        @keyframes hulkFistRightSmash {
+            0% {
+                transform: translate3d(130vw, -100px, 0) rotate(35deg) scale(1.3);
+                opacity: 0;
+            }
+            32% {
+                transform: translate3d(-28%, -50%, 0) rotate(-12deg) scale(1.05);
+                opacity: 1;
+            }
+            40% {
+                transform: translate3d(-32%, -50%, 0) rotate(-14deg) scale(1.08);
+                opacity: 1;
+            }
+            65% {
+                transform: translate3d(-15%, -50%, 0) rotate(-8deg) scale(1);
+                opacity: 0.95;
+            }
+            100% {
+                transform: translate3d(120vw, -40px, 0) rotate(15deg) scale(0.9);
+                opacity: 0;
+            }
+        }
+
+        /* Explosive Collision Starburst behind the impact */
+        .hulk-smash-active #hulk-starburst {
+            animation: hulkStarburst 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes hulkStarburst {
+            0%, 25% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.2) rotate(0deg);
+            }
+            35% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.3) rotate(18deg);
+            }
+            55% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.4) rotate(24deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1.8) rotate(35deg);
+            }
+        }
+
+        /* Comic "SMASH!!" Typography Explosive Pop */
+        .hulk-smash-active #hulk-smash-typography {
+            animation: hulkTypographySmash 0.75s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes hulkTypographySmash {
+            0%, 28% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.3) rotate(-15deg);
+            }
+            38% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.2) rotate(-5deg);
+            }
+            60% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.15) rotate(-4deg);
+            }
+            80% {
+                opacity: 0.9;
+                transform: translate(-50%, -50%) scale(1.25) rotate(-2deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1.5) rotate(0deg);
+            }
+        }
+
         /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
@@ -1522,6 +1641,91 @@
     <!-- Full-Screen Hero Energy Beam & Shockwave Canvas Effect (Replaces Confetti) -->
     <canvas id="hero-energy-beam-canvas" class="fixed inset-0 pointer-events-none w-full h-full" style="z-index: 9999;"></canvas>
 
+    <!-- FULL-SCREEN DUAL-FIST HULK SMASH COMIC OVERLAY -->
+    <div id="hulk-smash-overlay" class="fixed inset-0 pointer-events-none z-[10000] overflow-hidden hidden select-none" style="will-change: transform, opacity;">
+        <!-- Gamma Green Flash Screen Vignette -->
+        <div id="hulk-vignette" class="absolute inset-0 bg-emerald-500/25 pointer-events-none" style="will-change: opacity;"></div>
+
+        <!-- Explosive Impact Background Starburst (Behind Fists) -->
+        <div id="hulk-starburst" class="absolute top-1/2 left-1/2 w-[340px] h-[340px] sm:w-[540px] sm:h-[540px] flex items-center justify-center pointer-events-none" style="will-change: transform, opacity;">
+            <svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-[5px_5px_0px_#000]">
+                <!-- Outer Golden Spikes -->
+                <polygon points="100,5 120,60 185,25 150,85 195,120 135,135 160,195 105,155 75,195 70,135 5,145 45,95 5,60 70,65" fill="#FACC15" stroke="#000" stroke-width="4.5" stroke-linejoin="round"/>
+                <!-- Inner Bright White Comic Flash -->
+                <polygon points="100,25 115,70 165,45 135,90 175,115 125,125 145,170 105,140 80,170 78,125 25,130 55,95 25,70 75,75" fill="#FFFFFF" stroke="#000" stroke-width="3" stroke-linejoin="round"/>
+                <!-- Gamma Energy Core Glow -->
+                <circle cx="100" cy="100" r="38" fill="#10B981" stroke="#000" stroke-width="3.5" opacity="0.85"/>
+            </svg>
+        </div>
+
+        <!-- Left Fist (Smashing in from upper-left) -->
+        <div id="hulk-fist-left" class="absolute top-1/2 left-1/2 w-44 h-44 sm:w-64 sm:h-64 pointer-events-none" style="will-change: transform;">
+            <svg viewBox="0 0 160 160" class="w-full h-full drop-shadow-[6px_6px_0px_#000]">
+                <!-- Wrist torn purple band -->
+                <polygon points="10,135 55,150 70,118 15,100" fill="#7C3AED" stroke="#000" stroke-width="4.5" stroke-linejoin="round"/>
+                <polygon points="18,128 38,142 34,120 20,110" fill="#9333EA"/>
+                <polygon points="40,143 55,149 52,130 38,126" fill="#A855F7"/>
+                <!-- Hand / Palm Base -->
+                <path d="M28 112 L50 62 L98 48 L130 75 L120 128 L45 128 Z" fill="#10B981" stroke="#000" stroke-width="4.5" stroke-linejoin="round"/>
+                <!-- Muscle shadow line -->
+                <path d="M48 85 Q75 92 110 88" stroke="#059669" stroke-width="4" stroke-linecap="round"/>
+                <!-- 4 Clenched Heavy Fingers / Knuckles -->
+                <rect x="72" y="32" width="24" height="42" rx="8" fill="#22C55E" stroke="#000" stroke-width="4.5"/>
+                <rect x="94" y="38" width="24" height="42" rx="8" fill="#22C55E" stroke="#000" stroke-width="4.5"/>
+                <rect x="116" y="48" width="22" height="40" rx="8" fill="#22C55E" stroke="#000" stroke-width="4.5"/>
+                <rect x="52" y="42" width="24" height="40" rx="8" fill="#22C55E" stroke="#000" stroke-width="4.5"/>
+                <!-- Heavy Thumb wrapped across knuckles -->
+                <path d="M38 78 C45 62, 78 68, 102 85 C90 108, 52 108, 38 92 Z" fill="#059669" stroke="#000" stroke-width="4.5" stroke-linejoin="round"/>
+                <!-- Knuckle comic shine highlights -->
+                <path d="M78 40 L86 40" stroke="#86EFAC" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M100 46 L108 46" stroke="#86EFAC" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M122 55 L128 55" stroke="#86EFAC" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M58 50 L64 50" stroke="#86EFAC" stroke-width="3.5" stroke-linecap="round"/>
+            </svg>
+        </div>
+
+        <!-- Right Fist (Smashing in from upper-right, mirrored) -->
+        <div id="hulk-fist-right" class="absolute top-1/2 left-1/2 w-44 h-44 sm:w-64 sm:h-64 pointer-events-none" style="will-change: transform;">
+            <svg viewBox="0 0 160 160" class="w-full h-full drop-shadow-[-6px_6px_0px_#000] scale-x-[-1]">
+                <!-- Wrist torn purple band -->
+                <polygon points="10,135 55,150 70,118 15,100" fill="#7C3AED" stroke="#000" stroke-width="4.5" stroke-linejoin="round"/>
+                <polygon points="18,128 38,142 34,120 20,110" fill="#9333EA"/>
+                <polygon points="40,143 55,149 52,130 38,126" fill="#A855F7"/>
+                <!-- Hand / Palm Base -->
+                <path d="M28 112 L50 62 L98 48 L130 75 L120 128 L45 128 Z" fill="#10B981" stroke="#000" stroke-width="4.5" stroke-linejoin="round"/>
+                <!-- Muscle shadow line -->
+                <path d="M48 85 Q75 92 110 88" stroke="#059669" stroke-width="4" stroke-linecap="round"/>
+                <!-- 4 Clenched Heavy Fingers / Knuckles -->
+                <rect x="72" y="32" width="24" height="42" rx="8" fill="#22C55E" stroke="#000" stroke-width="4.5"/>
+                <rect x="94" y="38" width="24" height="42" rx="8" fill="#22C55E" stroke="#000" stroke-width="4.5"/>
+                <rect x="116" y="48" width="22" height="40" rx="8" fill="#22C55E" stroke="#000" stroke-width="4.5"/>
+                <rect x="52" y="42" width="24" height="40" rx="8" fill="#22C55E" stroke="#000" stroke-width="4.5"/>
+                <!-- Heavy Thumb wrapped across knuckles -->
+                <path d="M38 78 C45 62, 78 68, 102 85 C90 108, 52 108, 38 92 Z" fill="#059669" stroke="#000" stroke-width="4.5" stroke-linejoin="round"/>
+                <!-- Knuckle comic shine highlights -->
+                <path d="M78 40 L86 40" stroke="#86EFAC" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M100 46 L108 46" stroke="#86EFAC" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M122 55 L128 55" stroke="#86EFAC" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M58 50 L64 50" stroke="#86EFAC" stroke-width="3.5" stroke-linecap="round"/>
+            </svg>
+        </div>
+
+        <!-- Comic "SMASH!!" Typography Explosive Burst -->
+        <div id="hulk-smash-typography" class="absolute top-1/2 left-1/2 flex flex-col items-center justify-center pointer-events-none" style="will-change: transform, opacity;">
+            <div class="relative text-center">
+                <!-- Comic Action Sound Wordmark -->
+                <span class="font-comic font-black text-6xl sm:text-8xl md:text-9xl tracking-wider uppercase select-none text-[#FACC15] drop-shadow-[6px_6px_0px_#000] rotate-[-5deg] block leading-none"
+                      style="-webkit-text-stroke: 3.5px #000; text-shadow: 7px 7px 0px #000, -2px -2px 0px #000, 2px -2px 0px #000, -2px 2px 0px #000;">
+                    SMASH!!
+                </span>
+                <!-- Comic Sub-Label Action Sticker -->
+                <span class="inline-block mt-2 bg-[#E11D48] text-white border-2 border-black font-mono font-black text-xs sm:text-sm px-3 py-1 rounded shadow-[2px_2px_0px_#000] rotate-[3deg]">
+                    GAMMA SEISMIC PROTOCOL
+                </span>
+            </div>
+        </div>
+    </div>
+
     <!-- Interactive Toast Notification (Image 3 fix: contained max-w, bold comic typography) -->
     <div id="toast-bubble" class="fixed bottom-6 right-6 z-50 transform translate-y-32 opacity-0 transition-transform duration-300 pointer-events-none max-w-sm sm:max-w-md w-auto">
         <div class="neo-card bg-stark-gold text-black px-4 py-2.5 font-comic font-bold text-base sm:text-lg tracking-wide uppercase shadow-neo inline-flex items-center gap-3 border-2 border-black">
@@ -1663,8 +1867,30 @@
             },
 
             hulkSmash() {
-                this.playTone(85, 'sawtooth', 0.35, 0, 0.35);
-                this.playTone(55, 'square', 0.45, 0.05, 0.3);
+                if (this.muted) return;
+                this.init();
+                try {
+                    // 1. Explosive seismic impact crack (downward frequency sweep)
+                    if (this.ctx) {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(240, this.ctx.currentTime);
+                        osc.frequency.exponentialRampToValueAtTime(36, this.ctx.currentTime + 0.38);
+                        gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.38);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start();
+                        osc.stop(this.ctx.currentTime + 0.38);
+                    }
+                    // 2. Heavy sub-bass earthquake rumbling tones
+                    this.playTone(72, 'square', 0.45, 0.02, 0.35);
+                    this.playTone(38, 'sine', 0.55, 0.05, 0.4);
+                } catch(e) {
+                    this.playTone(85, 'sawtooth', 0.35, 0, 0.35);
+                    this.playTone(55, 'square', 0.45, 0.05, 0.3);
+                }
             },
 
             infinitySnap() {
@@ -2029,6 +2255,55 @@
         }
 
         // =========================================================================
+        // DUAL-FIST HULK SMASH COMIC BURST SEQUENCE (GPU Composited, Zero-Lag, 750ms)
+        // =========================================================================
+        let hulkSmashTimeout = null;
+        let hulkEarthquakeTimeout = null;
+        let hulkAudioTimeout = null;
+
+        function triggerHulkSmashSequence() {
+            const overlay = document.getElementById('hulk-smash-overlay');
+            if (!overlay) return;
+
+            // Clear any active timers to prevent conflicts on rapid clicks
+            if (hulkSmashTimeout) clearTimeout(hulkSmashTimeout);
+            if (hulkEarthquakeTimeout) clearTimeout(hulkEarthquakeTimeout);
+            if (hulkAudioTimeout) clearTimeout(hulkAudioTimeout);
+
+            // Re-arm CSS keyframes cleanly via reflow
+            overlay.classList.remove('hulk-smash-active');
+            overlay.classList.remove('hidden');
+            void overlay.offsetWidth; // Force reflow so GPU animations restart instantly
+            overlay.classList.add('hulk-smash-active');
+
+            // 1. Audio Impact Boom synchronized exactly at 220ms when fists collide in center
+            hulkAudioTimeout = setTimeout(() => {
+                if (typeof AudioEngine !== 'undefined' && AudioEngine.hulkSmash) {
+                    AudioEngine.hulkSmash();
+                }
+            }, 220);
+
+            // 2. Screen Seismic Rumble on collision
+            hulkEarthquakeTimeout = setTimeout(() => {
+                document.body.classList.add('earthquake');
+                const heroCard = document.getElementById('hero-operator-card');
+                if (heroCard) heroCard.classList.add('earthquake');
+                setTimeout(() => {
+                    document.body.classList.remove('earthquake');
+                    if (heroCard) heroCard.classList.remove('earthquake');
+                }, 380);
+            }, 220);
+
+            // 3. Auto-cleanup safety: hides overlay once the 750ms keyframe sequence finishes
+            hulkSmashTimeout = setTimeout(() => {
+                overlay.classList.remove('hulk-smash-active');
+                overlay.classList.add('hidden');
+                hulkSmashTimeout = null;
+            }, 780);
+        }
+        window.triggerHulkSmashSequence = triggerHulkSmashSequence;
+
+        // =========================================================================
         // SIGNATURE SUPERPOWER ENERGY EFFECT TRIGGER (Web, Smash, Shield Throw, Thunder, Unibeam)
         // =========================================================================
         function triggerSuperpower(heroKey) {
@@ -2036,7 +2311,8 @@
             const hero = HERO_PROFILES[activeKey];
             if (!hero) return;
 
-            if (hero.sound) hero.sound();
+            // Hulk sound will be synchronized on fist collision in triggerHulkSmashSequence
+            if (activeKey !== 'hulk' && hero.sound) hero.sound();
 
             const stage = document.getElementById('hero-avatar-stage');
             const fx = document.getElementById('hero-energy-fx');
@@ -2091,9 +2367,10 @@
                     </div>
                 `;
             } else if (activeKey === 'hulk') {
-                // HULK: Seismic Ground Smash & Gamma Crater Shockwave
+                // HULK: Full-Screen Dual-Fist Comic Smash & Gamma Crater Shockwave
                 if (parentCard) parentCard.classList.add('earthquake');
                 powerStickerText = "*KRAAAK!* HULK SMASH!";
+                triggerHulkSmashSequence();
                 fxHtml = `
                     <div class="gamma-crater relative w-full h-full flex items-center justify-center">
                         <svg class="w-52 h-52 absolute -m-8 pointer-events-none" viewBox="0 0 180 180">
@@ -3521,6 +3798,12 @@
         function triggerHeroEnergyBeam(heroKey) {
             let activeKey = heroKey || currentHeroKey || 'ironman';
             if (activeKey === 'spiderman') activeKey = 'spidey';
+
+            // If operator is Hulk, unleash the dual-fist Hulk Smash comic sequence
+            if (activeKey === 'hulk' && typeof triggerHulkSmashSequence === 'function') {
+                triggerHulkSmashSequence();
+            }
+
             const canvas = document.getElementById('hero-energy-beam-canvas');
             if (!canvas) return;
 
