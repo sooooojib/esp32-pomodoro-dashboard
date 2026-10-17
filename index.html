@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AVENGERS FOCUS HUD • UI Showcase Edition</title>
+    <title>AVENGERS FOCUS HUD • ESP32-S3 Physical Companion</title>
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -521,7 +521,7 @@
                         </span>
                     </div>
                     <p class="font-body text-xs font-medium text-white/90 tracking-wide mt-0.5">
-                        Interactive UI Showcase Edition
+                        Physical ESP32-S3 Hardware Companion
                     </p>
                 </div>
             </div>
@@ -529,16 +529,16 @@
             <!-- Hardware Telemetry & Audio SFX -->
             <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
                 
-                <!-- Showcase Signal Beacon Indicator (Flat) -->
-                <div id="conn-pill" class="flex items-center gap-2 bg-emerald-50 text-black border-2 border-black px-3 py-1.5 rounded-lg shadow-none">
-                    <span id="conn-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 border border-black animate-ping"></span>
-                    <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i>
+                <!-- ESP32 Signal Beacon Indicator (Flat) -->
+                <div id="conn-pill" class="flex items-center gap-2 bg-red-50 text-black border-2 border-black px-3 py-1.5 rounded-lg shadow-none">
+                    <span id="conn-dot" class="w-2.5 h-2.5 rounded-full bg-red-500 border border-black animate-pulse"></span>
+                    <i data-lucide="radio" class="w-3.5 h-3.5 text-zinc-700"></i>
                     <div class="flex flex-col">
-                        <span id="conn-label" class="font-mono text-[10px] font-bold text-emerald-800 uppercase tracking-wider leading-none">
-                            SHOWCASE HUD
+                        <span id="conn-label" class="font-mono text-[10px] font-bold text-red-700 uppercase tracking-wider leading-none">
+                            ESP32 OFFLINE
                         </span>
-                        <span id="conn-sub" class="text-[9px] font-mono text-emerald-600 font-bold leading-tight">
-                            STANDALONE UI MODE
+                        <span id="conn-sub" class="text-[9px] font-mono text-red-500 font-bold leading-tight">
+                            WAITING FOR HARDWARE
                         </span>
                     </div>
                 </div>
@@ -552,9 +552,9 @@
                 </button>
 
                 <!-- Ping Hardware Resync Button (Interactive Button) -->
-                <button class="neo-btn bg-stark-gold hover:bg-yellow-300 text-black px-3.5 py-1.5 flex items-center gap-1.5 text-xs font-mono font-bold" title="Test Showcase State" onclick="manualSync()">
+                <button class="neo-btn bg-stark-gold hover:bg-yellow-300 text-black px-3.5 py-1.5 flex items-center gap-1.5 text-xs font-mono font-bold" title="Refresh state from Supabase" onclick="manualSync()">
                     <i data-lucide="refresh-cw" class="w-4 h-4 transition-transform" id="sync-spinner"></i>
-                    <span class="hidden sm:inline font-bold">DEMO SYNC</span>
+                    <span class="hidden sm:inline font-bold">SYNC</span>
                 </button>
 
             </div>
@@ -709,7 +709,7 @@
                     <!-- Unified Sub-Well: Comic Dialogue Speech Balloon -->
                     <div id="hero-speech-balloon" class="sub-well flex-1 w-full relative smooth-pop">
                         <p id="hero-speech" class="font-comic font-bold text-lg sm:text-2xl text-zinc-950 uppercase tracking-wider leading-snug drop-shadow-sm">
-                            "F.R.I.D.A.Y. IS ONLINE. CLICK ASSEMBLE OR START TO ENGAGE FOCUS THRUSTERS!"
+                            "F.R.I.D.A.Y. IS ONLINE. PRESS THE PHYSICAL ESP32 BUTTON TO ENGAGE FOCUS THRUSTERS!"
                         </p>
                     </div>
                 </div>
@@ -857,7 +857,7 @@
 
                     <!-- Giant Bold High-Contrast Clock Digits (Sized to fit perfectly without cutting) -->
                     <div class="py-0.5">
-                        <div id="timer-display" class="font-comic text-6xl sm:text-7xl md:text-8xl text-black select-none leading-none tracking-tight cursor-pointer hover:opacity-85 transition-opacity" onclick="toggleSimulatedTimer()" title="Click to Start / Pause Timer Simulation">
+                        <div id="timer-display" class="font-comic text-6xl sm:text-7xl md:text-8xl text-black select-none leading-none tracking-tight">
                             25:00
                         </div>
                     </div>
@@ -880,25 +880,19 @@
                     <div class="bg-white border-2 border-black rounded-xl p-2 sm:p-2.5 flex items-center justify-between gap-2 mt-2.5 shadow-none">
                         <div class="flex items-center gap-2">
                             <div class="w-7 h-7 rounded-lg bg-[#FACC15] border-2 border-black flex items-center justify-center text-black flex-shrink-0 shadow-none">
-                                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-950"></i>
+                                <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
                             </div>
                             <div class="text-left">
-                                <span class="text-[9px] font-mono font-bold text-[#64748B] uppercase tracking-wider block leading-none mb-0.5">SHOWCASE SIMULATION</span>
+                                <span class="text-[9px] font-mono font-bold text-[#64748B] uppercase tracking-wider block leading-none mb-0.5">HARDWARE MIRROR</span>
                                 <p id="hardware-instruction-text" class="text-[11px] sm:text-xs font-bold text-black font-comic tracking-wide leading-tight uppercase">
-                                    CLICK START OR ASSEMBLE TO SIMULATE COMBAT PROTOCOL!
+                                    PRESS THE BUTTON ON YOUR DESK ESP32-S3 TO CONTROL SESSION STATE.
                                 </p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-1.5 flex-shrink-0">
-                            <button id="sim-timer-btn" class="neo-btn bg-[#10B981] hover:bg-emerald-400 text-black px-3 py-1.5 font-comic font-bold text-xs sm:text-sm tracking-wider flex items-center gap-1" onclick="toggleSimulatedTimer()" title="Start / Pause Simulation">
-                                <i data-lucide="play" class="w-3.5 h-3.5" id="sim-btn-icon"></i>
-                                <span id="sim-btn-text">START</span>
-                            </button>
-                            <button id="assemble-btn" class="neo-btn px-3 py-1.5 font-comic font-bold text-xs sm:text-sm tracking-wider flex items-center gap-1" onclick="triggerHeroCheer()" title="Click to trigger Avengers Assemble!">
-                                <i data-lucide="zap" class="w-3 h-3"></i>
-                                <span>ASSEMBLE!</span>
-                            </button>
-                        </div>
+                        <button id="assemble-btn" class="neo-btn px-3 py-1.5 font-comic font-bold text-xs sm:text-sm tracking-wider flex items-center gap-1 flex-shrink-0" onclick="triggerHeroCheer()" title="Click to trigger Avengers Assemble!">
+                            <i data-lucide="zap" class="w-3 h-3"></i>
+                            <span>ASSEMBLE!</span>
+                        </button>
                     </div>
                 </div>
 
@@ -1380,12 +1374,12 @@
                     <div class="border-t-2 border-black my-4 w-full"></div>
 
                     <!-- Peak Insight Callout -->
-                    <div id="peak-hour-callout" class="p-3 bg-amber-50 border-2 border-black rounded-xl font-mono text-xs font-bold text-amber-950 flex items-center justify-between mb-3 shadow-none">
+                    <div id="peak-hour-callout" class="p-3 bg-amber-50 border-2 border-black rounded-xl font-mono text-xs font-bold text-amber-950 flex items-center justify-between mb-3 shadow-none transition-all">
                         <div class="flex items-center gap-2 min-w-0">
-                            <i data-lucide="flame" class="w-4 h-4 text-[#E11D48] shrink-0"></i>
+                            <span id="peak-hour-icon-wrap" class="shrink-0 flex items-center"><i data-lucide="flame" class="w-4 h-4 text-[#E11D48]"></i></span>
                             <span id="peak-hour-text" class="truncate">PEAK WINDOW: CALCULATING...</span>
                         </div>
-                        <span id="peak-hour-ops-count" class="text-[10px] bg-black text-[#FACC15] px-2 py-0.5 rounded border border-black shrink-0">0 SESSIONS</span>
+                        <span id="peak-hour-ops-count" class="text-[10px] bg-black text-[#FACC15] px-2 py-0.5 rounded border border-black shrink-0 font-mono font-bold">0 SESSIONS</span>
                     </div>
 
                     <!-- 24-Hour Distribution Histogram with Clean Y-Axis -->
@@ -2399,94 +2393,200 @@
         }
 
         // =========================================================================
-        // 6. STANDALONE SHOWCASE STATUS & SIMULATION CONTROLS
+        // 6. SUPABASE REALTIME SUBSCRIPTION
         // =========================================================================
+        // Dual Connection State Tracking: Both ESP32 hardware and Supabase must be online, otherwise indicator stays red
+        let isSupabaseConnected = false;
+        let isEspConnected = false;
+        let lastEspHeartbeat = 0;
+        const ESP_HEARTBEAT_TIMEOUT_MS = 60000; // 60 seconds tolerance for hardware updates
+
         function evaluateConnectionStatus() {
             const connSub = document.getElementById("conn-sub");
-            if (connDot) connDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 border border-black animate-ping";
-            if (connLabel) {
-                connLabel.innerText = "SHOWCASE HUD";
-                connLabel.className = "font-mono text-[10px] font-bold text-emerald-800 uppercase tracking-wider leading-none";
+            if (isSupabaseConnected && isEspConnected) {
+                // Both ESP32 hardware and Supabase cloud are connected -> GREEN
+                connDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 border border-black animate-ping";
+                connLabel.innerText = "ESP32 BEAMED IN";
+                connLabel.className = "font-mono text-[10px] font-bold text-emerald-700 uppercase tracking-wider leading-none";
+                if (connSub) {
+                    connSub.innerText = "PORT: 443 / SUPABASE ONLINE";
+                    connSub.className = "text-[9px] font-mono text-emerald-600 font-bold leading-tight";
+                }
+                connPill.className = "flex items-center gap-2 bg-emerald-50 border-2 border-black px-3 py-1.5 rounded-lg shadow-none";
+            } else {
+                // Otherwise -> STAYS RED
+                connDot.className = "w-2.5 h-2.5 rounded-full bg-red-500 border border-black animate-pulse";
+                connPill.className = "flex items-center gap-2 bg-red-50 border-2 border-black px-3 py-1.5 rounded-lg shadow-none";
+
+                if (!isSupabaseConnected) {
+                    connLabel.innerText = "LINK DROPPED";
+                    if (connSub) {
+                        connSub.innerText = "SUPABASE OFFLINE";
+                        connSub.className = "text-[9px] font-mono text-red-500 font-bold leading-tight";
+                    }
+                } else {
+                    connLabel.innerText = "ESP32 OFFLINE";
+                    if (connSub) {
+                        connSub.innerText = "WAITING FOR HARDWARE";
+                        connSub.className = "text-[9px] font-mono text-red-500 font-bold leading-tight";
+                    }
+                }
+                connLabel.className = "font-mono text-[10px] font-bold text-red-700 uppercase tracking-wider leading-none";
             }
-            if (connSub) {
-                connSub.innerText = "STANDALONE UI MODE";
-                connSub.className = "text-[9px] font-mono text-emerald-600 font-bold leading-tight";
-            }
-            if (connPill) connPill.className = "flex items-center gap-2 bg-emerald-50 text-black border-2 border-black px-3 py-1.5 rounded-lg shadow-none";
         }
 
+        // Hardware Watchdog: checks every 3 seconds if ESP32 timed out
+        setInterval(() => {
+            if (isEspConnected && lastEspHeartbeat && (Date.now() - lastEspHeartbeat > ESP_HEARTBEAT_TIMEOUT_MS)) {
+                console.warn("ESP32 heartbeat timed out (> 60s without events)");
+                isEspConnected = false;
+                evaluateConnectionStatus();
+            }
+        }, 3000);
+
         async function fetchInitialState() {
-            // Default Standalone UI state: 25:00 WORK sprint ready with 2 gauntlet stones
-            applyState({
-                phase: 'WORK',
-                is_running: false,
-                remaining_seconds: 1500,
-                total_phase_seconds: 1500,
-                pomodoro_count: 2
-            });
-            evaluateConnectionStatus();
+            try {
+                const { data, error } = await supabaseClient
+                    .from('device_state')
+                    .select('*')
+                    .eq('id', 1)
+                    .single();
+
+                if (error) {
+                    console.warn("Supabase fetch error:", error);
+                    isSupabaseConnected = false;
+                    isEspConnected = false;
+                    evaluateConnectionStatus();
+                    return;
+                }
+
+                isSupabaseConnected = true;
+
+                if (data) {
+                    applyState(data);
+
+                    // Check if ESP32 hardware state has recent activity (within 60 seconds)
+                    if (data.updated_at) {
+                        const updatedEpoch = new Date(data.updated_at).getTime();
+                        const diffSec = (Date.now() - updatedEpoch) / 1000;
+                        if (diffSec >= 0 && diffSec <= (ESP_HEARTBEAT_TIMEOUT_MS / 1000)) {
+                            lastEspHeartbeat = updatedEpoch;
+                            isEspConnected = true;
+                        } else {
+                            isEspConnected = false;
+                        }
+                    } else {
+                        isEspConnected = false;
+                    }
+                }
+                evaluateConnectionStatus();
+            } catch (err) {
+                console.error("Supabase fetch error:", err);
+                isSupabaseConnected = false;
+                isEspConnected = false;
+                evaluateConnectionStatus();
+            }
         }
 
         function subscribeToRealtime() {
-            // Disconnected: No external WebSocket or database subscription
-            evaluateConnectionStatus();
+            // Live Hardware Device State Listener (id = 1)
+            supabaseClient
+                .channel('device_state_feed')
+                .on(
+                    'postgres_changes',
+                    { event: 'UPDATE', schema: 'public', table: 'device_state', filter: 'id=eq.1' },
+                    (payload) => {
+                        console.log("ESP32 Hardware Event:", payload.new);
+                        lastEspHeartbeat = Date.now();
+                        isEspConnected = true;
+                        isSupabaseConnected = true;
+                        applyState(payload.new);
+                        evaluateConnectionStatus();
+                    }
+                )
+                .subscribe((status) => {
+                    if (status === 'SUBSCRIBED') {
+                        isSupabaseConnected = true;
+                    } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+                        isSupabaseConnected = false;
+                        isEspConnected = false;
+                    }
+                    evaluateConnectionStatus();
+                });
+
+            // Live Session Logs Auto-Refresh Listener (ESP32 Background HTTP POST Hook)
+            supabaseClient
+                .channel('shield_logs_channel')
+                .on(
+                    'postgres_changes',
+                    { event: 'INSERT', schema: 'public', table: 'session_logs' },
+                    async (payload) => {
+                        console.log("ESP32 Finished Work Session - Hardware Event:", payload.new);
+                        lastEspHeartbeat = Date.now();
+                        isEspConnected = true;
+                        isSupabaseConnected = true;
+                        evaluateConnectionStatus();
+
+                        if (typeof updateTacticalDebrief === 'function') {
+                            await updateTacticalDebrief();
+                        }
+                        if (typeof loadAnalytics === 'function') {
+                            await loadAnalytics();
+                        }
+                        if (typeof loadTacticalStats === 'function') {
+                            await loadTacticalStats();
+                        }
+                        
+                        // Automatic Audio Chime & Fanfare
+                        if (typeof AudioEngine !== 'undefined') {
+                            AudioEngine.fanfare();
+                            setTimeout(() => {
+                                if (AudioEngine.repulsorZap) AudioEngine.repulsorZap();
+                            }, 350);
+                        }
+
+                        // Automatic Hero Energy Beam Animation
+                        if (typeof triggerHeroEnergyBeam === 'function') {
+                            triggerHeroEnergyBeam(currentHeroKey);
+                        }
+
+                        showToast("MISSION COMPLETE: S.H.I.E.L.D. DEBRIEF UPDATED!", "done");
+                    }
+                )
+                .subscribe();
         }
 
-        function toggleSimulatedTimer() {
-            AudioEngine.init();
-            isRunning = !isRunning;
-            hardwareState.is_running = isRunning;
-
-            const simBtnIcon = document.getElementById('sim-btn-icon');
-            const simBtnText = document.getElementById('sim-btn-text');
-            const simBtn = document.getElementById('sim-timer-btn');
-
-            if (isRunning) {
-                AudioEngine.repulsorZap();
-                showToast("SIMULATION: COMBAT PROTOCOL STARTED!", "start");
-                statusBadge.innerText = "MISSION ACTIVE";
-                statusBadge.className = "hud-badge bg-emerald-400 text-black";
-                if (hardwareInstructionText) {
-                    hardwareInstructionText.innerText = "SIMULATION RUNNING • CLICK PAUSE TO HALT COMBAT PROTOCOL.";
-                }
-                if (simBtnText) simBtnText.innerText = "PAUSE";
-                if (simBtnIcon) {
-                    simBtnIcon.setAttribute('data-lucide', 'pause');
-                }
-                if (simBtn) {
-                    simBtn.className = "neo-btn bg-[#FACC15] hover:bg-yellow-300 text-black px-3 py-1.5 font-comic font-bold text-xs sm:text-sm tracking-wider flex items-center gap-1";
-                }
-            } else {
-                AudioEngine.shieldClang();
-                showToast("SIMULATION: STANDBY PAUSED", "pause");
-                statusBadge.innerText = "STANDBY PAUSED";
-                statusBadge.className = "hud-badge bg-[#FACC15] text-black";
-                if (hardwareInstructionText) {
-                    hardwareInstructionText.innerText = "UI SHOWCASE ACTIVE • CLICK START TO SIMULATE COMBAT PROTOCOL.";
-                }
-                if (simBtnText) simBtnText.innerText = "START";
-                if (simBtnIcon) {
-                    simBtnIcon.setAttribute('data-lucide', 'play');
-                }
-                if (simBtn) {
-                    simBtn.className = "neo-btn bg-[#10B981] hover:bg-emerald-400 text-black px-3 py-1.5 font-comic font-bold text-xs sm:text-sm tracking-wider flex items-center gap-1";
-                }
+        function setConnectionStatus(status) {
+            if (status === 'ONLINE') {
+                isSupabaseConnected = true;
+            } else if (status === 'ERROR' || status === 'OFFLINE') {
+                isSupabaseConnected = false;
+                isEspConnected = false;
             }
-
-            renderHero(currentPhase, isRunning);
-            renderTacticalMissions();
-            startLocalTicker();
-            if (window.lucide) lucide.createIcons();
+            evaluateConnectionStatus();
         }
 
         async function manualSync() {
             const spinner = document.getElementById('sync-spinner');
             if (spinner) spinner.classList.add('rotate-180');
             AudioEngine.repulsorZap();
-            evaluateConnectionStatus();
+            await fetchInitialState();
+            await loadAnalytics();
+            if (typeof updateTacticalDebrief === 'function') {
+                await updateTacticalDebrief();
+            }
+            if (typeof loadTacticalStats === 'function') {
+                await loadTacticalStats();
+            }
             setTimeout(() => {
                 if (spinner) spinner.classList.remove('rotate-180');
-                showToast("SHOWCASE HUD ONLINE • UI ACTIVE!", "sync");
+                if (isSupabaseConnected && isEspConnected) {
+                    showToast("ESP32 & SUPABASE SYNCED!", "sync");
+                } else if (isSupabaseConnected) {
+                    showToast("CLOUD ONLINE • ESP32 OFFLINE", "pause");
+                } else {
+                    showToast("CONNECTION FAILED: CHECK NETWORK", "pause");
+                }
             }, 300);
         }
 
@@ -2585,59 +2685,89 @@
         }
 
         async function updateTacticalDebrief() {
+            try {
+                if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+                    const today = new Date().toISOString().split('T')[0];
+                    const { data: logs, error } = await supabaseClient
+                        .from('session_logs')
+                        .select('*')
+                        .gte('completed_at', `${today}T00:00:00Z`)
+                        .order('completed_at', { ascending: true });
+
+                    if (!error && logs) {
+                        const workSessions = logs.filter(l => l.phase === 'WORK').length;
+                        const totalSingleSessions = workSessions;
+                        const fullOperations = Math.floor(totalSingleSessions / 4);
+                        const currentWaveProgress = totalSingleSessions % 4;
+                        const currentWave = fullOperations + 1;
+                        const totalFocusMinutes = totalSingleSessions * 25;
+
+                        tacticalDebriefState.totalSingleSessions = totalSingleSessions;
+                        tacticalDebriefState.fullOperations = fullOperations;
+                        tacticalDebriefState.currentWaveProgress = currentWaveProgress;
+                        tacticalDebriefState.currentWave = currentWave;
+                        tacticalDebriefState.totalFocusMinutes = totalFocusMinutes;
+
+                        renderTacticalMissions();
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.warn("updateTacticalDebrief query error:", err);
+            }
             renderTacticalMissions();
         }
 
         async function loadAnalytics() {
-            // Standalone Showcase Data (No database/network calls)
-            const mockLogs = [
-                {
-                    phase: 'WORK',
-                    duration_minutes: 25,
-                    completed_at: new Date(Date.now() - 12 * 60 * 1000).toISOString()
-                },
-                {
-                    phase: 'SHORT_BREAK',
-                    duration_minutes: 5,
-                    completed_at: new Date(Date.now() - 40 * 60 * 1000).toISOString()
-                },
-                {
-                    phase: 'WORK',
-                    duration_minutes: 25,
-                    completed_at: new Date(Date.now() - 70 * 60 * 1000).toISOString()
-                },
-                {
-                    phase: 'WORK',
-                    duration_minutes: 25,
-                    completed_at: new Date(Date.now() - 100 * 60 * 1000).toISOString()
-                },
-                {
-                    phase: 'SHORT_BREAK',
-                    duration_minutes: 5,
-                    completed_at: new Date(Date.now() - 130 * 60 * 1000).toISOString()
-                },
-                {
-                    phase: 'WORK',
-                    duration_minutes: 25,
-                    completed_at: new Date(Date.now() - 160 * 60 * 1000).toISOString()
+            try {
+                let logs = null;
+                if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+                    const { data, error } = await supabaseClient
+                        .from('session_logs')
+                        .select('*')
+                        .order('completed_at', { ascending: false });
+                    if (!error && data && data.length > 0) {
+                        logs = data;
+                    }
                 }
-            ];
 
-            const workCount = 14;
-            const breakCount = 5;
-            const totalFocusMinutes = 350; // 5.8 hours
+                if (!logs || logs.length === 0) {
+                    logs = [
+                        { phase: 'WORK', duration_minutes: 25, completed_at: new Date(Date.now() - 12 * 60 * 1000).toISOString() },
+                        { phase: 'SHORT_BREAK', duration_minutes: 5, completed_at: new Date(Date.now() - 40 * 60 * 1000).toISOString() },
+                        { phase: 'WORK', duration_minutes: 25, completed_at: new Date(Date.now() - 70 * 60 * 1000).toISOString() },
+                        { phase: 'WORK', duration_minutes: 25, completed_at: new Date(Date.now() - 100 * 60 * 1000).toISOString() }
+                    ];
+                }
 
-            const focusHoursEl = document.getElementById('stat-focus-hours');
-            const smashedEl = document.getElementById('stat-smashed');
-            const breakCountEl = document.getElementById('stat-break-count');
+                let workCount = 0;
+                let breakCount = 0;
+                let totalFocusMinutes = 0;
 
-            if (focusHoursEl) focusHoursEl.innerText = (totalFocusMinutes / 60).toFixed(1);
-            if (smashedEl) smashedEl.innerText = workCount;
-            if (breakCountEl) breakCountEl.innerText = breakCount;
+                logs.forEach(session => {
+                    if (session.phase === 'WORK') {
+                        workCount++;
+                        totalFocusMinutes += session.duration_minutes || 25;
+                    } else {
+                        breakCount++;
+                    }
+                });
 
-            updateShieldClearance(totalFocusMinutes);
-            renderMissionDebriefs(mockLogs);
-            renderTacticalMissions();
+                const focusHoursEl = document.getElementById('stat-focus-hours');
+                const smashedEl = document.getElementById('stat-smashed');
+                const breakCountEl = document.getElementById('stat-break-count');
+
+                if (focusHoursEl) focusHoursEl.innerText = (totalFocusMinutes / 60).toFixed(1);
+                if (smashedEl) smashedEl.innerText = workCount;
+                if (breakCountEl) breakCountEl.innerText = breakCount;
+
+                updateShieldClearance(totalFocusMinutes);
+                renderMissionDebriefs(logs.slice(0, 8));
+                await updateTacticalDebrief();
+
+            } catch (err) {
+                console.warn("Analytics load error:", err);
+            }
         }
 
         function updateShieldClearance(totalMinutes) {
@@ -3261,6 +3391,8 @@
         function inspectHourlyBar(h, count, isPeak) {
             const peakText = document.getElementById('peak-hour-text');
             const peakOpsCount = document.getElementById('peak-hour-ops-count');
+            const peakCallout = document.getElementById('peak-hour-callout');
+            const iconWrap = document.getElementById('peak-hour-icon-wrap');
             if (!peakText) return;
 
             function formatH12(hour) {
@@ -3275,33 +3407,59 @@
 
             if (isPeak && count > 0) {
                 peakText.innerText = `PEAK WINDOW: ${rangeStr} (PRIME PROTOCOL)`;
+                if (peakCallout) {
+                    peakCallout.className = "p-3 bg-amber-100 border-2 border-black rounded-xl font-mono text-xs font-bold text-amber-950 flex items-center justify-between mb-3 shadow-[2px_2px_0px_#000] transition-all";
+                }
+                if (iconWrap) iconWrap.innerHTML = `<i data-lucide="flame" class="w-4 h-4 text-[#E11D48]"></i>`;
                 if (peakOpsCount) {
                     peakOpsCount.className = "text-[10px] bg-[#E11D48] text-white px-2 py-0.5 rounded border border-black shrink-0 font-mono font-bold shadow-[1px_1px_0px_#000]";
-                    peakOpsCount.innerText = `${count} COMBAT OPS`;
+                    peakOpsCount.innerText = `${count} COMBAT OP${count > 1 ? 'S' : ''}`;
                 }
             } else if (count > 0) {
                 peakText.innerText = `WINDOW: ${rangeStr} (ACTIVE COMBAT)`;
+                if (peakCallout) {
+                    peakCallout.className = "p-3 bg-cyan-50 border-2 border-black rounded-xl font-mono text-xs font-bold text-cyan-950 flex items-center justify-between mb-3 shadow-[2px_2px_0px_#000] transition-all";
+                }
+                if (iconWrap) iconWrap.innerHTML = `<i data-lucide="crosshair" class="w-4 h-4 text-[#06B6D4]"></i>`;
                 if (peakOpsCount) {
                     peakOpsCount.className = "text-[10px] bg-[#FACC15] text-black px-2 py-0.5 rounded border border-black shrink-0 font-mono font-bold shadow-[1px_1px_0px_#000]";
                     peakOpsCount.innerText = `${count} COMBAT OP${count > 1 ? 'S' : ''}`;
                 }
             } else {
-                peakText.innerText = `WINDOW: ${rangeStr} (0 COMBAT SESSIONS)`;
+                peakText.innerText = `WINDOW: ${rangeStr} (0 SESSIONS)`;
+                if (peakCallout) {
+                    peakCallout.className = "p-3 bg-zinc-100 border-2 border-black rounded-xl font-mono text-xs font-bold text-zinc-600 flex items-center justify-between mb-3 shadow-none transition-all";
+                }
+                if (iconWrap) iconWrap.innerHTML = `<i data-lucide="shield" class="w-4 h-4 text-zinc-400"></i>`;
                 if (peakOpsCount) {
-                    peakOpsCount.className = "text-[10px] bg-zinc-200 text-zinc-700 px-2 py-0.5 rounded border border-black shrink-0 font-mono font-bold";
+                    peakOpsCount.className = "text-[10px] bg-zinc-200 text-zinc-600 px-2 py-0.5 rounded border border-black shrink-0 font-mono font-bold";
                     peakOpsCount.innerText = `0 SESSIONS`;
                 }
             }
+            if (window.lucide) lucide.createIcons();
         }
 
         function resetHourlyInspect() {
             const peakText = document.getElementById('peak-hour-text');
             const peakOpsCount = document.getElementById('peak-hour-ops-count');
-            if (peakText) peakText.innerText = `PEAK WINDOW: ${activePeakHourState.peakRangeStr} (PRIME PROTOCOL)`;
+            const peakCallout = document.getElementById('peak-hour-callout');
+            const iconWrap = document.getElementById('peak-hour-icon-wrap');
+            if (peakCallout) {
+                peakCallout.className = "p-3 bg-amber-50 border-2 border-black rounded-xl font-mono text-xs font-bold text-amber-950 flex items-center justify-between mb-3 shadow-none transition-all";
+            }
+            if (iconWrap) iconWrap.innerHTML = `<i data-lucide="flame" class="w-4 h-4 text-[#E11D48]"></i>`;
+            if (peakText) {
+                if (activePeakHourState.peakOps === 0) {
+                    peakText.innerText = `PEAK WINDOW: NO SESSIONS RECORDED YET`;
+                } else {
+                    peakText.innerText = `PEAK WINDOW: ${activePeakHourState.peakRangeStr} (PRIME PROTOCOL)`;
+                }
+            }
             if (peakOpsCount) {
                 peakOpsCount.className = "text-[10px] bg-black text-[#FACC15] px-2 py-0.5 rounded border border-black shrink-0 font-mono font-bold";
-                peakOpsCount.innerText = `${activePeakHourState.peakOps} COMBAT OPS`;
+                peakOpsCount.innerText = `${activePeakHourState.peakOps} COMBAT OP${activePeakHourState.peakOps === 1 ? '' : 'S'}`;
             }
+            if (window.lucide) lucide.createIcons();
         }
 
         function renderPeakHours(workLogs) {
@@ -3309,6 +3467,8 @@
             const peakText = document.getElementById('peak-hour-text');
             const peakOpsCount = document.getElementById('peak-hour-ops-count');
             if (!container) return;
+
+            container.onmouseleave = resetHourlyInspect;
 
             const hourlyCounts = new Array(24).fill(0);
             workLogs.forEach(l => {
