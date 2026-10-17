@@ -20,8 +20,7 @@
     <!-- Supabase JS v2 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- Canvas Confetti CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
 
     <script>
         tailwind.config = {
@@ -646,24 +645,7 @@
                     </div>
                 </div>
 
-                <!-- Unified Sub-Well: Hardware Controller Command Banner -->
-                <div class="sub-well flex items-center justify-between gap-3 mt-4">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-[#FACC15] border-2 border-black flex items-center justify-center text-black flex-shrink-0 shadow-none">
-                            <i data-lucide="cpu" class="w-4 h-4"></i>
-                        </div>
-                        <div>
-                            <span class="text-[10px] font-mono font-bold text-[#64748B] uppercase tracking-wider block">HARDWARE MIRROR</span>
-                            <p id="hardware-instruction-text" class="text-xs font-medium text-black font-body leading-tight">
-                                Press the button on your desk ESP32-S3 to control session state.
-                            </p>
-                        </div>
-                    </div>
-                    <button id="assemble-btn" class="neo-btn px-3.5 py-1.5 font-comic text-sm tracking-wider flex items-center gap-1.5 flex-shrink-0" onclick="triggerHeroCheer()" title="Click to trigger Avengers Assemble!">
-                        <i data-lucide="zap" class="w-3.5 h-3.5"></i>
-                        <span>ASSEMBLE!</span>
-                    </button>
-                </div>
+
 
             </div>
 
@@ -806,10 +788,23 @@
                         </div>
                     </div>
 
-                    <!-- Hardware Status Telemetry: Updated to physical button push prompt -->
-                    <div class="mt-4 pt-2.5 border-t border-black/10 text-[11px] font-body text-zinc-600 flex items-center justify-center gap-2">
-                        <i data-lucide="radio" class="w-3.5 h-3.5 text-emerald-600"></i>
-                        <span>Push the physical button on your ESP32-S3 to complete your first session!</span>
+                    <!-- Transferred Hardware Mirror Command Banner (Image 1 UI transferred into Image 2 location) -->
+                    <div class="sub-well flex items-center justify-between gap-3 mt-5">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-[#FACC15] border-2 border-black flex items-center justify-center text-black flex-shrink-0 shadow-none">
+                                <i data-lucide="cpu" class="w-4 h-4"></i>
+                            </div>
+                            <div class="text-left">
+                                <span class="text-[10px] font-mono font-bold text-[#64748B] uppercase tracking-wider block">HARDWARE MIRROR</span>
+                                <p id="hardware-instruction-text" class="text-xs font-bold text-black font-comic tracking-wide leading-tight uppercase">
+                                    PRESS THE BUTTON ON YOUR DESK ESP32-S3 TO CONTROL SESSION STATE.
+                                </p>
+                            </div>
+                        </div>
+                        <button id="assemble-btn" class="neo-btn px-4 py-2 font-comic font-bold text-sm tracking-wider flex items-center gap-1.5 flex-shrink-0" onclick="triggerHeroCheer()" title="Click to trigger Avengers Assemble!">
+                            <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                            <span>ASSEMBLE!</span>
+                        </button>
                     </div>
                 </div>
 
@@ -933,13 +928,16 @@
         </div>
     </footer>
 
-    <!-- Interactive Toast Notification -->
-    <div id="toast-bubble" class="fixed bottom-6 right-6 z-50 transform translate-y-32 transition-transform duration-300 pointer-events-none">
-        <div class="neo-card bg-stark-gold text-black px-4 py-2.5 font-display font-bold text-sm shadow-neo flex items-center gap-2">
-            <span id="toast-icon" class="w-5 h-5 flex items-center justify-center">
+    <!-- Full-Screen Hero Energy Beam & Shockwave Canvas Effect (Replaces Confetti) -->
+    <canvas id="hero-energy-beam-canvas" class="fixed inset-0 pointer-events-none w-full h-full" style="z-index: 9999;"></canvas>
+
+    <!-- Interactive Toast Notification (Image 3 fix: contained max-w, bold comic typography) -->
+    <div id="toast-bubble" class="fixed bottom-6 right-6 z-50 transform translate-y-32 transition-transform duration-300 pointer-events-none max-w-sm sm:max-w-md w-auto">
+        <div class="neo-card bg-stark-gold text-black px-4 py-2.5 font-comic font-bold text-base sm:text-lg tracking-wide uppercase shadow-neo inline-flex items-center gap-3 border-2 border-black">
+            <span id="toast-icon" class="w-5 h-5 flex items-center justify-center flex-shrink-0">
                 <!-- Injected dynamically in JS -->
             </span>
-            <span id="toast-text">Toast message</span>
+            <span id="toast-text" class="leading-none">Toast message</span>
         </div>
     </div>
 
@@ -1373,9 +1371,6 @@
                 powerStickerText = "*CLANG!* SHIELD THROW!";
                 fxHtml = `
                     <div class="relative w-full h-full flex items-center justify-center">
-                        <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-stark-gold text-black border-2 border-black font-comic text-xs px-2.5 py-0.5 rounded shadow-neo font-bold whitespace-nowrap animate-bounce z-30">
-                            💥 SHIELD RICOCHET! 💥
-                        </div>
                         <svg class="w-48 h-48 absolute -m-6 animate-ping opacity-75" viewBox="0 0 100 100">
                             <polygon points="50,10 55,35 80,30 62,50 85,68 58,65 50,90 42,65 15,68 38,50 20,30 45,35" fill="#FFD700" stroke="#000" stroke-width="2"/>
                         </svg>
@@ -1392,9 +1387,6 @@
                 powerStickerText = "*THWIP!* WEB SLING!";
                 fxHtml = `
                     <div class="web-burst relative w-full h-full flex items-center justify-center">
-                        <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-stark-gold text-black border-2 border-black font-comic text-xs px-2.5 py-0.5 rounded shadow-neo font-bold whitespace-nowrap animate-bounce z-30">
-                            🕸️ *THWIP!* WEB SLING! 🕸️
-                        </div>
                         <svg class="w-52 h-52 absolute -m-8 pointer-events-none" viewBox="0 0 180 180">
                             <line x1="90" y1="90" x2="10" y2="10" stroke="#000" stroke-width="3.5" stroke-linecap="round"/>
                             <line x1="90" y1="90" x2="170" y2="10" stroke="#000" stroke-width="3.5" stroke-linecap="round"/>
@@ -1418,9 +1410,6 @@
                 powerStickerText = "*KRAAAK!* HULK SMASH!";
                 fxHtml = `
                     <div class="gamma-crater relative w-full h-full flex items-center justify-center">
-                        <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-stark-gold text-black border-2 border-black font-comic text-xs px-2.5 py-0.5 rounded shadow-neo font-bold whitespace-nowrap animate-bounce z-30">
-                            ⚡ *KRAAAK!* HULK SMASH! ⚡
-                        </div>
                         <svg class="w-52 h-52 absolute -m-8 pointer-events-none" viewBox="0 0 180 180">
                             <circle cx="90" cy="95" r="32" fill="#10B981" opacity="0.7" stroke="#000" stroke-width="3"/>
                             <circle cx="90" cy="95" r="58" fill="none" stroke="#10B981" stroke-width="7" opacity="0.85"/>
@@ -1438,9 +1427,6 @@
                 powerStickerText = "*KRA-BOOM!* THUNDER!";
                 fxHtml = `
                     <div class="lightning-flash relative w-full h-full flex items-center justify-center">
-                        <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-stark-gold text-black border-2 border-black font-comic text-xs px-2.5 py-0.5 rounded shadow-neo font-bold whitespace-nowrap animate-bounce z-30">
-                            ⚡ *KRA-BOOM!* THUNDER! ⚡
-                        </div>
                         <svg class="w-52 h-52 absolute -m-8 pointer-events-none" viewBox="0 0 180 180">
                             <polygon points="85,0 110,0 92,65 125,65 80,165 96,95 68,95" fill="#00F0FF" stroke="#000" stroke-width="3"/>
                             <polygon points="130,5 148,5 132,55 160,55 118,135 135,80 112,80" fill="#FFD700" stroke="#000" stroke-width="2.5" opacity="0.95"/>
@@ -1453,9 +1439,6 @@
                 powerStickerText = "*PEW-PEW!* UNIBEAM!";
                 fxHtml = `
                     <div class="unibeam-blast relative w-full h-full flex items-center justify-center">
-                        <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-stark-gold text-black border-2 border-black font-comic text-xs px-2.5 py-0.5 rounded shadow-neo font-bold whitespace-nowrap animate-bounce z-30">
-                            ✨ *PEW-PEW!* UNIBEAM! ✨
-                        </div>
                         <svg class="w-52 h-52 absolute -m-8 pointer-events-none" viewBox="0 0 180 180">
                             <circle cx="90" cy="90" r="28" fill="#00F0FF" opacity="0.95" stroke="#000" stroke-width="2"/>
                             <circle cx="90" cy="90" r="52" fill="none" stroke="#00F0FF" stroke-width="6" opacity="0.85"/>
@@ -1472,22 +1455,8 @@
             fx.innerHTML = fxHtml;
             sticker.innerText = powerStickerText;
 
-            // Trigger signature superhero confetti colors
-            if (typeof confetti === 'function') {
-                const colorMap = {
-                    ironman: ['#E62429', '#FFD700', '#00F0FF'],
-                    cap: ['#0D47A1', '#E62429', '#FFFFFF'],
-                    thor: ['#6B21A8', '#FACC15', '#38BDF8'],
-                    spidey: ['#EF4444', '#2563EB', '#06B6D4'],
-                    hulk: ['#10B981', '#7C3AED', '#047857']
-                };
-                confetti({
-                    particleCount: 50,
-                    spread: 60,
-                    origin: { y: 0.65 },
-                    colors: colorMap[activeKey] || ['#FFD700', '#E62429']
-                });
-            }
+            // Trigger full-screen Hero Energy Beam & Shockwave Canvas Effect
+            triggerHeroEnergyBeam(activeKey);
 
             setTimeout(() => {
                 fx.innerHTML = '';
@@ -1642,7 +1611,7 @@
 
                 if (prevPhase !== currentPhase) {
                     AudioEngine.fanfare();
-                    triggerConfettiParty();
+                    triggerHeroEnergyBeam(currentHeroKey);
                     showToast(`PHASE SHIFTED TO ${currentPhase}!`, "phase");
                     loadAnalytics();
                 }
@@ -1660,7 +1629,7 @@
                 progressBar.className = "h-full bg-[#E11D48] rounded-full transition-all duration-500 ease-out";
                 progressPercent.className = "text-[#E11D48] font-mono font-bold";
                 hudModeText.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500 animate-ping inline-block"></span> <span>COMBAT FOCUS SPRINT</span>`;
-                hardwareInstructionText.innerText = "Focus in progress! Press the physical ESP32 button on your desk to pause.";
+                hardwareInstructionText.innerText = "FOCUS IN PROGRESS! PRESS THE PHYSICAL ESP32 BUTTON ON YOUR DESK TO PAUSE.";
             } else if (currentPhase === "SHORT_BREAK") {
                 if (phaseTitle) phaseTitle.innerText = "TACTICAL RECHARGE";
                 if (phaseIconBox) {
@@ -1670,7 +1639,7 @@
                 progressBar.className = "h-full bg-[#06B6D4] rounded-full transition-all duration-500 ease-out";
                 progressPercent.className = "text-[#06B6D4] font-mono font-bold";
                 hudModeText.innerHTML = `<span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping inline-block"></span> <span>5 MIN SERUM RECOVERY</span>`;
-                hardwareInstructionText.innerText = "Take a breather! Drink water or stretch. Physical ESP32 tracks recovery.";
+                hardwareInstructionText.innerText = "TAKE A BREATHER! DRINK WATER OR STRETCH. PHYSICAL ESP32 TRACKS RECOVERY.";
             } else {
                 if (phaseTitle) phaseTitle.innerText = "SHAWARMA LONG BREAK";
                 if (phaseIconBox) {
@@ -1680,7 +1649,7 @@
                 progressBar.className = "h-full bg-[#FACC15] rounded-full transition-all duration-500 ease-out";
                 progressPercent.className = "text-black font-mono font-bold";
                 hudModeText.innerHTML = `<span class="w-2 h-2 rounded-full bg-yellow-400 animate-ping inline-block"></span> <span>SHAWARMA PARTY (EXTENDED REST)</span>`;
-                hardwareInstructionText.innerText = "Infinity cycle achieved! Enjoy your extended rest before assembling again.";
+                hardwareInstructionText.innerText = "INFINITY CYCLE ACHIEVED! ENJOY YOUR EXTENDED REST BEFORE ASSEMBLING AGAIN.";
             }
 
             if (isRunning) {
@@ -1722,7 +1691,7 @@
                     } else {
                         clearInterval(localTimerInterval);
                         AudioEngine.fanfare();
-                        triggerConfettiParty();
+                        triggerHeroEnergyBeam(currentHeroKey);
                         showToast("MISSION COMPLETE!", "done");
                         loadAnalytics();
                     }
@@ -1827,7 +1796,7 @@
 
             if (completedMissions.length === 4) {
                 AudioEngine.fanfare();
-                triggerConfettiParty();
+                triggerHeroEnergyBeam(currentHeroKey);
                 showToast("ALL 4 MISSIONS ACCOMPLISHED!", "done");
             } else {
                 showToast(`MISSION ${index} ${pos > -1 ? 'RESET' : 'CLEARED'}!`, "start");
@@ -1847,13 +1816,13 @@
                 const badge = btn.querySelector('.milestone-check');
 
                 if (isDone) {
-                    btn.className = "mission-btn neo-btn flex items-center gap-2 text-xs font-mono font-bold px-3 py-2 bg-emerald-50 text-black";
+                    btn.className = "mission-btn neo-btn flex items-center gap-2 text-sm font-comic font-bold tracking-wide uppercase px-3 py-2 bg-emerald-50 text-black";
                     if (badge) {
                         badge.className = "milestone-check w-4 h-4 rounded border border-black flex items-center justify-center text-[10px] bg-emerald-400 text-black font-bold shadow-none";
                         badge.innerHTML = `<svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`;
                     }
                 } else {
-                    btn.className = "mission-btn neo-btn flex items-center gap-2 text-xs font-mono font-bold px-3 py-2 bg-white text-black";
+                    btn.className = "mission-btn neo-btn flex items-center gap-2 text-sm font-comic font-bold tracking-wide uppercase px-3 py-2 bg-white text-black";
                     if (badge) {
                         badge.className = "milestone-check w-4 h-4 rounded border border-black flex items-center justify-center text-[10px] bg-zinc-100 text-zinc-700 font-bold shadow-none";
                         badge.innerText = `${i}`;
@@ -1998,17 +1967,460 @@
         }
 
         // =========================================================================
-        // 8. CELEBRATIONS & TOASTS WITH HERO EMBLEMS (Fixes Image 1)
+        // 8. FULL-SCREEN HERO ENERGY BEAM & SHOCKWAVE CANVAS ENGINE (650ms animation)
         // =========================================================================
-        function triggerConfettiParty() {
-            if (typeof confetti === 'function') {
-                confetti({
-                    particleCount: 85,
-                    spread: 85,
-                    origin: { y: 0.65 },
-                    colors: ['#E62429', '#FFD700', '#00F0FF', '#3B82F6', '#10B981']
-                });
+        let currentBeamRafId = null;
+
+        function triggerHeroEnergyBeam(heroKey) {
+            let activeKey = heroKey || currentHeroKey || 'ironman';
+            if (activeKey === 'spiderman') activeKey = 'spidey';
+            const canvas = document.getElementById('hero-energy-beam-canvas');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            const W = window.innerWidth;
+            const H = window.innerHeight;
+
+            canvas.width = W * dpr;
+            canvas.height = H * dpr;
+            ctx.scale(dpr, dpr);
+
+            if (currentBeamRafId) {
+                cancelAnimationFrame(currentBeamRafId);
+                currentBeamRafId = null;
             }
+
+            // Origin position (Hero avatar stage center or screen left-center)
+            const avatarStage = document.getElementById('hero-avatar-stage');
+            let ox = W * 0.28;
+            let oy = H * 0.42;
+            if (avatarStage) {
+                const rect = avatarStage.getBoundingClientRect();
+                ox = rect.left + rect.width / 2;
+                oy = rect.top + rect.height / 2;
+            }
+
+            const startTime = performance.now();
+            const duration = 650; // Exact 650ms animation duration
+
+            // Static jitter table for Thor lightning to prevent chaotic strobe
+            const thorJitter = [0, -18, 22, -28, 32, -15, 26, -20, 35, -25, 18, -30, 22, -15, 20, 0];
+            const thorBranches = [
+                { startIdx: 3, dx: -80, dy: 65 },
+                { startIdx: 6, dx: 90, dy: 55 },
+                { startIdx: 10, dx: -70, dy: 45 },
+                { startIdx: 12, dx: 75, dy: 40 }
+            ];
+
+            // Pre-generated plasma orbs for Hulk
+            const hulkOrbs = Array.from({ length: 16 }, (_, i) => ({
+                x: ox + (Math.random() - 0.5) * 260,
+                y: H + Math.random() * 20,
+                radius: 9 + Math.random() * 15,
+                vy: 420 + Math.random() * 450,
+                vx: (Math.random() - 0.5) * 60,
+                color: i % 3 === 0 ? '#9333EA' : (i % 2 === 0 ? '#A3E635' : '#22C55E')
+            }));
+
+            function drawHexagon(ctx, x, y, radius, rotation) {
+                ctx.beginPath();
+                for (let i = 0; i < 6; i++) {
+                    const angle = rotation + (i * Math.PI) / 3;
+                    const hx = x + radius * Math.cos(angle);
+                    const hy = y + radius * Math.sin(angle);
+                    if (i === 0) ctx.moveTo(hx, hy);
+                    else ctx.lineTo(hx, hy);
+                }
+                ctx.closePath();
+            }
+
+            function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
+                let rot = Math.PI / 2 * 3;
+                let step = Math.PI / spikes;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy - outerRadius);
+                for (let i = 0; i < spikes; i++) {
+                    let x = cx + Math.cos(rot) * outerRadius;
+                    let y = cy + Math.sin(rot) * outerRadius;
+                    ctx.lineTo(x, y);
+                    rot += step;
+                    x = cx + Math.cos(rot) * innerRadius;
+                    y = cy + Math.sin(rot) * innerRadius;
+                    ctx.lineTo(x, y);
+                    rot += step;
+                }
+                ctx.lineTo(cx, cy - outerRadius);
+                ctx.closePath();
+            }
+
+            function renderFrame(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(1, elapsed / duration);
+                const fade = Math.max(0, 1 - Math.pow(progress, 2.5));
+
+                ctx.clearRect(0, 0, W, H);
+
+                if (progress >= 1) {
+                    ctx.clearRect(0, 0, W, H);
+                    currentBeamRafId = null;
+                    return;
+                }
+
+                ctx.save();
+                ctx.globalAlpha = fade;
+
+                if (activeKey === 'ironman') {
+                    // =========================================================
+                    // 1. IRON MAN: Repulsor Laser Beam + Hex Arc Reactor Rings
+                    // =========================================================
+                    const targetX = W + 80;
+                    const targetY = H * 0.72;
+                    const beamPulse = Math.sin(progress * Math.PI);
+
+                    // Expanding Hexagonal Arc Reactor Rings
+                    for (let i = 1; i <= 4; i++) {
+                        const hexRadius = progress * 150 * i + 25;
+                        const hexRot = progress * 1.6 * (i % 2 === 0 ? 1 : -1);
+                        drawHexagon(ctx, ox, oy, hexRadius, hexRot);
+                        ctx.strokeStyle = '#000000';
+                        ctx.lineWidth = 4;
+                        ctx.stroke();
+                        ctx.strokeStyle = (i % 2 === 0) ? '#00F0FF' : '#FACC15';
+                        ctx.lineWidth = 2.5;
+                        ctx.stroke();
+                    }
+
+                    // Searing Laser Beam: 3px black comic outline, gold outer glow, cyan inner core
+                    ctx.beginPath();
+                    ctx.moveTo(ox, oy);
+                    ctx.lineTo(targetX, targetY);
+                    ctx.lineCap = 'round';
+                    ctx.strokeStyle = '#000000';
+                    ctx.lineWidth = 36 * beamPulse + 6;
+                    ctx.stroke();
+
+                    // Gold Outer Glow
+                    ctx.beginPath();
+                    ctx.moveTo(ox, oy);
+                    ctx.lineTo(targetX, targetY);
+                    ctx.strokeStyle = '#FACC15';
+                    ctx.lineWidth = 26 * beamPulse + 4;
+                    ctx.stroke();
+
+                    // Arc Cyan Inner Core
+                    ctx.beginPath();
+                    ctx.moveTo(ox, oy);
+                    ctx.lineTo(targetX, targetY);
+                    ctx.strokeStyle = '#00F0FF';
+                    ctx.lineWidth = 14 * beamPulse + 2;
+                    ctx.stroke();
+
+                    // White Core Beam
+                    ctx.beginPath();
+                    ctx.moveTo(ox, oy);
+                    ctx.lineTo(targetX, targetY);
+                    ctx.strokeStyle = '#FFFFFF';
+                    ctx.lineWidth = 6 * beamPulse + 1;
+                    ctx.stroke();
+
+                    // Arc Reactor Core Flash
+                    ctx.beginPath();
+                    ctx.arc(ox, oy, 26 * beamPulse + 10, 0, Math.PI * 2);
+                    ctx.fillStyle = '#00F0FF';
+                    ctx.fill();
+                    ctx.strokeStyle = '#000000';
+                    ctx.lineWidth = 3.5;
+                    ctx.stroke();
+
+                } else if (activeKey === 'cap') {
+                    // =========================================================
+                    // 2. CAPTAIN AMERICA: Vibranium Kinetic Ricochet Beam + Sparks
+                    // =========================================================
+                    const points = [
+                        { x: ox, y: oy },
+                        { x: W * 0.85, y: H * 0.22 },
+                        { x: W * 0.62, y: H * 0.88 },
+                        { x: W * 0.98, y: H * 0.48 }
+                    ];
+                    const pulse = Math.sin(progress * Math.PI);
+
+                    // Expanding Patriotic Sonic Rings (Cobalt Blue and Crimson)
+                    [points[0], points[1], points[2]].forEach((pt, pIdx) => {
+                        const ringR = progress * 120 * (pIdx + 1);
+                        ctx.beginPath();
+                        ctx.arc(pt.x, pt.y, ringR, 0, Math.PI * 2);
+                        ctx.strokeStyle = '#000000';
+                        ctx.lineWidth = 4;
+                        ctx.stroke();
+                        ctx.strokeStyle = pIdx % 2 === 0 ? '#2563EB' : '#EF4444';
+                        ctx.lineWidth = 2.5;
+                        ctx.stroke();
+
+                        // Five-Pointed Star Burst at nodes
+                        drawStar(ctx, pt.x, pt.y, 5, 20 * pulse + 8, 9 * pulse + 4);
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fill();
+                        ctx.strokeStyle = '#000000';
+                        ctx.lineWidth = 2.5;
+                        ctx.stroke();
+                    });
+
+                    // Ricocheting Beam Segments with 3px Black Comic Outline
+                    ctx.beginPath();
+                    ctx.moveTo(points[0].x, points[0].y);
+                    for (let i = 1; i < points.length; i++) {
+                        ctx.lineTo(points[i].x, points[i].y);
+                    }
+                    ctx.strokeStyle = '#000000';
+                    ctx.lineWidth = 24 * pulse + 4;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.stroke();
+
+                    ctx.strokeStyle = '#2563EB';
+                    ctx.lineWidth = 16 * pulse + 3;
+                    ctx.stroke();
+
+                    ctx.strokeStyle = '#EF4444';
+                    ctx.lineWidth = 9 * pulse + 2;
+                    ctx.stroke();
+
+                    ctx.strokeStyle = '#FFFFFF';
+                    ctx.lineWidth = 4 * pulse + 1;
+                    ctx.stroke();
+
+                    // Metallic Spark Lines at bounce points
+                    [points[1], points[2]].forEach(pt => {
+                        for (let s = 0; s < 8; s++) {
+                            const angle = (s * Math.PI) / 4 + progress * 2;
+                            const sparkLen = progress * 45 + 10;
+                            ctx.beginPath();
+                            ctx.moveTo(pt.x, pt.y);
+                            ctx.lineTo(pt.x + Math.cos(angle) * sparkLen, pt.y + Math.sin(angle) * sparkLen);
+                            ctx.strokeStyle = '#FFD700';
+                            ctx.lineWidth = 2.5;
+                            ctx.stroke();
+                        }
+                    });
+
+                } else if (activeKey === 'thor') {
+                    // =========================================================
+                    // 3. THOR: Mjolnir Sky Lightning Bolt (Top of screen to card)
+                    // =========================================================
+                    const pulse = Math.sin(progress * Math.PI);
+                    const segments = 15;
+                    const lightningPoints = [];
+
+                    for (let i = 0; i <= segments; i++) {
+                        const t = i / segments;
+                        const lx = ox + (i > 0 && i < segments ? thorJitter[i] : 0);
+                        const ly = oy * t;
+                        lightningPoints.push({ x: lx, y: ly });
+                    }
+
+                    function traceLightning(pts) {
+                        ctx.beginPath();
+                        ctx.moveTo(pts[0].x, pts[0].y);
+                        for (let i = 1; i < pts.length; i++) {
+                            ctx.lineTo(pts[i].x, pts[i].y);
+                        }
+                    }
+
+                    // 1. Black Ink Comic Outline (2px outline)
+                    traceLightning(lightningPoints);
+                    ctx.strokeStyle = '#000000';
+                    ctx.lineWidth = 22 * pulse + 5;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'miter';
+                    ctx.stroke();
+
+                    // 2. Lightning Blue Plasma Aura (#38BDF8)
+                    traceLightning(lightningPoints);
+                    ctx.strokeStyle = '#38BDF8';
+                    ctx.lineWidth = 15 * pulse + 3;
+                    ctx.stroke();
+
+                    // 3. Pure White Electric Core (#FFFFFF)
+                    traceLightning(lightningPoints);
+                    ctx.strokeStyle = '#FFFFFF';
+                    ctx.lineWidth = 6 * pulse + 1;
+                    ctx.stroke();
+
+                    // Jagged Branching Secondary Bolts
+                    thorBranches.forEach(b => {
+                        const start = lightningPoints[b.startIdx] || lightningPoints[5];
+                        ctx.beginPath();
+                        ctx.moveTo(start.x, start.y);
+                        ctx.lineTo(start.x + b.dx * 0.5, start.y + b.dy * 0.4);
+                        ctx.lineTo(start.x + b.dx, start.y + b.dy);
+                        ctx.strokeStyle = '#000000';
+                        ctx.lineWidth = 7 * pulse;
+                        ctx.stroke();
+                        ctx.strokeStyle = '#38BDF8';
+                        ctx.lineWidth = 3.5 * pulse;
+                        ctx.stroke();
+                    });
+
+                    // Impact Electric Shockwave at (ox, oy)
+                    const impactR = progress * 130 + 15;
+                    ctx.beginPath();
+                    ctx.arc(ox, oy, impactR, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#000000';
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+                    ctx.strokeStyle = '#38BDF8';
+                    ctx.lineWidth = 2.5;
+                    ctx.stroke();
+
+                    // Sky Flash Banner at top
+                    ctx.fillStyle = `rgba(56, 189, 248, ${0.35 * pulse})`;
+                    ctx.fillRect(0, 0, W, 45);
+
+                } else if (activeKey === 'spidey') {
+                    // =========================================================
+                    // 4. SPIDER-MAN: Web-Line Energy Beam + Spider-Sense Waves
+                    // =========================================================
+                    const pulse = Math.sin(progress * Math.PI);
+                    const numRays = 10;
+                    const rayLength = progress * Math.max(W, H) * 0.95;
+
+                    // Spider-Sense Jagged Radiating Waves above head (#E11D48 & #2563EB)
+                    for (let w = 1; w <= 3; w++) {
+                        const waveR = 30 + w * 22 + progress * 35;
+                        ctx.beginPath();
+                        ctx.arc(ox, oy - 25, waveR, Math.PI * 1.15, Math.PI * 1.85);
+                        ctx.strokeStyle = '#000000';
+                        ctx.lineWidth = 5;
+                        ctx.stroke();
+                        ctx.strokeStyle = w % 2 === 0 ? '#2563EB' : '#E11D48';
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                    }
+
+                    // Crisp Geometric White Web-Beams with #000000 Comic Outlines
+                    for (let r = 0; r < numRays; r++) {
+                        const angle = (r * Math.PI * 2) / numRays;
+                        const rx = ox + Math.cos(angle) * rayLength;
+                        const ry = oy + Math.sin(angle) * rayLength;
+
+                        ctx.beginPath();
+                        ctx.moveTo(ox, oy);
+                        ctx.lineTo(rx, ry);
+                        ctx.strokeStyle = '#000000';
+                        ctx.lineWidth = 4.5 * pulse;
+                        ctx.stroke();
+                        ctx.strokeStyle = '#FFFFFF';
+                        ctx.lineWidth = 2.5 * pulse;
+                        ctx.stroke();
+                    }
+
+                    // Concentric Geometric Web Polygon Rings
+                    for (let ring = 1; ring <= 4; ring++) {
+                        const ringDist = (ring / 4) * rayLength;
+                        ctx.beginPath();
+                        for (let r = 0; r < numRays; r++) {
+                            const angle = (r * Math.PI * 2) / numRays;
+                            const wx = ox + Math.cos(angle) * ringDist;
+                            const wy = oy + Math.sin(angle) * ringDist;
+                            if (r === 0) ctx.moveTo(wx, wy);
+                            else ctx.lineTo(wx, wy);
+                        }
+                        ctx.closePath();
+                        ctx.strokeStyle = '#000000';
+                        ctx.lineWidth = 3.5 * pulse;
+                        ctx.stroke();
+                        ctx.strokeStyle = '#FFFFFF';
+                        ctx.lineWidth = 2 * pulse;
+                        ctx.stroke();
+                    }
+
+                } else if (activeKey === 'hulk') {
+                    // =========================================================
+                    // 5. HULK: Ground-Up Gamma Ray Energy Beam + Plasma Orbs
+                    // =========================================================
+                    const pulse = Math.sin(progress * Math.PI);
+                    const beamWidth = 65 * pulse + 8;
+
+                    // 1. Massive Ground-Up Energy Beam (from bottom of screen H straight up to 0)
+                    ctx.beginPath();
+                    ctx.moveTo(ox, H);
+                    ctx.lineTo(ox, 0);
+                    ctx.strokeStyle = '#000000';
+                    ctx.lineWidth = beamWidth + 14;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+
+                    // Inner Gamma Lime Beam (#A3E635)
+                    ctx.beginPath();
+                    ctx.moveTo(ox, H);
+                    ctx.lineTo(ox, 0);
+                    ctx.strokeStyle = '#A3E635';
+                    ctx.lineWidth = beamWidth;
+                    ctx.stroke();
+
+                    // Core Neon Gamma Green (#22C55E)
+                    ctx.beginPath();
+                    ctx.moveTo(ox, H);
+                    ctx.lineTo(ox, 0);
+                    ctx.strokeStyle = '#22C55E';
+                    ctx.lineWidth = beamWidth * 0.55;
+                    ctx.stroke();
+
+                    // White Core Line
+                    ctx.beginPath();
+                    ctx.moveTo(ox, H);
+                    ctx.lineTo(ox, 0);
+                    ctx.strokeStyle = '#FFFFFF';
+                    ctx.lineWidth = beamWidth * 0.2;
+                    ctx.stroke();
+
+                    // Purple Shockwave Rings (#9333EA) Stacked Vertically
+                    for (let s = 1; s <= 5; s++) {
+                        const sy = H - (H / 6) * s * progress * 1.2;
+                        const sr = progress * 60 + 20;
+                        ctx.beginPath();
+                        ctx.ellipse(ox, sy, sr * 1.5, sr * 0.45, 0, 0, Math.PI * 2);
+                        ctx.strokeStyle = '#000000';
+                        ctx.lineWidth = 4;
+                        ctx.stroke();
+                        ctx.strokeStyle = '#9333EA';
+                        ctx.lineWidth = 2.5;
+                        ctx.stroke();
+                    }
+
+                    // Radioactive Plasma Orbs Floating Upward
+                    hulkOrbs.forEach(orb => {
+                        const currentY = orb.y - progress * orb.vy;
+                        const currentX = orb.x + progress * orb.vx;
+                        if (currentY > -40) {
+                            ctx.beginPath();
+                            ctx.arc(currentX, currentY, orb.radius * pulse, 0, Math.PI * 2);
+                            ctx.fillStyle = orb.color;
+                            ctx.fill();
+                            ctx.strokeStyle = '#000000';
+                            ctx.lineWidth = 2.5;
+                            ctx.stroke();
+                        }
+                    });
+
+                    // Ground Crater Shockwave
+                    const craterR = progress * 140 + 20;
+                    ctx.beginPath();
+                    ctx.ellipse(ox, H - 10, craterR, craterR * 0.35, 0, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#000000';
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+                    ctx.strokeStyle = '#22C55E';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+                currentBeamRafId = requestAnimationFrame(renderFrame);
+            }
+
+            currentBeamRafId = requestAnimationFrame(renderFrame);
         }
 
         function showToast(text, type = 'info', heroKey = null) {
