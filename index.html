@@ -1991,7 +1991,7 @@
                 }
             },
 
-            // 3. THOR: Mjolnir Thunder Strike (Instant lightning crack + booming thunder tremor)
+            // 3. THOR: Mjolnir Thunder Strike (Blinding electric crack + Cataclysmic detonation + Rolling thunder tremor)
             thunderStrike() {
                 if (!this.ensureActive()) return;
                 try {
@@ -1999,54 +1999,104 @@
                     const dest = this.getDest();
                     const noise = this.getNoiseBuffer();
 
-                    // Lightning Crack Noise Burst (Instant from cached buffer)
+                    // A. Initial Sharp Lightning Crack Noise Burst (Instant at t)
                     if (noise) {
-                        const noiseSource = this.ctx.createBufferSource();
-                        noiseSource.buffer = noise;
+                        const crackSource = this.ctx.createBufferSource();
+                        crackSource.buffer = noise;
 
-                        const noiseFilter = this.ctx.createBiquadFilter();
-                        noiseFilter.type = 'bandpass';
-                        noiseFilter.frequency.setValueAtTime(2200, t);
-                        noiseFilter.frequency.exponentialRampToValueAtTime(380, t + 0.18);
-                        noiseFilter.Q.setValueAtTime(2.2, t);
+                        const crackFilter = this.ctx.createBiquadFilter();
+                        crackFilter.type = 'bandpass';
+                        crackFilter.frequency.setValueAtTime(2600, t);
+                        crackFilter.frequency.exponentialRampToValueAtTime(450, t + 0.14);
+                        crackFilter.Q.setValueAtTime(2.5, t);
 
-                        const noiseGain = this.ctx.createGain();
-                        noiseGain.gain.setValueAtTime(1.0, t);
-                        noiseGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+                        const crackGain = this.ctx.createGain();
+                        crackGain.gain.setValueAtTime(1.0, t);
+                        crackGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
 
-                        noiseSource.connect(noiseFilter);
-                        noiseFilter.connect(noiseGain);
-                        noiseGain.connect(dest);
-                        noiseSource.start(t);
-                        noiseSource.stop(t + 0.2);
+                        crackSource.connect(crackFilter);
+                        crackFilter.connect(crackGain);
+                        crackGain.connect(dest);
+                        crackSource.start(t);
+                        crackSource.stop(t + 0.16);
                     }
 
-                    // High-Voltage Electric Zap (Sawtooth drop)
+                    // B. High-Voltage Electric Arc Zap (Instant electric snap)
                     const zapOsc = this.ctx.createOscillator();
                     const zapGain = this.ctx.createGain();
                     zapOsc.type = 'sawtooth';
-                    zapOsc.frequency.setValueAtTime(1200, t);
-                    zapOsc.frequency.exponentialRampToValueAtTime(80, t + 0.22);
-                    zapGain.gain.setValueAtTime(0.9, t);
-                    zapGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+                    zapOsc.frequency.setValueAtTime(1400, t);
+                    zapOsc.frequency.exponentialRampToValueAtTime(95, t + 0.18);
+                    zapGain.gain.setValueAtTime(0.95, t);
+                    zapGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
                     zapOsc.connect(zapGain);
                     zapGain.connect(dest);
                     zapOsc.start(t);
-                    zapOsc.stop(t + 0.23);
+                    zapOsc.stop(t + 0.19);
 
-                    // Deep Rolling Thunder Tremor (Triangle wave sub-rumble)
+                    // C. Secondary Cataclysmic Detonation Boom (Heavy thunder strike at t + 0.13s)
+                    if (noise) {
+                        const boomSource = this.ctx.createBufferSource();
+                        boomSource.buffer = noise;
+
+                        const boomFilter = this.ctx.createBiquadFilter();
+                        boomFilter.type = 'lowpass';
+                        boomFilter.frequency.setValueAtTime(750, t + 0.13);
+                        boomFilter.frequency.exponentialRampToValueAtTime(85, t + 0.45);
+
+                        const boomGain = this.ctx.createGain();
+                        boomGain.gain.setValueAtTime(0.001, t);
+                        boomGain.gain.setValueAtTime(1.0, t + 0.13);
+                        boomGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.45);
+
+                        boomSource.connect(boomFilter);
+                        boomFilter.connect(boomGain);
+                        boomGain.connect(dest);
+                        boomSource.start(t + 0.13);
+                        boomSource.stop(t + 0.47);
+                    }
+
+                    // D. Resonant Thunder Drop Sweep (Heavy pitch fall at t + 0.13s)
+                    const dropOsc = this.ctx.createOscillator();
+                    const dropGain = this.ctx.createGain();
+                    dropOsc.type = 'sawtooth';
+                    dropOsc.frequency.setValueAtTime(320, t + 0.13);
+                    dropOsc.frequency.exponentialRampToValueAtTime(42, t + 0.55);
+                    dropGain.gain.setValueAtTime(0.001, t);
+                    dropGain.gain.setValueAtTime(1.0, t + 0.13);
+                    dropGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.55);
+                    dropOsc.connect(dropGain);
+                    dropGain.connect(dest);
+                    dropOsc.start(t + 0.13);
+                    dropOsc.stop(t + 0.56);
+
+                    // E. Deep Rolling Asgardian Sub-Bass Thunder Tremor (0.04s to 0.95s)
                     const rumbleOsc = this.ctx.createOscillator();
                     const rumbleGain = this.ctx.createGain();
                     rumbleOsc.type = 'triangle';
-                    rumbleOsc.frequency.setValueAtTime(110, t + 0.02);
-                    rumbleOsc.frequency.exponentialRampToValueAtTime(28, t + 0.75);
+                    rumbleOsc.frequency.setValueAtTime(115, t + 0.04);
+                    rumbleOsc.frequency.exponentialRampToValueAtTime(26, t + 0.95);
                     rumbleGain.gain.setValueAtTime(0.001, t);
-                    rumbleGain.gain.linearRampToValueAtTime(1.0, t + 0.06);
-                    rumbleGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.75);
+                    rumbleGain.gain.linearRampToValueAtTime(1.0, t + 0.16);
+                    rumbleGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.95);
                     rumbleOsc.connect(rumbleGain);
                     rumbleGain.connect(dest);
-                    rumbleOsc.start(t);
-                    rumbleOsc.stop(t + 0.76);
+                    rumbleOsc.start(t + 0.04);
+                    rumbleOsc.stop(t + 0.96);
+
+                    // F. Sub-Bass Floor Shaker (Sine wave 60Hz down to 22Hz)
+                    const subOsc = this.ctx.createOscillator();
+                    const subGain = this.ctx.createGain();
+                    subOsc.type = 'sine';
+                    subOsc.frequency.setValueAtTime(65, t + 0.1);
+                    subOsc.frequency.exponentialRampToValueAtTime(22, t + 0.85);
+                    subGain.gain.setValueAtTime(0.001, t);
+                    subGain.gain.setValueAtTime(0.9, t + 0.14);
+                    subGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.85);
+                    subOsc.connect(subGain);
+                    subGain.connect(dest);
+                    subOsc.start(t + 0.1);
+                    subOsc.stop(t + 0.86);
                 } catch (e) {
                     console.warn('thunderStrike error:', e);
                 }
@@ -2778,14 +2828,28 @@
                     </div>
                 `;
             } else if (activeKey === 'thor') {
-                // THOR: Lightning Call & Asgardian Thunder
-                powerStickerText = "*KRA-BOOM!* THUNDER!";
+                // THOR: Mighty God of Thunder Call (Physical screen earthquake + Asgardian comic rune burst)
+                if (parentCard) parentCard.classList.add('earthquake');
+                document.body.classList.add('earthquake');
+                setTimeout(() => {
+                    document.body.classList.remove('earthquake');
+                    if (parentCard) parentCard.classList.remove('earthquake');
+                }, 450);
+
+                powerStickerText = "*KRA-BOOM!* GOD OF THUNDER!";
                 fxHtml = `
                     <div class="lightning-flash relative w-full h-full flex items-center justify-center">
-                        <svg class="w-52 h-52 absolute -m-8 pointer-events-none" viewBox="0 0 180 180">
-                            <polygon points="85,0 110,0 92,65 125,65 80,165 96,95 68,95" fill="#00F0FF" stroke="#000" stroke-width="3"/>
-                            <polygon points="130,5 148,5 132,55 160,55 118,135 135,80 112,80" fill="#FFD700" stroke="#000" stroke-width="2.5" opacity="0.95"/>
-                            <polygon points="45,10 62,10 48,58 75,58 38,140 56,85 32,85" fill="#FFD700" stroke="#000" stroke-width="2.5" opacity="0.95"/>
+                        <svg class="w-64 h-64 absolute -m-12 pointer-events-none" viewBox="0 0 200 200">
+                            <!-- Rotating Golden Rune Ring -->
+                            <circle cx="100" cy="100" r="84" fill="none" stroke="#FFD700" stroke-width="4.5" stroke-dasharray="14 8" opacity="0.95"/>
+                            <circle cx="100" cy="100" r="64" fill="none" stroke="#00F0FF" stroke-width="3" stroke-dasharray="8 6" opacity="0.9"/>
+                            <!-- Blinding Comic Starburst -->
+                            <polygon points="100,8 115,65 174,38 135,88 192,110 134,128 162,184 112,148 90,192 78,136 20,152 56,105 10,80 66,66 40,15 90,52" fill="#FFD700" stroke="#000" stroke-width="3.5" opacity="0.95"/>
+                            <!-- Triple Electric Plasma Bolts -->
+                            <polygon points="95,0 128,0 102,78 142,78 88,198 108,112 72,112" fill="#00F0FF" stroke="#000" stroke-width="4"/>
+                            <polygon points="98,12 118,12 102,74 130,74 94,178 106,114 82,114" fill="#FFFFFF" opacity="0.95"/>
+                            <polygon points="146,18 170,18 148,68 182,68 132,158 154,92 126,92" fill="#00F0FF" stroke="#000" stroke-width="2.5" opacity="0.9"/>
+                            <polygon points="48,22 72,22 54,70 86,70 42,162 64,96 36,96" fill="#00F0FF" stroke="#000" stroke-width="2.5" opacity="0.9"/>
                         </svg>
                     </div>
                 `;
@@ -4431,75 +4495,174 @@
                     });
 
                 } else if (activeKey === 'thor') {
-                    // Instant lightning strike matching the thunder crack, then dissipating
-                    const pulse = progress < 0.12 ? (0.75 + (progress / 0.12) * 0.25) : Math.max(0, Math.pow(1 - (progress - 0.12) / 0.88, 2.2));
-                    const segments = 15;
-                    const lightningPoints = [];
-
-                    for (let i = 0; i <= segments; i++) {
-                        const t = i / segments;
-                        const lx = ox + (i > 0 && i < segments ? thorJitter[i] : 0);
-                        const ly = oy * t;
-                        lightningPoints.push({ x: lx, y: ly });
+                    // =========================================================
+                    // 3. THOR: Cataclysmic Asgardian Lightning Storm & Multi-Pillar Heavens Strike
+                    // =========================================================
+                    // Dynamic two-stage thunder pulse: initial crack (0-15%), massive mega-strike (20-60%), rolling decay (60-100%)
+                    let pulse;
+                    if (progress < 0.15) {
+                        pulse = 0.8 + (progress / 0.15) * 0.2; // Fast initial strike (0.8 -> 1.0)
+                    } else if (progress < 0.25) {
+                        pulse = 0.65 + Math.sin((progress - 0.15) / 0.10 * Math.PI) * 0.35; // Pre-rumble flicker
+                    } else if (progress < 0.55) {
+                        pulse = 1.0 - ((progress - 0.25) / 0.30) * 0.35; // Sustained blinding mega-strike (1.0 -> 0.65)
+                    } else {
+                        pulse = Math.max(0, 0.65 * Math.pow(1 - (progress - 0.55) / 0.45, 2.0)); // Dissipating thunder embers
                     }
 
-                    function traceLightning(pts) {
-                        ctx.beginPath();
-                        ctx.moveTo(pts[0].x, pts[0].y);
-                        for (let i = 1; i < pts.length; i++) {
-                            ctx.lineTo(pts[i].x, pts[i].y);
+                    // 1. FULL-SCREEN ATMOSPHERIC THUNDERSTORM SKY FLASH
+                    const skyFlashAlpha = pulse * 0.45;
+                    const stormGrad = ctx.createRadialGradient(ox, 0, 40, ox, H * 0.45, Math.max(W, H));
+                    stormGrad.addColorStop(0, `rgba(0, 240, 255, ${skyFlashAlpha})`);
+                    stormGrad.addColorStop(0.35, `rgba(147, 51, 234, ${skyFlashAlpha * 0.7})`);
+                    stormGrad.addColorStop(0.7, `rgba(253, 224, 71, ${skyFlashAlpha * 0.4})`);
+                    stormGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = stormGrad;
+                    ctx.fillRect(0, 0, W, H);
+
+                    // Full-screen lightning flash whiteout on impact frames
+                    if (progress > 0.04 && progress < 0.16) {
+                        ctx.fillStyle = `rgba(255, 255, 255, ${0.35 * pulse})`;
+                        ctx.fillRect(0, 0, W, H);
+                    }
+
+                    // Dynamic 60fps living jitter offset based on frame timestamp
+                    const frameSeed = Math.sin(now * 0.04);
+                    const frameSeed2 = Math.cos(now * 0.06);
+
+                    // Helper function to trace lightning bolt with comic outline, cyan aura, gold sheath & white core
+                    function drawGrandBolt(pts, maxThick = 26) {
+                        if (pts.length < 2) return;
+
+                        function tracePath() {
+                            ctx.beginPath();
+                            ctx.moveTo(pts[0].x, pts[0].y);
+                            for (let i = 1; i < pts.length; i++) {
+                                ctx.lineTo(pts[i].x, pts[i].y);
+                            }
                         }
+
+                        // A. Comic Black Ink Outline
+                        tracePath();
+                        ctx.strokeStyle = '#000000';
+                        ctx.lineWidth = maxThick * pulse + 6;
+                        ctx.lineCap = 'round';
+                        ctx.lineJoin = 'miter';
+                        ctx.stroke();
+
+                        // B. Electric Blue Plasma Sheath (#00F0FF)
+                        tracePath();
+                        ctx.strokeStyle = '#00F0FF';
+                        ctx.lineWidth = maxThick * pulse;
+                        ctx.stroke();
+
+                        // C. Asgardian Golden Arc Sheath (#FDE047)
+                        tracePath();
+                        ctx.strokeStyle = '#FDE047';
+                        ctx.lineWidth = Math.max(2, maxThick * 0.55 * pulse);
+                        ctx.stroke();
+
+                        // D. Pure White Incandescent Core (#FFFFFF)
+                        tracePath();
+                        ctx.strokeStyle = '#FFFFFF';
+                        ctx.lineWidth = Math.max(1, maxThick * 0.25 * pulse);
+                        ctx.stroke();
                     }
 
-                    // 1. Black Ink Comic Outline (2px outline)
-                    traceLightning(lightningPoints);
-                    ctx.strokeStyle = '#000000';
-                    ctx.lineWidth = 22 * pulse + 5;
-                    ctx.lineCap = 'round';
-                    ctx.lineJoin = 'miter';
-                    ctx.stroke();
+                    // Helper to generate a multi-segmented jagged lightning path
+                    function createBoltPoints(startX, startY, endX, endY, segments = 16, roughness = 35) {
+                        const pts = [{ x: startX, y: startY }];
+                        const dx = endX - startX;
+                        const dy = endY - startY;
 
-                    // 2. Lightning Blue Plasma Aura (#38BDF8)
-                    traceLightning(lightningPoints);
-                    ctx.strokeStyle = '#38BDF8';
-                    ctx.lineWidth = 15 * pulse + 3;
-                    ctx.stroke();
+                        for (let i = 1; i < segments; i++) {
+                            const t = i / segments;
+                            // Jitter perpendicular to direction
+                            const jitter = Math.sin(i * 2.3 + now * 0.035) * roughness;
+                            const px = startX + dx * t + jitter;
+                            const py = startY + dy * t + Math.cos(i * 1.8 + now * 0.025) * (roughness * 0.3);
+                            pts.push({ x: px, y: py });
+                        }
+                        pts.push({ x: endX, y: endY });
+                        return pts;
+                    }
 
-                    // 3. Pure White Electric Core (#FFFFFF)
-                    traceLightning(lightningPoints);
-                    ctx.strokeStyle = '#FFFFFF';
-                    ctx.lineWidth = 6 * pulse + 1;
-                    ctx.stroke();
+                    // 2. CENTRAL DIVINE LIGHTNING PILLAR (Heaven to Mjolnir Stage)
+                    const centralBolt = createBoltPoints(ox + frameSeed * 25, 0, ox, oy, 18, 38);
+                    drawGrandBolt(centralBolt, 32);
 
-                    // Jagged Branching Secondary Bolts
-                    thorBranches.forEach(b => {
-                        const start = lightningPoints[b.startIdx] || lightningPoints[5];
-                        ctx.beginPath();
-                        ctx.moveTo(start.x, start.y);
-                        ctx.lineTo(start.x + b.dx * 0.5, start.y + b.dy * 0.4);
-                        ctx.lineTo(start.x + b.dx, start.y + b.dy);
-                        ctx.strokeStyle = '#000000';
-                        ctx.lineWidth = 7 * pulse;
-                        ctx.stroke();
-                        ctx.strokeStyle = '#38BDF8';
-                        ctx.lineWidth = 3.5 * pulse;
-                        ctx.stroke();
+                    // 3. LEFT SKY LIGHTNING BOLT (Angled from upper-left sky)
+                    const leftBolt = createBoltPoints(Math.max(10, ox - W * 0.28 + frameSeed2 * 30), 0, ox - 35, oy + 10, 14, 28);
+                    drawGrandBolt(leftBolt, 20);
+
+                    // 4. RIGHT SKY LIGHTNING BOLT (Angled from upper-right sky)
+                    const rightBolt = createBoltPoints(Math.min(W - 10, ox + W * 0.32 - frameSeed * 30), 0, ox + 40, oy - 15, 14, 28);
+                    drawGrandBolt(rightBolt, 20);
+
+                    // 5. UPPER STRATOSPHERE CRACKLE ARCS (Horizontal cloud discharge)
+                    const cloudY = Math.min(120, H * 0.15);
+                    const cloudBolt1 = createBoltPoints(0, cloudY * 0.7, ox + 50, cloudY * 1.1, 10, 22);
+                    drawGrandBolt(cloudBolt1, 12);
+                    const cloudBolt2 = createBoltPoints(ox - 30, cloudY * 0.9, W, cloudY * 0.6, 12, 24);
+                    drawGrandBolt(cloudBolt2, 12);
+
+                    // 6. JAGGED SECONDARY BRANCHES FROM MAIN PILLAR
+                    const branchTargets = [
+                        { idx: 4, tx: ox - 140, ty: oy * 0.45 },
+                        { idx: 7, tx: ox + 160, ty: oy * 0.55 },
+                        { idx: 11, tx: ox - 120, ty: oy * 0.75 },
+                        { idx: 13, tx: ox + 130, ty: oy * 0.82 }
+                    ];
+                    branchTargets.forEach(b => {
+                        const origin = centralBolt[b.idx] || centralBolt[5];
+                        const branchPts = createBoltPoints(origin.x, origin.y, b.tx, b.ty, 8, 18);
+                        drawGrandBolt(branchPts, 10);
                     });
 
-                    // Impact Electric Shockwave at (ox, oy)
-                    const impactR = progress * 130 + 15;
-                    ctx.beginPath();
-                    ctx.arc(ox, oy, impactR, 0, Math.PI * 2);
+                    // 7. GROUND IMPACT ELECTRIC SHOCKWAVES & CRACKLE WEB
+                    // Concentric expanding shockwave rings
+                    for (let r = 1; r <= 3; r++) {
+                        const ringR = progress * (160 + r * 50) + 18;
+                        const ringPulse = Math.max(0, pulse * (1 - (r - 1) * 0.25));
+                        ctx.beginPath();
+                        ctx.arc(ox, oy, ringR, 0, Math.PI * 2);
+                        ctx.strokeStyle = '#000000';
+                        ctx.lineWidth = 5 * ringPulse;
+                        ctx.stroke();
+
+                        ctx.strokeStyle = r === 1 ? '#00F0FF' : (r === 2 ? '#FDE047' : '#9333EA');
+                        ctx.lineWidth = 3 * ringPulse;
+                        ctx.stroke();
+                    }
+
+                    // 8-Direction Ground Crackle Bolts spreading across the dashboard
+                    const numGroundTendrils = 8;
+                    for (let g = 0; g < numGroundTendrils; g++) {
+                        const angle = (g * Math.PI * 2) / numGroundTendrils + frameSeed * 0.1;
+                        const tendrilLen = (progress * 180 + 40) * (0.8 + 0.4 * Math.sin(g * 1.5 + now * 0.02));
+                        const gx = ox + Math.cos(angle) * tendrilLen;
+                        const gy = oy + Math.sin(angle) * (tendrilLen * 0.65); // Elliptical ground perspective
+
+                        const groundPts = createBoltPoints(ox, oy, gx, gy, 7, 16);
+                        drawGrandBolt(groundPts, 9);
+                    }
+
+                    // Explosive 12-Point Celestial Starburst at (ox, oy)
+                    drawStar(ctx, ox, oy, 12, 38 * pulse + 16, 16 * pulse + 6);
+                    ctx.fillStyle = '#FDE047';
+                    ctx.fill();
                     ctx.strokeStyle = '#000000';
-                    ctx.lineWidth = 4;
-                    ctx.stroke();
-                    ctx.strokeStyle = '#38BDF8';
-                    ctx.lineWidth = 2.5;
+                    ctx.lineWidth = 3.5;
                     ctx.stroke();
 
-                    // Sky Flash Banner at top
-                    ctx.fillStyle = `rgba(56, 189, 248, ${0.35 * pulse})`;
-                    ctx.fillRect(0, 0, W, 45);
+                    // White Core Flash
+                    ctx.beginPath();
+                    ctx.arc(ox, oy, 18 * pulse + 6, 0, Math.PI * 2);
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fill();
+                    ctx.strokeStyle = '#00F0FF';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
 
                 } else if (activeKey === 'spidey') {
                     // =========================================================
