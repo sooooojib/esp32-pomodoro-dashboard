@@ -561,6 +561,23 @@
 
         </div>
 
+        <!-- TACTICAL VIEW NAVIGATION (TAB SWITCHER) -->
+        <div class="flex flex-wrap items-center gap-3 mb-5" id="hud-nav-tabs">
+            <button id="tab-live-hud" class="neo-btn px-5 py-2.5 font-comic tracking-wide text-lg border-2 border-black bg-[#FACC15] text-black shadow-neo flex items-center gap-2 cursor-pointer transition-all" onclick="switchView('live-hud')">
+                <i data-lucide="rocket" class="w-5 h-5"></i>
+                <span>LIVE MISSION HUD</span>
+            </button>
+            <button id="tab-stats" class="neo-btn px-5 py-2.5 font-comic tracking-wide text-lg border-2 border-black bg-white text-zinc-600 hover:bg-zinc-100 shadow-neo flex items-center gap-2 cursor-pointer transition-all" onclick="switchView('stats')">
+                <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                <span>TACTICAL STATS & ARCHIVES</span>
+            </button>
+        </div>
+
+    </header>
+
+    <!-- 1. LIVE HUD VIEW WRAPPER -->
+    <div id="live-hud-view" class="max-w-6xl mx-auto w-full space-y-5">
+
         <!-- HERO OPERATOR ROSTER SELECTOR CARD -->
         <div class="neo-card bg-white p-6 flex flex-wrap items-center justify-between gap-4 mb-5">
             <div class="flex items-center gap-3">
@@ -637,10 +654,8 @@
             </div>
         </div>
 
-    </header>
-
     <!-- Main Superhero Mission Center Matrix (Strictly Aligned Grid) -->
-    <main class="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+    <main class="w-full grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
         
         <!-- LEFT COLUMN (Column 1-6): Hero Operator & S.H.I.E.L.D. Mission Debriefs -->
         <section class="lg:col-span-6 flex flex-col gap-5">
@@ -991,6 +1006,503 @@
 
     </main>
 
+    </div> <!-- Close #live-hud-view -->
+
+    <!-- ========================================================================= -->
+    <!-- 2. TACTICAL STATS & ARCHIVES VIEW CONTAINER -->
+    <!-- ========================================================================= -->
+    <div id="stats-view" class="hidden max-w-6xl mx-auto w-full space-y-6">
+        
+        <!-- SECTION A: Tactical KPI Ribbon (4 Grid Cards) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+            
+            <!-- 1. Total Combat Output -->
+            <div class="neo-card bg-[#E11D48] text-white p-5 flex flex-col justify-between border-3 border-black shadow-[4px_4px_0px_#000]">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="font-mono text-[10px] uppercase font-bold text-white/90 tracking-wider">TOTAL COMBAT OUTPUT</span>
+                    <div class="w-7 h-7 rounded bg-black/20 border border-white/30 flex items-center justify-center">
+                        <i data-lucide="crosshair" class="w-4 h-4 text-white"></i>
+                    </div>
+                </div>
+                <div class="my-3">
+                    <div class="font-comic text-4xl sm:text-5xl leading-none tracking-wide text-white">
+                        <span id="stat-alltime-hours">0.0</span><span class="text-xl font-normal ml-1">h</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 2. Operational Streak -->
+            <div class="neo-card bg-[#FACC15] text-black p-5 flex flex-col justify-between border-3 border-black shadow-[4px_4px_0px_#000]">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="font-mono text-[10px] uppercase font-bold text-black/80 tracking-wider">OPERATIONAL STREAK</span>
+                    <div class="w-7 h-7 rounded bg-black/10 border border-black/20 flex items-center justify-center">
+                        <i data-lucide="flame" class="w-4 h-4 text-[#E11D48]"></i>
+                    </div>
+                </div>
+                <div class="my-3">
+                    <div class="font-comic text-4xl sm:text-5xl leading-none tracking-wide text-black flex items-baseline">
+                        <span id="stat-current-streak">0</span>
+                        <span class="text-lg font-normal ml-1.5 uppercase font-comic">DAYS</span>
+                    </div>
+                </div>
+                <div class="pt-2 border-t border-black/20">
+                    <span id="stat-streak-detail" class="font-mono text-[10px] font-bold text-black uppercase tracking-wider block truncate flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 inline-block shrink-0" viewBox="0 0 24 24" fill="none"><path d="M12 2C9 7 7 9 7 13a5 5 0 0010 0c0-4-3-6-5-11z" fill="#E11D48" stroke="#000" stroke-width="1.5"/><path d="M12 8c-1.5 2.5-2.5 3.5-2.5 5.5a2.5 2.5 0 005 0c0-2-1.5-3-2.5-5.5z" fill="#FACC15" stroke="#000" stroke-width="0.8"/></svg>
+                        <span id="stat-streak-text">0 DAYS ACTIVE | RECORD: 0 DAYS</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- 3. Protocols Mastered -->
+            <div class="neo-card bg-[#10B981] text-black p-5 flex flex-col justify-between border-3 border-black shadow-[4px_4px_0px_#000]">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="font-mono text-[10px] uppercase font-bold text-black/80 tracking-wider">PROTOCOLS MASTERED</span>
+                    <div class="w-7 h-7 rounded bg-black/10 border border-black/20 flex items-center justify-center">
+                        <i data-lucide="award" class="w-4 h-4 text-black"></i>
+                    </div>
+                </div>
+                <div class="my-3">
+                    <div class="font-comic text-4xl sm:text-5xl leading-none tracking-wide text-black flex items-baseline">
+                        <span id="stat-protocols-mastered">0</span>
+                        <span class="text-xl font-normal ml-1">x</span>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between pt-2 border-t border-black/20">
+                    <span class="font-mono text-[10px] font-bold text-black/80 uppercase tracking-wider">FULL 4/4 CYCLES</span>
+                    <span id="stat-protocols-gauge" class="font-mono text-xs font-black text-black">0 CYCLES</span>
+                </div>
+            </div>
+
+            <!-- 4. Daily Focus Average -->
+            <div class="neo-card bg-[#06B6D4] text-black p-5 flex flex-col justify-between border-3 border-black shadow-[4px_4px_0px_#000]">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="font-mono text-[10px] uppercase font-bold text-black/80 tracking-wider">DAILY FOCUS AVERAGE</span>
+                    <div class="w-7 h-7 rounded bg-black/10 border border-black/20 flex items-center justify-center">
+                        <i data-lucide="activity" class="w-4 h-4 text-black"></i>
+                    </div>
+                </div>
+                <div class="my-3">
+                    <div class="font-comic text-4xl sm:text-5xl leading-none tracking-wide text-black flex items-baseline">
+                        <span id="stat-daily-avg">0</span>
+                        <span class="text-xl font-normal ml-1">m</span>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between pt-2 border-t border-black/20">
+                    <span class="font-mono text-[10px] font-bold text-black/80 uppercase tracking-wider">AVG / ACTIVE DAY</span>
+                    <span id="stat-active-days-total" class="font-mono text-xs font-black text-black">0 DAYS</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- SECTION B: S.H.I.E.L.D. 60-Day Consistency Heatmap Grid -->
+        <div class="neo-card bg-white p-6 border-3 border-black shadow-[4px_4px_0px_#000] rounded-2xl">
+            
+            <!-- Card Header -->
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-[#FACC15] border-2 border-black flex items-center justify-center text-black shadow-none shrink-0">
+                        <i data-lucide="shield" class="w-5 h-5 text-black"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-mono text-[#64748B] font-bold block uppercase tracking-wider leading-none mb-1">S.H.I.E.L.D. CHRONO-TACTICAL MATRIX</span>
+                        <h3 class="font-comic text-xl sm:text-2xl text-black font-bold leading-tight tracking-wide uppercase">
+                            60-DAY OPERATIONAL CONSISTENCY MATRIX
+                        </h3>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <span id="heatmap-streak-badge" class="border-2 border-black rounded-lg px-3 py-1 font-mono text-xs font-bold bg-[#FACC15] text-black shadow-none flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 inline-block shrink-0" viewBox="0 0 24 24" fill="none"><path d="M12 2C9 7 7 9 7 13a5 5 0 0010 0c0-4-3-6-5-11z" fill="#E11D48" stroke="#000" stroke-width="1.5"/><path d="M12 8c-1.5 2.5-2.5 3.5-2.5 5.5a2.5 2.5 0 005 0c0-2-1.5-3-2.5-5.5z" fill="#FACC15" stroke="#000" stroke-width="0.8"/></svg>
+                        <span id="heatmap-streak-badge-text">1-DAY STREAK</span>
+                    </span>
+                    <span id="heatmap-coverage-badge" class="border-2 border-black rounded-lg px-3 py-1 font-mono text-xs font-bold bg-[#F7F5EE] text-black shadow-none">
+                        60 DAYS TRACKED
+                    </span>
+                </div>
+            </div>
+
+            <!-- Divider Line -->
+            <div class="border-t-2 border-black my-4 w-full"></div>
+
+            <!-- Matrix Container with Integrated Recon Intelligence Panel -->
+            <div class="bg-[#F7F5EE] border-[3px] border-black rounded-xl p-4 sm:p-5 shadow-inner">
+                
+                <!-- HUD Top Status Strip -->
+                <div class="w-full flex items-center justify-between text-[10px] font-mono font-bold text-zinc-600 uppercase tracking-widest pb-3 mb-4 border-b-2 border-black/10">
+                    <span class="flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 border border-black animate-ping"></span>
+                        <span>[ S.H.I.E.L.D. RADAR // SECTOR 60 ]</span>
+                    </span>
+                    <span class="text-black font-bold tracking-wider hidden sm:inline">60-DAY COMBAT SWEEP & TELEMETRY</span>
+                    <span>[ PROTOCOL: 25M WORK TARGET ]</span>
+                </div>
+
+                <!-- 2-Column Balanced Layout: Grid on Left, Recon Telemetry on Right! -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+                    
+                    <!-- LEFT (lg:col-span-7): 60-Day Tactical Matrix & Legend -->
+                    <div class="lg:col-span-7 flex flex-col justify-between">
+                        <div>
+                            <!-- Days & Columns Grid -->
+                            <div class="flex gap-2 sm:gap-2.5 items-center overflow-x-auto pb-2">
+                                <!-- Day of week label column -->
+                                <div class="flex flex-col gap-1.5 sm:gap-2 justify-between py-1 text-[10px] font-mono font-bold select-none pr-1 shrink-0">
+                                    <span class="w-6 h-6 sm:w-7 sm:h-7 bg-[#FACC15] text-black border-2 border-black rounded-md flex items-center justify-center shadow-[1px_1px_0px_#000]">S</span>
+                                    <span class="w-6 h-6 sm:w-7 sm:h-7 bg-[#FACC15] text-black border-2 border-black rounded-md flex items-center justify-center shadow-[1px_1px_0px_#000]">M</span>
+                                    <span class="w-6 h-6 sm:w-7 sm:h-7 bg-[#FACC15] text-black border-2 border-black rounded-md flex items-center justify-center shadow-[1px_1px_0px_#000]">T</span>
+                                    <span class="w-6 h-6 sm:w-7 sm:h-7 bg-[#FACC15] text-black border-2 border-black rounded-md flex items-center justify-center shadow-[1px_1px_0px_#000]">W</span>
+                                    <span class="w-6 h-6 sm:w-7 sm:h-7 bg-[#FACC15] text-black border-2 border-black rounded-md flex items-center justify-center shadow-[1px_1px_0px_#000]">T</span>
+                                    <span class="w-6 h-6 sm:w-7 sm:h-7 bg-[#FACC15] text-black border-2 border-black rounded-md flex items-center justify-center shadow-[1px_1px_0px_#000]">F</span>
+                                    <span class="w-6 h-6 sm:w-7 sm:h-7 bg-[#FACC15] text-black border-2 border-black rounded-md flex items-center justify-center shadow-[1px_1px_0px_#000]">S</span>
+                                </div>
+                                <!-- Week columns grid -->
+                                <div id="heatmap-grid" class="flex gap-1.5 sm:gap-2 items-center">
+                                    <!-- Injected dynamically in JS -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Legend Strip directly under the matrix -->
+                        <div class="flex flex-wrap items-center justify-between gap-2 pt-3 mt-3 border-t-2 border-black/10 text-xs font-mono font-bold text-zinc-700">
+                            <span class="flex items-center gap-1.5 text-black text-[11px]">
+                                <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+                                <span>25M TARGET / SPRINT</span>
+                            </span>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-[10px] uppercase font-bold text-zinc-500">LESS</span>
+                                <div class="flex items-center gap-1">
+                                    <span class="w-4 h-4 border-2 border-black/40 rounded bg-white flex items-center justify-center text-zinc-400 font-mono text-[8px] font-bold" title="0 Sessions">·</span>
+                                    <span class="w-4 h-4 border-2 border-black rounded bg-[#FEF08A] shadow-[1px_1px_0px_#000]" title="1 Session (25m)"></span>
+                                    <span class="w-4 h-4 border-2 border-black rounded bg-[#FACC15] shadow-[1px_1px_0px_#000]" title="2 Sessions (50m)"></span>
+                                    <span class="w-4 h-4 border-2 border-black rounded bg-[#FB923C] shadow-[1px_1px_0px_#000]" title="3 Sessions (75m)"></span>
+                                    <span class="w-4 h-4 border-2 border-black rounded bg-[#E11D48] text-white shadow-[1px_1px_0px_#000] flex items-center justify-center" title="4+ Sessions (100m+ Full Protocol)">
+                                        <svg class="w-2 h-2" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" fill="#FFD700" stroke="#000" stroke-width="1.5"/><polygon points="12,6 15,13 9,13" fill="#00F0FF"/></svg>
+                                    </span>
+                                </div>
+                                <span class="text-[10px] uppercase font-bold text-zinc-500">MORE</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT (lg:col-span-5): S.H.I.E.L.D. Live Recon Telemetry Panel -->
+                    <div class="lg:col-span-5 flex flex-col justify-between gap-3 border-t-2 lg:border-t-0 lg:border-l-2 border-black/20 pt-4 lg:pt-0 lg:pl-5">
+                        
+                        <!-- Interactive Inspected Tile Dossier Card -->
+                        <div class="bg-white border-2 border-black rounded-xl p-4 shadow-[3px_3px_0px_#000] flex-1 flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between pb-2 border-b border-black/10">
+                                    <span class="hud-badge bg-black text-[#FACC15] text-[9px] py-0.5 px-2">SECTOR RECON</span>
+                                    <span id="recon-day-tag" class="font-mono text-[10px] font-bold text-zinc-600 uppercase">DAY RECORD</span>
+                                </div>
+
+                                <h4 id="recon-date-title" class="font-comic text-2xl text-black font-bold uppercase tracking-wide my-2 leading-tight">
+                                    SELECT A MISSION DATE
+                                </h4>
+                                
+                                <div id="recon-output-desc" class="font-mono text-xs font-bold text-zinc-700 mb-3">
+                                    HOVER ANY TILE TO AUDIT SESSIONS
+                                </div>
+
+                                <!-- Dual Metric Cards: Number of Protocols Finished & Number of Sessions Finished -->
+                                <div class="grid grid-cols-2 gap-2.5 my-3">
+                                    <!-- Protocols Finished -->
+                                    <div class="bg-[#F7F5EE] border-2 border-black rounded-xl p-3 shadow-[2px_2px_0px_#000] flex flex-col justify-between">
+                                        <div class="flex items-center justify-between text-[10px] font-mono font-bold text-zinc-600 uppercase mb-1">
+                                            <span>PROTOCOLS FINISHED</span>
+                                            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#FFD700" stroke="#000" stroke-width="1.5"/><circle cx="12" cy="12" r="5" fill="#00F0FF" stroke="#000" stroke-width="1"/><polygon points="12,8 15,13 9,13" fill="#FFFFFF" stroke="#000" stroke-width="0.7"/></svg>
+                                        </div>
+                                        <div class="flex items-baseline gap-1.5 mt-0.5">
+                                            <span id="recon-protocols-count" class="font-comic text-3xl font-bold text-black leading-none">0</span>
+                                            <span class="font-mono text-[10px] font-bold text-zinc-500 uppercase">COMPLETED</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Sessions Finished -->
+                                    <div class="bg-[#FEF08A] border-2 border-black rounded-xl p-3 shadow-[2px_2px_0px_#000] flex flex-col justify-between">
+                                        <div class="flex items-center justify-between text-[10px] font-mono font-bold text-black uppercase mb-1">
+                                            <span>SESSIONS FINISHED</span>
+                                            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none"><path d="M12 2C9 7 7 9 7 13a5 5 0 0010 0c0-4-3-6-5-11z" fill="#E11D48" stroke="#000" stroke-width="1.5"/><path d="M12 8c-1.5 2.5-2.5 3.5-2.5 5.5a2.5 2.5 0 005 0c0-2-1.5-3-2.5-5.5z" fill="#FACC15" stroke="#000" stroke-width="0.8"/></svg>
+                                        </div>
+                                        <div class="flex items-baseline gap-1.5 mt-0.5">
+                                            <span id="recon-sessions-count" class="font-comic text-3xl font-bold text-black leading-none">0</span>
+                                            <span class="font-mono text-[10px] font-bold text-zinc-700 uppercase">COMPLETED</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 60-Day Consistency Overview Strip -->
+                        <div class="grid grid-cols-2 gap-2 text-xs font-mono font-bold">
+                            <div class="bg-white border-2 border-black rounded-lg p-2.5 shadow-[2px_2px_0px_#000]">
+                                <span class="text-[9px] text-zinc-500 uppercase block leading-none mb-1">60-DAY COVERAGE</span>
+                                <span id="recon-coverage-text" class="font-comic text-xl text-black">2% ACTIVE</span>
+                            </div>
+                            <div class="bg-white border-2 border-black rounded-lg p-2.5 shadow-[2px_2px_0px_#000]">
+                                <span class="text-[9px] text-zinc-500 uppercase block leading-none mb-1">STRIKE CADENCE</span>
+                                <span id="recon-strike-record" class="font-comic text-xl text-[#E11D48]">1 DAY PEAK</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Interactive Live Inspect Bar -->
+            <div id="heatmap-inspect-bar" class="mt-4 p-3 bg-[#F7F5EE] border-2 border-black rounded-xl font-mono text-xs font-bold text-black flex flex-wrap items-center justify-between gap-2 shadow-none">
+                <span id="heatmap-inspect-text" class="flex items-center gap-2 text-zinc-800">
+                    <i data-lucide="info" class="w-4 h-4 text-[#E11D48]"></i>
+                    <span>HOVER OR CLICK ANY DAY TILE TO INSPECT COMBAT LOGS & MINUTES</span>
+                </span>
+                <span id="heatmap-rate-text" class="text-zinc-600 font-mono text-[11px] uppercase">
+                    CONSISTENCY: 0% ACTIVE
+                </span>
+            </div>
+
+        </div>
+
+        <!-- SECTION C: Split Analytics Grid (2 Columns) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 w-full min-w-0">
+            
+            <!-- Left Card: Focus Volume (7-Day vs 30-Day) -->
+            <div class="neo-card bg-white p-6 border-3 border-black shadow-[4px_4px_0px_#000] rounded-2xl flex flex-col justify-between min-w-0 overflow-hidden">
+                <div class="min-w-0 w-full">
+                    <!-- Header with Toggle -->
+                    <div class="flex items-center justify-between pb-0 gap-3">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-10 h-10 rounded-xl bg-[#E11D48] border-2 border-black flex items-center justify-center text-white shrink-0 shadow-none">
+                                <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <span class="text-[10px] font-mono text-[#64748B] font-bold block uppercase tracking-wider leading-none mb-1">VOLUME ANALYTICS</span>
+                                <h3 class="font-comic text-xl text-black font-bold leading-tight tracking-wide uppercase truncate">
+                                    FOCUS VOLUME DRILL
+                                </h3>
+                            </div>
+                        </div>
+
+                        <!-- 7D / 30D Toggle Switch -->
+                        <div class="flex items-center gap-1 border-2 border-black p-1 rounded-lg bg-zinc-100 shadow-none shrink-0">
+                            <button id="btn-vol-7d" class="px-3 py-1 text-xs font-mono font-bold rounded border border-black bg-[#FACC15] text-black shadow-[1px_1px_0px_#000] cursor-pointer" onclick="setVolumeRange(7)">
+                                7 DAYS
+                            </button>
+                            <button id="btn-vol-30d" class="px-3 py-1 text-xs font-mono font-bold rounded border border-transparent bg-transparent text-zinc-600 hover:text-black cursor-pointer" onclick="setVolumeRange(30)">
+                                30 DAYS
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="border-t-2 border-black my-4 w-full"></div>
+
+                    <!-- Bar Chart Container -->
+                    <div class="bg-[#F7F5EE] border-[3px] border-black rounded-xl p-4 my-2 min-w-0 w-full overflow-hidden">
+                        
+                        <!-- Dynamic Live Hover Inspect Bar for Volume Drill -->
+                        <div id="volume-inspect-callout" class="p-2 sm:p-2.5 bg-amber-50 border-2 border-black rounded-lg font-mono text-xs font-bold text-amber-950 flex items-center justify-between mb-2 shadow-none">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <i data-lucide="crosshair" class="w-4 h-4 text-[#E11D48] shrink-0"></i>
+                                <span id="volume-inspect-text" class="truncate">HOVER BARS TO INSPECT COMBAT SESSION BREAKDOWN</span>
+                            </div>
+                            <span id="volume-inspect-badge" class="text-[10px] bg-black text-[#FACC15] px-2 py-0.5 rounded border border-black shrink-0">CADENCE</span>
+                        </div>
+
+                        <div class="flex items-center justify-between text-xs font-mono font-bold text-zinc-600 mb-2">
+                            <span id="volume-range-label">PAST 7 DAYS COMBAT MINUTES</span>
+                            <span id="volume-peak-label">PEAK: 0 MINS</span>
+                        </div>
+                        
+                        <!-- Chart Area with Clean Y-Axis (No distracting horizontal lines) -->
+                        <div class="flex items-stretch gap-2.5 w-full mt-2">
+                            <!-- Y-Axis Scale -->
+                            <div class="flex flex-col justify-between items-end pb-6 text-[9px] font-mono font-bold text-zinc-500 select-none w-8 sm:w-9 shrink-0">
+                                <span id="volume-y-top">100m</span>
+                                <span id="volume-y-mid">50m</span>
+                                <span id="volume-y-base">0m</span>
+                            </div>
+
+                            <!-- Chart Body: Bars + X Timeline -->
+                            <div class="flex-1 min-w-0 relative">
+                                <!-- Bar Chart Visual Track -->
+                                <div id="volume-chart-container" class="h-36 sm:h-40 flex items-end justify-between pt-3 px-1 min-w-0 w-full overflow-hidden relative z-10">
+                                    <!-- Injected dynamically in JS -->
+                                </div>
+
+                                <!-- Milestone Timeline Axis (For 30-day mode, no border lines) -->
+                                <div id="volume-timeline-axis" class="hidden justify-between items-center text-[10px] font-mono font-bold text-zinc-700 pt-2 select-none">
+                                    <!-- Injected dynamically in JS -->
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Footer Metric -->
+                <div class="mt-4 pt-3 border-t-2 border-black flex flex-wrap items-center justify-between gap-2 text-xs font-mono font-bold uppercase tracking-wider text-black">
+                    <span class="flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 inline-block shrink-0" viewBox="0 0 24 24" fill="none"><path d="M12 2C9 7 7 9 7 13a5 5 0 0010 0c0-4-3-6-5-11z" fill="#E11D48" stroke="#000" stroke-width="1.5"/><path d="M12 8c-1.5 2.5-2.5 3.5-2.5 5.5a2.5 2.5 0 005 0c0-2-1.5-3-2.5-5.5z" fill="#FACC15" stroke="#000" stroke-width="0.8"/></svg>
+                        <span id="volume-period-total">PERIOD TOTAL: 0.0 HOURS</span>
+                    </span>
+                    <span id="volume-active-cadence" class="text-emerald-700 font-black">1/30 DAYS ACTIVE</span>
+                    <span id="volume-daily-avg-sub" class="text-zinc-600">AVG: 0 MINS/DAY</span>
+                </div>
+            </div>
+
+            <!-- Right Card: Peak Focus Hours (00:00 to 23:00) -->
+            <div class="neo-card bg-white p-6 border-3 border-black shadow-[4px_4px_0px_#000] rounded-2xl flex flex-col justify-between min-w-0 overflow-hidden">
+                <div class="min-w-0 w-full">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between pb-0 gap-3">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-10 h-10 rounded-xl bg-[#06B6D4] border-2 border-black flex items-center justify-center text-black shrink-0 shadow-none">
+                                <i data-lucide="clock" class="w-5 h-5"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <span class="text-[10px] font-mono text-[#64748B] font-bold block uppercase tracking-wider leading-none mb-1">CHRONO TACTICAL PROFILE</span>
+                                <h3 class="font-comic text-xl text-black font-bold leading-tight tracking-wide uppercase truncate">
+                                    PEAK FOCUS HOURS
+                                </h3>
+                            </div>
+                        </div>
+
+                        <span id="peak-badge-tag" class="border-2 border-black rounded-lg px-2.5 py-1 font-mono text-xs font-bold bg-[#FACC15] text-black shadow-none whitespace-nowrap">
+                            24H SPECTRUM
+                        </span>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="border-t-2 border-black my-4 w-full"></div>
+
+                    <!-- Peak Insight Callout -->
+                    <div id="peak-hour-callout" class="p-3 bg-amber-50 border-2 border-black rounded-xl font-mono text-xs font-bold text-amber-950 flex items-center justify-between mb-3 shadow-none">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <i data-lucide="flame" class="w-4 h-4 text-[#E11D48] shrink-0"></i>
+                            <span id="peak-hour-text" class="truncate">PEAK WINDOW: CALCULATING...</span>
+                        </div>
+                        <span id="peak-hour-ops-count" class="text-[10px] bg-black text-[#FACC15] px-2 py-0.5 rounded border border-black shrink-0">0 SESSIONS</span>
+                    </div>
+
+                    <!-- 24-Hour Distribution Histogram with Clean Y-Axis -->
+                    <div class="bg-[#F7F5EE] border-[3px] border-black rounded-xl p-4 my-2 min-w-0 w-full overflow-hidden">
+                        <div class="flex items-stretch gap-2 w-full">
+                            <!-- Y-Axis Scale -->
+                            <div class="flex flex-col justify-between items-end pb-5 text-[9px] font-mono font-bold text-zinc-500 select-none w-6 shrink-0">
+                                <span id="hourly-y-top">4</span>
+                                <span id="hourly-y-mid">2</span>
+                                <span id="hourly-y-base">0</span>
+                            </div>
+
+                            <!-- Chart Body -->
+                            <div class="flex-1 min-w-0 relative">
+                                <div class="h-32 flex items-end justify-between gap-1 pt-3 min-w-0 w-full overflow-hidden relative z-10" id="hourly-bars-container">
+                                    <!-- 24 hourly columns dynamically injected -->
+                                </div>
+                                <div class="flex justify-between text-[9px] font-mono font-bold text-zinc-600 pt-1.5 mt-1 select-none">
+                                    <span>12 AM (NIGHT)</span>
+                                    <span>6 AM (DAWN)</span>
+                                    <span>12 PM (NOON)</span>
+                                    <span>6 PM (DUSK)</span>
+                                    <span>11 PM</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Metric (Optimal Window Removed as requested) -->
+                <div class="mt-4 pt-3 border-t-2 border-black flex items-center justify-between text-xs font-mono font-bold uppercase tracking-wider text-black">
+                    <span class="flex items-center gap-1.5 text-zinc-700">
+                        <i data-lucide="shield" class="w-4 h-4 text-[#06B6D4]"></i>
+                        <span>24-HOUR COMBAT SPECTRUM</span>
+                    </span>
+                    <span class="text-zinc-600">HISTORICAL ALL-TIME</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- SECTION D: Historical Mission Archive (Chronological Audit Log) -->
+        <div class="neo-card bg-white p-6 border-3 border-black shadow-[4px_4px_0px_#000] rounded-2xl">
+            
+            <!-- Card Header -->
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-black border-2 border-black flex items-center justify-center text-[#FACC15] shrink-0 shadow-none">
+                        <i data-lucide="archive" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-mono text-[#64748B] font-bold block uppercase tracking-wider leading-none mb-1">TACTICAL AUDIT LOG</span>
+                        <h3 class="font-comic text-xl sm:text-2xl text-black font-bold leading-tight tracking-wide uppercase">
+                            HISTORICAL MISSION ARCHIVE
+                        </h3>
+                    </div>
+                </div>
+
+                <!-- Filter Buttons -->
+                <div class="flex items-center gap-1.5 flex-wrap" id="archive-filter-btns">
+                    <button class="archive-filter-btn px-3 py-1 text-xs font-mono font-bold rounded border-2 border-black bg-[#FACC15] text-black shadow-[2px_2px_0px_#000] cursor-pointer" data-filter="ALL" onclick="setArchiveFilter('ALL')">
+                        ALL SESSIONS
+                    </button>
+                    <button class="archive-filter-btn px-3 py-1 text-xs font-mono font-bold rounded border-2 border-black bg-white text-zinc-700 hover:bg-zinc-100 shadow-none cursor-pointer" data-filter="WORK" onclick="setArchiveFilter('WORK')">
+                        COMBAT ONLY
+                    </button>
+                    <button class="archive-filter-btn px-3 py-1 text-xs font-mono font-bold rounded border-2 border-black bg-white text-zinc-700 hover:bg-zinc-100 shadow-none cursor-pointer" data-filter="BREAK" onclick="setArchiveFilter('BREAK')">
+                        RECHARGE ONLY
+                    </button>
+                </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="border-t-2 border-black my-4 w-full"></div>
+
+            <!-- Table Container -->
+            <div class="bg-[#F7F5EE] border-[3px] border-black rounded-xl overflow-hidden shadow-none">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse font-mono text-xs">
+                        <thead>
+                            <tr class="bg-amber-100 border-b-2 border-black text-black font-bold text-[11px] uppercase tracking-wider">
+                                <th class="py-3 px-3.5 border-r border-black/20">DATE / TIME</th>
+                                <th class="py-3 px-3.5 border-r border-black/20">OPERATION PHASE</th>
+                                <th class="py-3 px-3.5 border-r border-black/20">DURATION</th>
+                                <th class="py-3 px-3.5 border-r border-black/20">STATUS</th>
+                                <th class="py-3 px-3.5">XP GAINED</th>
+                            </tr>
+                        </thead>
+                        <tbody id="archive-table-body" class="divide-y divide-black/10">
+                            <!-- Populated dynamically in JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pagination & Record Count Footer -->
+            <div class="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3 border-t-2 border-black font-mono text-xs font-bold text-black">
+                <span id="archive-page-info" class="text-zinc-700">
+                    SHOWING 1-10 OF 0 RECORDS
+                </span>
+                <div class="flex items-center gap-2">
+                    <button id="btn-archive-prev" class="neo-btn bg-white hover:bg-zinc-100 text-black px-3.5 py-1.5 border-2 border-black text-xs font-mono font-bold shadow-[2px_2px_0px_#000] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed" onclick="changeArchivePage(-1)">
+                        ◀ PREV
+                    </button>
+                    <span id="archive-page-number" class="px-2.5 py-1 bg-[#FACC15] border border-black rounded font-mono font-bold text-xs">
+                        1 / 1
+                    </span>
+                    <button id="btn-archive-next" class="neo-btn bg-white hover:bg-zinc-100 text-black px-3.5 py-1.5 border-2 border-black text-xs font-mono font-bold shadow-[2px_2px_0px_#000] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed" onclick="changeArchivePage(1)">
+                        NEXT ▶
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
     <!-- Bottom Avengers Operational Banner (Cleaned as requested) -->
     <footer class="max-w-6xl mx-auto w-full mt-6">
         <div class="neo-card bg-black text-white p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3 text-xs">
@@ -1023,10 +1535,60 @@
     <!-- MAIN JAVASCRIPT LOGIC -->
     <script>
         // =========================================================================
-        // 1. STANDALONE UI SHOWCASE MODE (DISCONNECTED FROM HARDWARE & SUPABASE)
+        // 1. SUPABASE CLIENT & VIEW NAVIGATION
         // =========================================================================
-        const SHOWCASE_MODE = true;
-        const supabaseClient = null; // Disconnected: All database & network calls removed
+        const SUPABASE_URL = "https://ykncypzibxorhaatyqah.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlrbmN5cHppYnhvcmhhYXR5cWFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxOTE4MDgsImV4cCI6MjEwNzc2NzgwOH0.cVWlzZOw5et55NiYcp3n1g6ophDvmp-GgCHyo9Vf5sI";
+
+        let supabaseClient = null;
+        try {
+            if (typeof supabase !== 'undefined' && SUPABASE_URL && SUPABASE_KEY) {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            }
+        } catch (err) {
+            console.warn("Supabase client init:", err);
+        }
+
+        let currentActiveView = 'live-hud';
+
+        function switchView(viewName) {
+            currentActiveView = viewName;
+            if (typeof AudioEngine !== 'undefined' && AudioEngine.repulsorZap) {
+                AudioEngine.init();
+                AudioEngine.repulsorZap();
+            }
+
+            const liveHudView = document.getElementById('live-hud-view');
+            const statsView = document.getElementById('stats-view');
+            const tabLive = document.getElementById('tab-live-hud');
+            const tabStats = document.getElementById('tab-stats');
+
+            if (viewName === 'live-hud') {
+                if (liveHudView) liveHudView.classList.remove('hidden');
+                if (statsView) statsView.classList.add('hidden');
+
+                if (tabLive) {
+                    tabLive.className = "neo-btn px-5 py-2.5 font-comic tracking-wide text-lg border-2 border-black bg-[#FACC15] text-black shadow-neo flex items-center gap-2 cursor-pointer transition-all";
+                }
+                if (tabStats) {
+                    tabStats.className = "neo-btn px-5 py-2.5 font-comic tracking-wide text-lg border-2 border-black bg-white text-zinc-600 hover:bg-zinc-100 shadow-neo flex items-center gap-2 cursor-pointer transition-all";
+                }
+            } else {
+                if (liveHudView) liveHudView.classList.add('hidden');
+                if (statsView) statsView.classList.remove('hidden');
+
+                if (tabLive) {
+                    tabLive.className = "neo-btn px-5 py-2.5 font-comic tracking-wide text-lg border-2 border-black bg-white text-zinc-600 hover:bg-zinc-100 shadow-neo flex items-center gap-2 cursor-pointer transition-all";
+                }
+                if (tabStats) {
+                    tabStats.className = "neo-btn px-5 py-2.5 font-comic tracking-wide text-lg border-2 border-black bg-[#FACC15] text-black shadow-neo flex items-center gap-2 cursor-pointer transition-all";
+                }
+
+                loadTacticalStats();
+            }
+
+            if (window.lucide) lucide.createIcons();
+        }
 
         // =========================================================================
         // 2. RETRO WEB AUDIO API SYNTHESIZER (Superhero SFX)
@@ -1738,6 +2300,7 @@
                     triggerHeroEnergyBeam(currentHeroKey);
                     showToast(`PHASE SHIFTED TO ${currentPhase}!`, "phase");
                     loadAnalytics();
+                    loadTacticalStats();
                 }
             }
             isFirstLoad = false;
@@ -1826,6 +2389,7 @@
                         triggerHeroEnergyBeam(currentHeroKey);
                         showToast("MISSION COMPLETE!", "done");
                         loadAnalytics();
+                        loadTacticalStats();
                         if (typeof updateTacticalDebrief === 'function') {
                             updateTacticalDebrief();
                         }
@@ -2149,6 +2713,770 @@
                             ${xpGain}
                         </span>
                     </div>
+                `;
+            }).join('');
+
+            if (window.lucide) lucide.createIcons();
+        }
+
+        // =========================================================================
+        // 7B. TACTICAL STATS & ARCHIVES DATA ENGINE
+        // =========================================================================
+        const MARVEL_ICONS = {
+            arcReactor: `<svg class="w-3.5 h-3.5 inline-block align-middle shrink-0" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10.5" fill="#E62429" stroke="#000" stroke-width="1.5"/><circle cx="12" cy="12" r="7.5" fill="#FFD700" stroke="#000" stroke-width="1"/><circle cx="12" cy="12" r="4.8" fill="#00F0FF" stroke="#000" stroke-width="1"/><polygon points="12,8 15.5,14 8.5,14" fill="#FFFFFF" stroke="#000" stroke-width="0.7"/><circle cx="12" cy="12" r="1.5" fill="#00F0FF"/></svg>`,
+            shield: `<svg class="w-3.5 h-3.5 inline-block align-middle shrink-0" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10.5" fill="#E62429" stroke="#000" stroke-width="1.5"/><circle cx="12" cy="12" r="8" fill="#FFFFFF" stroke="#000" stroke-width="1"/><circle cx="12" cy="12" r="5.5" fill="#E62429" stroke="#000" stroke-width="1"/><circle cx="12" cy="12" r="3.2" fill="#0D47A1" stroke="#000" stroke-width="0.8"/><polygon points="12,9.2 12.8,11 14.8,11 13.2,12.2 13.8,14 12,12.8 10.2,14 10.8,12.2 9.2,11 11.2,11" fill="#FFFFFF" stroke="#000" stroke-width="0.5"/></svg>`,
+            mjolnir: `<svg class="w-3.5 h-3.5 inline-block align-middle shrink-0" viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="8" rx="2" fill="#94A3B8" stroke="#000" stroke-width="1.5"/><rect x="7" y="7" width="10" height="4" fill="#CBD5E1"/><line x1="12" y1="13" x2="12" y2="21" stroke="#78350F" stroke-width="2.5" stroke-linecap="round"/><line x1="9" y1="21" x2="15" y2="21" stroke="#000" stroke-width="2" stroke-linecap="round"/><polygon points="19,3 15.5,7.5 18.5,8 14.5,13" fill="#00F0FF" stroke="#000" stroke-width="0.8"/></svg>`,
+            spidey: `<svg class="w-3.5 h-3.5 inline-block align-middle shrink-0" viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="12" rx="9.5" ry="10.5" fill="#EF4444" stroke="#000" stroke-width="1.5"/><line x1="12" y1="1.5" x2="12" y2="22.5" stroke="#000" stroke-width="1"/><line x1="2.5" y1="12" x2="21.5" y2="12" stroke="#000" stroke-width="1"/><ellipse cx="12" cy="12" rx="5.5" ry="6.5" fill="none" stroke="#000" stroke-width="1"/><path d="M5.5 8.5 Q10 8 11 11.5 Q8 12 5.5 8.5 Z" fill="#FFFFFF" stroke="#000" stroke-width="1.2"/><path d="M18.5 8.5 Q14 8 13 11.5 Q16 12 18.5 8.5 Z" fill="#FFFFFF" stroke="#000" stroke-width="1.2"/></svg>`,
+            avengersA: `<svg class="w-3.5 h-3.5 inline-block align-middle shrink-0 text-black" viewBox="0 0 100 100" fill="currentColor"><circle cx="50" cy="50" r="44" fill="none" stroke="#000" stroke-width="8"/><path d="M50 16 L28 84 L42 84 L48 65 L68 65 L68 53 L49 53 L50 38 L65 84 L79 84 L65 38 L82 38 L82 26 L63 26 Z" fill="currentColor"/><polygon points="60,49 76,49 84,42 76,35 60,35" fill="currentColor"/></svg>`,
+            flame: `<svg class="w-3.5 h-3.5 inline-block align-middle shrink-0" viewBox="0 0 24 24" fill="none"><path d="M12 2C9 7 7 9 7 13a5 5 0 0010 0c0-4-3-6-5-11z" fill="#E11D48" stroke="#000" stroke-width="1.5"/><path d="M12 8c-1.5 2.5-2.5 3.5-2.5 5.5a2.5 2.5 0 005 0c0-2-1.5-3-2.5-5.5z" fill="#FACC15" stroke="#000" stroke-width="0.8"/></svg>`
+        };
+
+        const tacticalArchiveData = {
+            allLogs: [],
+            workLogs: [],
+            volumeRangeDays: 7,
+            currentFilter: 'ALL',
+            currentPage: 1,
+            pageSize: 10
+        };
+
+        // Realistic 60-day historical logs generator (showcase / initial state fallback)
+        function generateShowcaseHistoricalLogs() {
+            const logs = [];
+            const now = Date.now();
+
+            for (let dayOffset = 59; dayOffset >= 0; dayOffset--) {
+                const dayDate = new Date(now - dayOffset * 24 * 60 * 60 * 1000);
+                const dayOfWeek = dayDate.getDay();
+
+                let workSessionsCount;
+                if (dayOffset <= 7) {
+                    // Active current streak: 2 to 5 sessions every day in the last 7 days
+                    workSessionsCount = ((dayOffset * 3) % 4) + 2;
+                } else if (dayOfWeek === 0) {
+                    workSessionsCount = (dayOffset % 3 === 0) ? 1 : 0;
+                } else if (dayOffset % 5 === 0) {
+                    workSessionsCount = 0;
+                } else {
+                    workSessionsCount = (dayOffset % 4) + 1;
+                }
+
+                for (let s = 0; s < workSessionsCount; s++) {
+                    const hour = 9 + ((s * 3 + dayOffset) % 12);
+                    const minute = (s * 17) % 60;
+                    const sessionTime = new Date(dayDate);
+                    sessionTime.setHours(hour, minute, 0, 0);
+
+                    logs.push({
+                        id: `log-${dayOffset}-${s}-w`,
+                        phase: 'WORK',
+                        duration_minutes: 25,
+                        completed_at: sessionTime.toISOString()
+                    });
+
+                    const breakTime = new Date(sessionTime.getTime() + 25 * 60 * 1000);
+                    logs.push({
+                        id: `log-${dayOffset}-${s}-b`,
+                        phase: (s === 3) ? 'LONG_BREAK' : 'SHORT_BREAK',
+                        duration_minutes: (s === 3) ? 15 : 5,
+                        completed_at: breakTime.toISOString()
+                    });
+                }
+            }
+
+            logs.sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at));
+            return logs;
+        }
+
+        async function loadTacticalStats() {
+            let allLogs = [];
+            if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('session_logs')
+                        .select('*')
+                        .order('completed_at', { ascending: false });
+                    if (!error && data && data.length > 0) {
+                        allLogs = data;
+                    }
+                } catch (err) {
+                    console.warn("Supabase fetch allLogs error:", err);
+                }
+            }
+
+            if (!allLogs || allLogs.length === 0) {
+                allLogs = generateShowcaseHistoricalLogs();
+            }
+
+            tacticalArchiveData.allLogs = allLogs;
+            tacticalArchiveData.workLogs = allLogs.filter(l => l.phase === 'WORK');
+
+            renderTacticalKPIs(tacticalArchiveData.allLogs, tacticalArchiveData.workLogs);
+            renderHeatmap(tacticalArchiveData.workLogs);
+            renderVolumeChart();
+            renderPeakHours(tacticalArchiveData.workLogs);
+            renderArchiveTable();
+
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function renderTacticalKPIs(allLogs, workLogs) {
+            // 1. Total Combat Output
+            const totalWorkMinutes = workLogs.reduce((acc, l) => acc + (l.duration_minutes || 25), 0);
+            const totalHours = (totalWorkMinutes / 60).toFixed(1);
+            const elHours = document.getElementById('stat-alltime-hours');
+            const elSessions = document.getElementById('stat-alltime-sessions-count');
+            if (elHours) elHours.innerText = totalHours;
+            if (elSessions) elSessions.innerText = `${workLogs.length} OPS`;
+
+            // 2. Protocols Mastered
+            const protocolsMastered = Math.floor(workLogs.length / 4);
+            const waveProgress = workLogs.length % 4;
+            const elProtocols = document.getElementById('stat-protocols-mastered');
+            const elGauge = document.getElementById('stat-protocols-gauge');
+            if (elProtocols) elProtocols.innerText = protocolsMastered;
+            if (elGauge) elGauge.innerText = `${waveProgress}/4 IN WAVE`;
+
+            // 3. Operational Streak & Daily Average
+            const activeDateSet = new Set();
+            workLogs.forEach(l => {
+                if (l.completed_at) {
+                    const dateKey = new Date(l.completed_at).toLocaleDateString('en-CA');
+                    activeDateSet.add(dateKey);
+                }
+            });
+
+            const sortedDates = Array.from(activeDateSet).sort();
+            const activeDaysCount = sortedDates.length;
+            const dailyAvg = activeDaysCount > 0 ? Math.round(totalWorkMinutes / activeDaysCount) : 0;
+            const elDailyAvg = document.getElementById('stat-daily-avg');
+            const elActiveDays = document.getElementById('stat-active-days-total');
+            if (elDailyAvg) elDailyAvg.innerText = dailyAvg;
+            if (elActiveDays) elActiveDays.innerText = `${activeDaysCount} DAYS`;
+
+            // Consecutive streaks calculation
+            let currentStreak = 0;
+            let maxStreak = 0;
+            let tempStreak = 0;
+            if (sortedDates.length > 0) {
+                tempStreak = 1;
+                maxStreak = 1;
+                for (let i = 1; i < sortedDates.length; i++) {
+                    const prev = new Date(sortedDates[i - 1]);
+                    const curr = new Date(sortedDates[i]);
+                    const diffDays = Math.round((curr - prev) / (1000 * 60 * 60 * 24));
+                    if (diffDays === 1) {
+                        tempStreak++;
+                    } else if (diffDays > 1) {
+                        tempStreak = 1;
+                    }
+                    if (tempStreak > maxStreak) maxStreak = tempStreak;
+                }
+
+                const todayStr = new Date().toLocaleDateString('en-CA');
+                const yesterdayStr = new Date(Date.now() - 86400000).toLocaleDateString('en-CA');
+                if (activeDateSet.has(todayStr) || activeDateSet.has(yesterdayStr)) {
+                    currentStreak = 0;
+                    let checkDate = activeDateSet.has(todayStr) ? new Date() : new Date(Date.now() - 86400000);
+                    while (true) {
+                        const k = checkDate.toLocaleDateString('en-CA');
+                        if (activeDateSet.has(k)) {
+                            currentStreak++;
+                            checkDate.setDate(checkDate.getDate() - 1);
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            }
+            if (currentStreak > maxStreak) maxStreak = currentStreak;
+
+            const elStreak = document.getElementById('stat-current-streak');
+            const elStreakDetail = document.getElementById('stat-streak-detail');
+            const elHeatmapStreak = document.getElementById('heatmap-streak-badge-text');
+            if (elStreak) elStreak.innerText = currentStreak;
+            if (elStreakDetail) {
+                elStreakDetail.innerHTML = `
+                    <svg class="w-3.5 h-3.5 inline-block shrink-0" viewBox="0 0 24 24" fill="none"><path d="M12 2C9 7 7 9 7 13a5 5 0 0010 0c0-4-3-6-5-11z" fill="#E11D48" stroke="#000" stroke-width="1.5"/><path d="M12 8c-1.5 2.5-2.5 3.5-2.5 5.5a2.5 2.5 0 005 0c0-2-1.5-3-2.5-5.5z" fill="#FACC15" stroke="#000" stroke-width="0.8"/></svg>
+                    <span>${currentStreak} DAYS ACTIVE | RECORD: ${maxStreak} DAYS</span>
+                `;
+            }
+            if (elHeatmapStreak) elHeatmapStreak.innerText = `${currentStreak}-DAY STREAK`;
+        }
+
+        function renderHeatmap(workLogs) {
+            const grid = document.getElementById('heatmap-grid');
+            if (!grid) return;
+
+            const dateMap = {};
+            workLogs.forEach(l => {
+                if (l.completed_at) {
+                    const key = new Date(l.completed_at).toLocaleDateString('en-CA');
+                    if (!dateMap[key]) dateMap[key] = { count: 0, mins: 0 };
+                    dateMap[key].count++;
+                    dateMap[key].mins += (l.duration_minutes || 25);
+                }
+            });
+
+            const dayList = [];
+            const today = new Date();
+            for (let i = 59; i >= 0; i--) {
+                const d = new Date(today);
+                d.setDate(today.getDate() - i);
+                dayList.push(d);
+            }
+
+            let activeDaysCount = 0;
+
+            const columns = [];
+            let col = [];
+            const startDayOfWeek = dayList[0].getDay();
+            for (let p = 0; p < startDayOfWeek; p++) {
+                col.push(null);
+            }
+            dayList.forEach(d => {
+                col.push(d);
+                if (col.length === 7) {
+                    columns.push(col);
+                    col = [];
+                }
+            });
+            if (col.length > 0) {
+                while (col.length < 7) col.push(null);
+                columns.push(col);
+            }
+
+            grid.innerHTML = columns.map(weekCol => {
+                const cellsHtml = weekCol.map(d => {
+                    if (!d) {
+                        return `<div class="w-6 h-6 sm:w-7 sm:h-7 opacity-0"></div>`;
+                    }
+                    const key = d.toLocaleDateString('en-CA');
+                    const entry = dateMap[key] || { count: 0, mins: 0 };
+                    const c = entry.count;
+                    if (c > 0) activeDaysCount++;
+
+                    let bgClass = "bg-white border-2 border-black/30 hover:border-black hover:bg-amber-50/60 shadow-none";
+                    let innerContent = '<span class="text-zinc-400 group-hover:text-black font-mono font-bold text-[9px] select-none">·</span>';
+
+                    if (c === 1) {
+                        bgClass = "bg-[#FEF08A] border-2 border-black text-black shadow-[2px_2px_0px_#000]";
+                        innerContent = '';
+                    } else if (c === 2) {
+                        bgClass = "bg-[#FACC15] border-2 border-black text-black shadow-[2px_2px_0px_#000]";
+                        innerContent = '';
+                    } else if (c === 3) {
+                        bgClass = "bg-[#FB923C] border-2 border-black text-black shadow-[2px_2px_0px_#000]";
+                        innerContent = '';
+                    } else if (c >= 4) {
+                        bgClass = "bg-[#E11D48] text-white border-2 border-black shadow-[2px_2px_0px_#000] ring-1 ring-black";
+                        innerContent = `<svg class="w-3 h-3 drop-shadow flex-shrink-0" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#FFD700" stroke="#000" stroke-width="1.8"/><circle cx="12" cy="12" r="5" fill="#00F0FF" stroke="#000" stroke-width="1"/><polygon points="12,7 16,14 8,14" fill="#FFFFFF" stroke="#000" stroke-width="0.8"/></svg>`;
+                    }
+
+                    const dateTitle = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    return `
+                        <div class="heatmap-tile w-6 h-6 sm:w-7 sm:h-7 rounded-md transition-all hover:scale-125 hover:z-20 cursor-pointer flex items-center justify-center select-none group relative ${bgClass}"
+                             data-date="${key}" data-count="${c}" data-mins="${entry.mins}"
+                             onmouseenter="inspectHeatmapTile(this)" onclick="inspectHeatmapTile(this)"
+                             title="${dateTitle} • ${c} sessions (${entry.mins} mins)">
+                            ${innerContent}
+                        </div>
+                    `;
+                }).join('');
+
+                return `<div class="flex flex-col gap-1.5 sm:gap-2">${cellsHtml}</div>`;
+            }).join('');
+
+            const rateText = document.getElementById('heatmap-rate-text');
+            if (rateText) {
+                const pct = Math.round((activeDaysCount / 60) * 100);
+                rateText.innerText = `CONSISTENCY: ${pct}% ACTIVE (${activeDaysCount}/60 DAYS)`;
+            }
+
+            const reconCoverage = document.getElementById('recon-coverage-text');
+            if (reconCoverage) {
+                const pct = Math.round((activeDaysCount / 60) * 100);
+                reconCoverage.innerText = `${pct}% ACTIVE`;
+            }
+
+            const reconStrike = document.getElementById('recon-strike-record');
+            if (reconStrike) {
+                reconStrike.innerText = `${activeDaysCount} DAYS HIT`;
+            }
+
+            // Auto-inspect latest active tile (or today) so Recon panel has immediate live telemetry
+            setTimeout(() => {
+                const activeTiles = grid.querySelectorAll('.heatmap-tile[data-count]:not([data-count="0"])');
+                const lastTile = activeTiles.length > 0 ? activeTiles[activeTiles.length - 1] : grid.querySelector('.heatmap-tile:last-child');
+                if (lastTile) {
+                    inspectHeatmapTile(lastTile);
+                }
+            }, 50);
+        }
+
+        function inspectHeatmapTile(tile) {
+            if (!tile) return;
+            const dateStr = tile.getAttribute('data-date');
+            const count = parseInt(tile.getAttribute('data-count') || '0', 10);
+            const mins = parseInt(tile.getAttribute('data-mins') || '0', 10);
+
+            const d = new Date(dateStr + 'T12:00:00');
+            const formattedDate = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
+            const dayName = d.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
+
+            // 1. Bottom inspect bar (Clean operational readout, no redundant badge)
+            const inspectText = document.getElementById('heatmap-inspect-text');
+            if (inspectText) {
+                if (count === 0) {
+                    inspectText.innerHTML = `
+                        <i data-lucide="crosshair" class="w-4 h-4 text-zinc-500"></i>
+                        <span class="text-zinc-700">${formattedDate} • 0 SESSIONS (0 MINS)</span>
+                    `;
+                } else {
+                    const protocols = Math.floor(count / 4);
+                    const protocolNote = protocols > 0 ? ` • ${protocols} PROTOCOL${protocols > 1 ? 'S' : ''} FINISHED` : '';
+                    inspectText.innerHTML = `
+                        <i data-lucide="crosshair" class="w-4 h-4 text-[#E11D48]"></i>
+                        <span class="text-black font-mono font-bold">${formattedDate} • ${count} SESSIONS FINISHED (${mins} MINS)${protocolNote}</span>
+                    `;
+                }
+            }
+
+            // 2. Right Recon Telemetry Panel (Fourth Image: Protocols & Sessions Finished)
+            const reconDayTag = document.getElementById('recon-day-tag');
+            const reconDateTitle = document.getElementById('recon-date-title');
+            const reconOutputDesc = document.getElementById('recon-output-desc');
+            const reconProtocols = document.getElementById('recon-protocols-count');
+            const reconSessions = document.getElementById('recon-sessions-count');
+
+            if (reconDayTag) reconDayTag.innerText = `${dayName} // RECON`;
+            if (reconDateTitle) reconDateTitle.innerText = formattedDate;
+            if (reconOutputDesc) {
+                reconOutputDesc.innerText = count === 0
+                    ? '0 SESSIONS COMPLETED • 0 MINS LOGGED'
+                    : `${mins} FOCUS MINUTES LOGGED`;
+            }
+
+            const protocolsFinished = Math.floor(count / 4);
+            const sessionsFinished = count;
+            if (reconProtocols) reconProtocols.innerText = protocolsFinished;
+            if (reconSessions) reconSessions.innerText = sessionsFinished;
+
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function setVolumeRange(days) {
+            tacticalArchiveData.volumeRangeDays = days;
+            const btn7 = document.getElementById('btn-vol-7d');
+            const btn30 = document.getElementById('btn-vol-30d');
+            if (days === 7) {
+                if (btn7) {
+                    btn7.className = "px-3 py-1 text-xs font-mono font-bold rounded border border-black bg-[#FACC15] text-black shadow-[1px_1px_0px_#000] cursor-pointer";
+                }
+                if (btn30) {
+                    btn30.className = "px-3 py-1 text-xs font-mono font-bold rounded border border-transparent bg-transparent text-zinc-600 hover:text-black cursor-pointer";
+                }
+            } else {
+                if (btn7) {
+                    btn7.className = "px-3 py-1 text-xs font-mono font-bold rounded border border-transparent bg-transparent text-zinc-600 hover:text-black cursor-pointer";
+                }
+                if (btn30) {
+                    btn30.className = "px-3 py-1 text-xs font-mono font-bold rounded border border-black bg-[#FACC15] text-black shadow-[1px_1px_0px_#000] cursor-pointer";
+                }
+            }
+            renderVolumeChart();
+        }
+
+        function inspectVolumeBar(dateKey, mins, count) {
+            const calloutText = document.getElementById('volume-inspect-text');
+            const calloutBadge = document.getElementById('volume-inspect-badge');
+            if (!calloutText) return;
+
+            const d = new Date(dateKey + 'T12:00:00');
+            const formatted = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
+
+            if (mins === 0) {
+                calloutText.innerText = `${formatted} • 0 MINS LOGGED (0 SESSIONS)`;
+                if (calloutBadge) {
+                    calloutBadge.className = "text-[10px] bg-zinc-200 text-zinc-700 px-2 py-0.5 rounded border border-black shrink-0 font-mono font-bold";
+                    calloutBadge.innerText = "NO SESSIONS";
+                }
+            } else {
+                const protocols = Math.floor(count / 4);
+                const protocolText = protocols > 0 ? ` • ${protocols} PROTOCOL${protocols > 1 ? 'S' : ''} FINISHED` : '';
+                calloutText.innerText = `${formatted} • ${mins} MINS (${count} SESSIONS COMPLETED)${protocolText}`;
+                if (calloutBadge) {
+                    if (mins >= 100) {
+                        calloutBadge.className = "text-[10px] bg-[#E11D48] text-white px-2 py-0.5 rounded border border-black shrink-0 font-mono font-bold shadow-[1px_1px_0px_#000]";
+                        calloutBadge.innerText = "HIGH FOCUS";
+                    } else if (mins >= 50) {
+                        calloutBadge.className = "text-[10px] bg-[#FACC15] text-black px-2 py-0.5 rounded border border-black shrink-0 font-mono font-bold shadow-[1px_1px_0px_#000]";
+                        calloutBadge.innerText = "COMBAT ACTIVE";
+                    } else {
+                        calloutBadge.className = "text-[10px] bg-[#FEF08A] text-black px-2 py-0.5 rounded border border-black shrink-0 font-mono font-bold";
+                        calloutBadge.innerText = "SPRINT MET";
+                    }
+                }
+            }
+        }
+
+        function resetVolumeInspect() {
+            const calloutText = document.getElementById('volume-inspect-text');
+            const calloutBadge = document.getElementById('volume-inspect-badge');
+            if (calloutText) calloutText.innerText = 'HOVER BARS TO INSPECT COMBAT SESSION BREAKDOWN';
+            if (calloutBadge) {
+                calloutBadge.className = "text-[10px] bg-black text-[#FACC15] px-2 py-0.5 rounded border border-black shrink-0 font-mono font-bold";
+                calloutBadge.innerText = "CADENCE";
+            }
+        }
+
+        function renderVolumeChart() {
+            const container = document.getElementById('volume-chart-container');
+            const rangeLabel = document.getElementById('volume-range-label');
+            const peakLabel = document.getElementById('volume-peak-label');
+            const periodTotal = document.getElementById('volume-period-total');
+            const dailyAvgSub = document.getElementById('volume-daily-avg-sub');
+            const timelineAxis = document.getElementById('volume-timeline-axis');
+            const activeCadenceEl = document.getElementById('volume-active-cadence');
+            if (!container) return;
+
+            const days = tacticalArchiveData.volumeRangeDays || 7;
+            const is30 = (days === 30);
+            if (rangeLabel) rangeLabel.innerText = `PAST ${days} DAYS COMBAT MINUTES`;
+
+            const dateMap = {};
+            tacticalArchiveData.workLogs.forEach(l => {
+                if (l.completed_at) {
+                    const key = new Date(l.completed_at).toLocaleDateString('en-CA');
+                    if (!dateMap[key]) dateMap[key] = { count: 0, mins: 0 };
+                    dateMap[key].count++;
+                    dateMap[key].mins += (l.duration_minutes || 25);
+                }
+            });
+
+            const dayItems = [];
+            const today = new Date();
+            for (let i = days - 1; i >= 0; i--) {
+                const d = new Date(today);
+                d.setDate(today.getDate() - i);
+                const key = d.toLocaleDateString('en-CA');
+                const stats = dateMap[key] || { count: 0, mins: 0 };
+                dayItems.push({
+                    date: d,
+                    key,
+                    mins: stats.mins,
+                    count: stats.count
+                });
+            }
+
+            const maxVal = Math.max(...dayItems.map(d => d.mins), 0);
+            // Precision Y-axis ceiling rounded to clean multiples of 25m
+            const yMax = Math.max(100, Math.ceil(Math.max(maxVal, 100) / 25) * 25);
+            const yMid = Math.round(yMax / 2);
+
+            const yTopEl = document.getElementById('volume-y-top');
+            const yMidEl = document.getElementById('volume-y-mid');
+            const yBaseEl = document.getElementById('volume-y-base');
+            if (yTopEl) yTopEl.innerText = `${yMax}m`;
+            if (yMidEl) yMidEl.innerText = `${yMid}m`;
+            if (yBaseEl) yBaseEl.innerText = `0m`;
+
+            let totalMins = 0;
+            let activeDaysCount = 0;
+            dayItems.forEach(d => {
+                totalMins += d.mins;
+                if (d.mins > 0) activeDaysCount++;
+            });
+
+            if (peakLabel) peakLabel.innerText = `PEAK: ${maxVal} MINS`;
+            if (periodTotal) periodTotal.innerText = `PERIOD TOTAL: ${(totalMins / 60).toFixed(1)} HOURS`;
+            if (dailyAvgSub) dailyAvgSub.innerText = `AVG: ${Math.round(totalMins / days)} MINS/DAY`;
+            if (activeCadenceEl) activeCadenceEl.innerText = `${activeDaysCount}/${days} DAYS ACTIVE`;
+
+            const gapClass = is30 ? 'gap-[2px] sm:gap-[3px]' : 'gap-2 sm:gap-3';
+            const barMaxW = is30 ? 'max-w-[12px]' : 'max-w-[40px]';
+            container.className = `h-36 sm:h-40 flex items-end justify-between ${gapClass} pt-4 px-1 min-w-0 w-full overflow-hidden`;
+
+            container.innerHTML = dayItems.map((d, idx) => {
+                const hasMins = d.mins > 0;
+                // Mathematically exact height relative to yMax
+                const heightPct = hasMins ? Math.max(10, Math.min(100, Math.round((d.mins / yMax) * 100))) : 4;
+                const fullTitle = `${d.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}: ${d.mins}m (${d.count}x)`;
+                const barColor = d.mins >= 100 ? 'bg-[#E11D48]' : d.mins > 0 ? 'bg-[#FACC15]' : 'bg-zinc-200/90 border-black/30 hover:border-black hover:bg-zinc-300';
+                const shadowClass = hasMins ? 'shadow-[2px_2px_0px_#000]' : '';
+
+                const dayLabelHtml = !is30 ? `
+                    <span class="font-mono text-[9px] sm:text-[10px] font-bold text-black mt-1.5 truncate max-w-full text-center select-none block h-3 leading-none">
+                        ${d.date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}
+                    </span>
+                ` : '';
+
+                return `
+                    <div class="flex-1 min-w-0 flex flex-col items-center justify-end h-full group relative cursor-pointer" 
+                         title="${fullTitle}"
+                         onmouseenter="inspectVolumeBar('${d.key}', ${d.mins}, ${d.count})"
+                         onmouseleave="resetVolumeInspect()"
+                         onclick="inspectVolumeBar('${d.key}', ${d.mins}, ${d.count})">
+                        <div class="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 bg-black text-[#FACC15] text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border border-black pointer-events-none whitespace-nowrap z-30 shadow-[1px_1px_0px_#000]">
+                            ${d.mins}m
+                        </div>
+                        <div class="w-full ${barMaxW} rounded-t border-2 border-black ${barColor} ${shadowClass} group-hover:bg-[#10B981] group-hover:scale-y-105 origin-bottom transition-all" style="height: ${heightPct}%;"></div>
+                        ${dayLabelHtml}
+                    </div>
+                `;
+            }).join('');
+
+            // Render Timeline Axis (Only needed in 30-day mode, hidden in 7-day mode)
+            if (timelineAxis) {
+                if (is30) {
+                    timelineAxis.classList.remove('hidden');
+                    timelineAxis.classList.add('flex');
+                    const milestones = [
+                        { idx: 0, label: dayItems[0].date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase() },
+                        { idx: 7, label: dayItems[7].date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase() },
+                        { idx: 15, label: dayItems[15].date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase() },
+                        { idx: 22, label: dayItems[22].date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase() },
+                        { idx: 29, label: `TODAY (${dayItems[29].date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()})`, isToday: true }
+                    ];
+
+                    timelineAxis.innerHTML = milestones.map(m => `
+                        <div class="flex items-center gap-1 ${m.isToday ? 'text-[#E11D48] font-black' : 'text-zinc-600'}">
+                            <span class="w-1.5 h-1.5 rounded-full ${m.isToday ? 'bg-[#E11D48] animate-pulse' : 'bg-zinc-400'}"></span>
+                            <span>${m.label}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    timelineAxis.classList.add('hidden');
+                    timelineAxis.classList.remove('flex');
+                    timelineAxis.innerHTML = '';
+                }
+            }
+        }
+
+        let activePeakHourState = {
+            peakRangeStr: '10:00 AM - 11:00 AM',
+            peakOps: 0
+        };
+
+        function inspectHourlyBar(h, count, isPeak) {
+            const peakText = document.getElementById('peak-hour-text');
+            const peakOpsCount = document.getElementById('peak-hour-ops-count');
+            if (!peakText) return;
+
+            function formatH12(hour) {
+                const period = hour >= 12 ? 'PM' : 'AM';
+                let h12 = hour % 12;
+                if (h12 === 0) h12 = 12;
+                return `${h12}:00 ${period}`;
+            }
+
+            const nextH = (h + 1) % 24;
+            const rangeStr = `${formatH12(h)} - ${formatH12(nextH)}`;
+
+            if (isPeak && count > 0) {
+                peakText.innerText = `PEAK WINDOW: ${rangeStr} (PRIME PROTOCOL)`;
+                if (peakOpsCount) {
+                    peakOpsCount.className = "text-[10px] bg-[#E11D48] text-white px-2 py-0.5 rounded border border-black shrink-0 font-mono font-bold shadow-[1px_1px_0px_#000]";
+                    peakOpsCount.innerText = `${count} COMBAT OPS`;
+                }
+            } else if (count > 0) {
+                peakText.innerText = `WINDOW: ${rangeStr} (ACTIVE COMBAT)`;
+                if (peakOpsCount) {
+                    peakOpsCount.className = "text-[10px] bg-[#FACC15] text-black px-2 py-0.5 rounded border border-black shrink-0 font-mono font-bold shadow-[1px_1px_0px_#000]";
+                    peakOpsCount.innerText = `${count} COMBAT OP${count > 1 ? 'S' : ''}`;
+                }
+            } else {
+                peakText.innerText = `WINDOW: ${rangeStr} (0 COMBAT SESSIONS)`;
+                if (peakOpsCount) {
+                    peakOpsCount.className = "text-[10px] bg-zinc-200 text-zinc-700 px-2 py-0.5 rounded border border-black shrink-0 font-mono font-bold";
+                    peakOpsCount.innerText = `0 SESSIONS`;
+                }
+            }
+        }
+
+        function resetHourlyInspect() {
+            const peakText = document.getElementById('peak-hour-text');
+            const peakOpsCount = document.getElementById('peak-hour-ops-count');
+            if (peakText) peakText.innerText = `PEAK WINDOW: ${activePeakHourState.peakRangeStr} (PRIME PROTOCOL)`;
+            if (peakOpsCount) {
+                peakOpsCount.className = "text-[10px] bg-black text-[#FACC15] px-2 py-0.5 rounded border border-black shrink-0 font-mono font-bold";
+                peakOpsCount.innerText = `${activePeakHourState.peakOps} COMBAT OPS`;
+            }
+        }
+
+        function renderPeakHours(workLogs) {
+            const container = document.getElementById('hourly-bars-container');
+            const peakText = document.getElementById('peak-hour-text');
+            const peakOpsCount = document.getElementById('peak-hour-ops-count');
+            if (!container) return;
+
+            const hourlyCounts = new Array(24).fill(0);
+            workLogs.forEach(l => {
+                if (l.completed_at) {
+                    const h = new Date(l.completed_at).getHours();
+                    if (h >= 0 && h < 24) hourlyCounts[h]++;
+                }
+            });
+
+            const maxHourly = Math.max(...hourlyCounts, 1);
+            const yMaxHourly = Math.max(4, Math.ceil(maxHourly / 2) * 2);
+            const yMidHourly = Math.round(yMaxHourly / 2);
+
+            const hourlyYTop = document.getElementById('hourly-y-top');
+            const hourlyYMid = document.getElementById('hourly-y-mid');
+            const hourlyYBase = document.getElementById('hourly-y-base');
+            if (hourlyYTop) hourlyYTop.innerText = yMaxHourly;
+            if (hourlyYMid) hourlyYMid.innerText = yMidHourly;
+            if (hourlyYBase) hourlyYBase.innerText = '0';
+
+            let peakHour = 10;
+            let maxFound = -1;
+            for (let h = 0; h < 24; h++) {
+                if (hourlyCounts[h] > maxFound) {
+                    maxFound = hourlyCounts[h];
+                    peakHour = h;
+                }
+            }
+
+            function formatHour12(h, withMinutes = true) {
+                const period = h >= 12 ? 'PM' : 'AM';
+                let h12 = h % 12;
+                if (h12 === 0) h12 = 12;
+                return withMinutes ? `${h12}:00 ${period}` : `${h12} ${period}`;
+            }
+
+            const nextHour = (peakHour + 1) % 24;
+            const peakRangeStr = `${formatHour12(peakHour)} - ${formatHour12(nextHour)}`;
+            activePeakHourState.peakRangeStr = peakRangeStr;
+            activePeakHourState.peakOps = hourlyCounts[peakHour];
+            resetHourlyInspect();
+
+            container.innerHTML = hourlyCounts.map((count, h) => {
+                const isPeak = (h === peakHour && count > 0);
+                const heightPct = count > 0 ? Math.max(12, Math.min(100, Math.round((count / yMaxHourly) * 100))) : 4;
+                const barColor = isPeak ? 'bg-[#FACC15] ring-2 ring-black' : count > 0 ? 'bg-[#06B6D4]' : 'bg-zinc-200 border-black/30';
+                const hourFormatted = formatHour12(h, true);
+
+                return `
+                    <div class="flex-1 min-w-0 flex flex-col items-center justify-end h-full group relative cursor-pointer" 
+                         title="${hourFormatted}: ${count} session${count === 1 ? '' : 's'}"
+                         onmouseenter="inspectHourlyBar(${h}, ${count}, ${isPeak})"
+                         onmouseleave="resetHourlyInspect()"
+                         onclick="inspectHourlyBar(${h}, ${count}, ${isPeak})">
+                        <div class="w-full rounded-t border border-black ${barColor} transition-all group-hover:bg-[#E11D48] group-hover:scale-y-110 origin-bottom" style="height: ${heightPct}%;"></div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function setArchiveFilter(filter) {
+            tacticalArchiveData.currentFilter = filter;
+            tacticalArchiveData.currentPage = 1;
+
+            document.querySelectorAll('.archive-filter-btn').forEach(btn => {
+                if (btn.getAttribute('data-filter') === filter) {
+                    btn.className = "archive-filter-btn px-3 py-1 text-xs font-mono font-bold rounded border-2 border-black bg-[#FACC15] text-black shadow-[2px_2px_0px_#000] cursor-pointer";
+                } else {
+                    btn.className = "archive-filter-btn px-3 py-1 text-xs font-mono font-bold rounded border-2 border-black bg-white text-zinc-700 hover:bg-zinc-100 shadow-none cursor-pointer";
+                }
+            });
+
+            renderArchiveTable();
+        }
+
+        function changeArchivePage(delta) {
+            tacticalArchiveData.currentPage += delta;
+            renderArchiveTable();
+        }
+
+        function renderArchiveTable() {
+            const tbody = document.getElementById('archive-table-body');
+            const pageInfo = document.getElementById('archive-page-info');
+            const pageNumber = document.getElementById('archive-page-number');
+            const btnPrev = document.getElementById('btn-archive-prev');
+            const btnNext = document.getElementById('btn-archive-next');
+            if (!tbody) return;
+
+            const filter = tacticalArchiveData.currentFilter || 'ALL';
+            let filtered = tacticalArchiveData.allLogs || [];
+            if (filter === 'WORK') {
+                filtered = filtered.filter(l => l.phase === 'WORK');
+            } else if (filter === 'BREAK') {
+                filtered = filtered.filter(l => l.phase !== 'WORK');
+            }
+
+            const pageSize = tacticalArchiveData.pageSize || 10;
+            const totalRecords = filtered.length;
+            const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
+            tacticalArchiveData.currentPage = Math.max(1, Math.min(tacticalArchiveData.currentPage, totalPages));
+            const page = tacticalArchiveData.currentPage;
+
+            const startIndex = (page - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, totalRecords);
+            const pageItems = filtered.slice(startIndex, endIndex);
+
+            if (pageInfo) {
+                pageInfo.innerText = totalRecords === 0
+                    ? "NO SESSIONS RECORDED FOR THIS FILTER"
+                    : `SHOWING ${startIndex + 1}-${endIndex} OF ${totalRecords} RECORDS`;
+            }
+            if (pageNumber) pageNumber.innerText = `${page} / ${totalPages}`;
+            if (btnPrev) btnPrev.disabled = (page <= 1);
+            if (btnNext) btnNext.disabled = (page >= totalPages);
+
+            if (pageItems.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-6 text-center text-zinc-500 font-mono text-xs">
+                            NO SESSIONS RECORDED YET. ENGAGE THE HUD TO RECORD MISSIONS!
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = pageItems.map(item => {
+                const isWork = item.phase === 'WORK';
+                const isLongBreak = item.phase === 'LONG_BREAK';
+                const dateObj = item.completed_at ? new Date(item.completed_at) : new Date();
+                const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                let badgeHtml = '';
+                let statusHtml = '';
+                let xpHtml = '';
+                if (isWork) {
+                    badgeHtml = `<span class="bg-[#E11D48] text-white font-mono font-bold text-xs px-2 py-0.5 rounded border border-black inline-flex items-center gap-1 shadow-none"><i data-lucide="swords" class="w-3 h-3"></i> COMBAT</span>`;
+                    statusHtml = `<span class="text-emerald-700 font-mono font-bold text-xs inline-flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> CONQUERED</span>`;
+                    xpHtml = `<span class="text-amber-600 font-mono font-black text-xs">+${(item.duration_minutes || 25) * 10} XP</span>`;
+                } else if (isLongBreak) {
+                    badgeHtml = `<span class="bg-[#FACC15] text-black font-mono font-bold text-xs px-2 py-0.5 rounded border border-black inline-flex items-center gap-1 shadow-none"><i data-lucide="award" class="w-3 h-3"></i> SHAWARMA</span>`;
+                    statusHtml = `<span class="text-amber-700 font-mono font-bold text-xs inline-flex items-center gap-1"><i data-lucide="check" class="w-3.5 h-3.5"></i> REPLENISHED</span>`;
+                    xpHtml = `<span class="text-cyan-600 font-mono font-black text-xs">+100 XP</span>`;
+                } else {
+                    badgeHtml = `<span class="bg-[#06B6D4] text-black font-mono font-bold text-xs px-2 py-0.5 rounded border border-black inline-flex items-center gap-1 shadow-none"><i data-lucide="coffee" class="w-3 h-3"></i> RECHARGE</span>`;
+                    statusHtml = `<span class="text-cyan-700 font-mono font-bold text-xs inline-flex items-center gap-1"><i data-lucide="check" class="w-3.5 h-3.5"></i> REPLENISHED</span>`;
+                    xpHtml = `<span class="text-cyan-600 font-mono font-black text-xs">+50 XP</span>`;
+                }
+
+                return `
+                    <tr class="hover:bg-amber-50/60 transition-colors">
+                        <td class="py-2.5 px-3.5 border-r border-black/10 font-bold text-black whitespace-nowrap">
+                            ${dateStr} <span class="text-zinc-500 font-normal">at</span> ${timeStr}
+                        </td>
+                        <td class="py-2.5 px-3.5 border-r border-black/10 whitespace-nowrap">
+                            ${badgeHtml}
+                        </td>
+                        <td class="py-2.5 px-3.5 border-r border-black/10 font-bold text-black whitespace-nowrap">
+                            ${item.duration_minutes || (isWork ? 25 : 5)} MINS
+                        </td>
+                        <td class="py-2.5 px-3.5 border-r border-black/10 whitespace-nowrap">
+                            ${statusHtml}
+                        </td>
+                        <td class="py-2.5 px-3.5 whitespace-nowrap font-bold">
+                            ${xpHtml}
+                        </td>
+                    </tr>
                 `;
             }).join('');
 
@@ -2843,6 +4171,7 @@
         subscribeToRealtime();
         updateTacticalDebrief();
         loadAnalytics();
+        loadTacticalStats();
 
         if (window.lucide) lucide.createIcons();
     </script>
