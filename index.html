@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PomoBoy 3000 • ESP32-S3 Physical Companion</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts: Fredoka, Space Grotesk, Silkscreen, VT323 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Silkscreen:wght@400;700&family=Space+Grotesk:wght@500;600;700&family=VT323&display=swap" rel="stylesheet">
+
+    <!-- Supabase JS v2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['Fredoka', 'cursive', 'sans-serif'],
+                        body: ['"Space Grotesk"', 'sans-serif'],
+                        arcade: ['Silkscreen', 'monospace'],
+                        retro: ['VT323', 'monospace'],
+                    },
+                    colors: {
+                        tomato: {
+                            DEFAULT: '#FF4343',
+                            dark: '#D92222',
+                            light: '#FF6E6E',
+                        },
+                        sun: {
+                            DEFAULT: '#FFE144',
+                            dark: '#E5C418',
+                        },
+                        mint: {
+                            DEFAULT: '#00F0A8',
+                            dark: '#05B883',
+                            light: '#65FFCD',
+                        },
+                        bubblegum: {
+                            DEFAULT: '#38E1FF',
+                            dark: '#16B4D1',
+                        },
+                        paper: '#FAF7EE',
+                    },
+                    boxShadow: {
+                        'neo': '4px 4px 0px 0px #000',
+                        'neo-lg': '6px 6px 0px 0px #000',
+                        'neo-sm': '2px 2px 0px 0px #000',
+                        'neo-inner': 'inset 3px 3px 0px 0px rgba(0,0,0,0.15)',
+                    }
+                }
+            }
+        };
+    </script>
+
+    <style>
+        /* Neo-Brutalist Polka-Dot Canvas Pattern */
+        body {
+            background-color: #FAF7EE;
+            background-image: radial-gradient(#1A1A1A 1.2px, transparent 1.2px);
+            background-size: 24px 24px;
+            color: #111111;
+            font-family: 'Space Grotesk', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Tactile Neo-Brutalist Classes */
+        .neo-card {
+            border: 3.5px solid #000;
+            box-shadow: 5px 5px 0px 0px #000;
+            border-radius: 1.25rem;
+            transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .neo-btn {
+            border: 3px solid #000;
+            box-shadow: 4px 4px 0px 0px #000;
+            border-radius: 0.85rem;
+            font-weight: 700;
+            transition: all 0.1s ease;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .neo-btn:hover {
+            transform: translate(-1.5px, -1.5px);
+            box-shadow: 5.5px 5.5px 0px 0px #000;
+        }
+
+        .neo-btn:active {
+            transform: translate(3px, 3px);
+            box-shadow: 1px 1px 0px 0px #000;
+        }
+
+        /* Scanline Overlay for Handheld Arcade Screen */
+        .arcade-screen {
+            background-color: #0F171E;
+            position: relative;
+            overflow: hidden;
+            border: 3.5px solid #000;
+            box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.8), 4px 4px 0px 0px #000;
+        }
+
+        .arcade-screen::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%);
+            background-size: 100% 4px;
+            z-index: 2;
+            pointer-events: none;
+            opacity: 0.65;
+        }
+
+        /* Custom Marquee & Animations */
+        @keyframes marquee {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-50%); }
+        }
+
+        .animate-marquee {
+            display: inline-flex;
+            white-space: nowrap;
+            animation: marquee 16s linear infinite;
+        }
+
+        @keyframes steamFloat {
+            0% { opacity: 0; transform: translateY(0) scale(0.7); }
+            50% { opacity: 0.8; transform: translateY(-12px) scale(1.1); }
+            100% { opacity: 0; transform: translateY(-24px) scale(1.4); }
+        }
+
+        .steam-puff-1 { animation: steamFloat 1.8s ease-out infinite; }
+        .steam-puff-2 { animation: steamFloat 1.8s ease-out infinite 0.7s; }
+
+        @keyframes mascotBounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-6px) scale(1.02); }
+        }
+
+        .mascot-bounce { animation: mascotBounce 2.5s ease-in-out infinite; }
+
+        @keyframes sweatDrop {
+            0% { opacity: 0; transform: translateY(0); }
+            50% { opacity: 1; transform: translateY(8px); }
+            100% { opacity: 0; transform: translateY(16px); }
+        }
+
+        .sweat-drop { animation: sweatDrop 1.2s ease-in infinite; }
+
+        @keyframes candyStripes {
+            0% { background-position: 0 0; }
+            100% { background-position: 40px 0; }
+        }
+
+        .striped-bar {
+            background-image: repeating-linear-gradient(
+                -45deg,
+                rgba(0, 0, 0, 0.12),
+                rgba(0, 0, 0, 0.12) 10px,
+                transparent 10px,
+                transparent 20px
+            );
+            background-size: 40px 40px;
+            animation: candyStripes 1.5s linear infinite;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FAF7EE;
+            border-left: 2px solid #000;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #FFE144;
+            border: 2px solid #000;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #FF4343;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen px-3 py-4 sm:px-6 sm:py-8 lg:p-8 flex flex-col justify-between selection:bg-tomato selection:text-white">
+
+    <!-- Top Floating Neo-Brutalist Arcade Bar -->
+    <header class="max-w-6xl mx-auto w-full mb-6">
+        <div class="neo-card bg-sun p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
+            
+            <!-- Brand Logo & Identity -->
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-tomato border-3 border-black rounded-xl shadow-neo-sm flex items-center justify-center text-2xl font-bold transform -rotate-3 hover:rotate-6 transition-transform cursor-pointer" onclick="Mascot.poke()">
+                    🍅
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-display font-black text-xl sm:text-2xl tracking-tight text-black">
+                            POMO-BOY 3000
+                        </span>
+                        <span class="bg-black text-white text-[10px] sm:text-xs font-arcade px-2 py-0.5 rounded border border-black uppercase">
+                            ESP32-S3 LIVE
+                        </span>
+                    </div>
+                    <p class="font-body text-xs font-bold text-black/75 tracking-wide">
+                        Physical Hardware Console & Desk Companion
+                    </p>
+                </div>
+            </div>
+
+            <!-- Telemetry & Controls Group -->
+            <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
+                
+                <!-- ESP32 Signal Antenna Indicator -->
+                <div id="conn-pill" class="flex items-center gap-2 bg-white border-2 border-black px-3 py-1.5 rounded-lg shadow-neo-sm">
+                    <span id="conn-dot" class="w-3 h-3 rounded-full bg-amber-400 border border-black animate-ping"></span>
+                    <div class="flex flex-col">
+                        <span id="conn-label" class="font-arcade text-[10px] font-bold text-black uppercase tracking-wider leading-none">
+                            ACQUIRING BEACON
+                        </span>
+                        <span id="conn-sub" class="text-[9px] font-mono text-zinc-500 font-bold leading-tight">
+                            PORT: 443 / SUPABASE
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Web Audio SFX Toggle Button -->
+                <button id="sfx-toggle-btn" class="neo-btn bg-white hover:bg-yellow-100 text-black px-3 py-1.5 flex items-center gap-1.5 text-xs font-display" onclick="AudioEngine.toggleMute()">
+                    <span id="sfx-icon">🔊</span>
+                    <span id="sfx-text" class="hidden sm:inline font-bold">SFX ON</span>
+                </button>
+
+                <!-- Manual Force Re-Sync Button -->
+                <button class="neo-btn bg-white hover:bg-zinc-100 text-black px-3 py-1.5 flex items-center gap-1.5 text-xs font-display" title="Fetch fresh state from Supabase" onclick="manualSync()">
+                    <span id="sync-spinner" class="inline-block transition-transform">🔄</span>
+                    <span class="hidden sm:inline font-bold">SYNC</span>
+                </button>
+
+            </div>
+
+        </div>
+    </header>
+
+    <!-- Main Arcade Station Matrix -->
+    <main class="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow">
+        
+        <!-- LEFT / MAIN CONSOLE (Column 1-7) -->
+        <section class="lg:col-span-7 flex flex-col gap-6">
+
+            <!-- Primary Handheld Timer Station -->
+            <div id="main-timer-container" class="neo-card bg-white p-5 sm:p-7 relative overflow-hidden flex flex-col justify-between">
+                
+                <!-- Phase Announcement Banner / Ticker Tape -->
+                <div class="border-b-3 border-black pb-4 mb-5 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5">
+                        <span id="phase-badge" class="font-arcade text-xs sm:text-sm font-bold px-3 py-1 rounded-md border-2 border-black bg-tomato text-white shadow-neo-sm uppercase">
+                            🔥 WORK PROTOCOL
+                        </span>
+                        <span id="status-badge" class="font-arcade text-[11px] font-bold px-2.5 py-1 rounded-md border-2 border-black bg-sun text-black shadow-neo-sm uppercase">
+                            PAUSED
+                        </span>
+                    </div>
+
+                    <!-- 4-Stage Pomodoro Cycle Tracker -->
+                    <div class="flex items-center gap-1.5 bg-paper border-2 border-black px-2.5 py-1 rounded-lg">
+                        <span class="text-[10px] font-arcade font-bold mr-1">CYCLE:</span>
+                        <div class="flex gap-1" id="cycle-slots">
+                            <span class="w-4 h-4 rounded-full border border-black bg-zinc-200 inline-block" title="Slot 1"></span>
+                            <span class="w-4 h-4 rounded-full border border-black bg-zinc-200 inline-block" title="Slot 2"></span>
+                            <span class="w-4 h-4 rounded-full border border-black bg-zinc-200 inline-block" title="Slot 3"></span>
+                            <span class="w-4 h-4 rounded-full border border-black bg-zinc-200 inline-block" title="Slot 4 (Long Break)"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Mascot & Dynamic Face Stage -->
+                <div class="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-5 my-2">
+                    
+                    <!-- Reactive Tommy Character (SVG) -->
+                    <div class="relative cursor-pointer group" onclick="Mascot.poke()" title="Click to poke Tommy!">
+                        <div id="mascot-stage" class="w-36 h-36 sm:w-40 sm:h-40 flex items-center justify-center mascot-bounce transition-transform group-hover:scale-105 group-active:scale-95">
+                            
+                            <!-- Mascot SVG Content Injected Dynamically Based on State -->
+                            <svg id="mascot-svg" viewBox="0 0 160 160" class="w-full h-full drop-shadow-[4px_4px_0px_#000]">
+                                <!-- Dynamically replaced in JS -->
+                            </svg>
+
+                        </div>
+
+                        <!-- Touch Me Ping Sticker -->
+                        <span class="absolute -bottom-1 -right-1 bg-yellow-300 border-2 border-black text-[9px] font-arcade px-1.5 py-0.5 rounded shadow-neo-sm font-bold rotate-6 group-hover:rotate-12 transition-transform">
+                            POKE ME!
+                        </span>
+                    </div>
+
+                    <!-- Mascot Comic Speech Bubble -->
+                    <div class="flex-1 w-full">
+                        <div class="relative bg-paper border-3 border-black p-3.5 sm:p-4 rounded-2xl shadow-neo-sm">
+                            <!-- Bubble pointer arrow -->
+                            <div class="hidden sm:block absolute -left-3 top-6 w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-r-8 border-r-black"></div>
+                            <div class="hidden sm:block absolute -left-2 top-6 w-0 h-0 border-t-7 border-t-transparent border-b-7 border-b-transparent border-r-7 border-r-paper"></div>
+
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-display font-black text-xs uppercase tracking-wider text-tomato flex items-center gap-1">
+                                    <span>TOMMY DESK BUDDY</span>
+                                    <span id="mascot-status-tag" class="text-[9px] bg-black text-white px-1.5 py-0.2 rounded font-arcade">READY</span>
+                                </span>
+                                <span class="text-xs">🕹️</span>
+                            </div>
+
+                            <p id="mascot-speech" class="font-display font-semibold text-sm sm:text-base text-zinc-900 leading-snug">
+                                "Ready to harvest productivity! Press the physical ESP32 button or web toggle below!"
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Giant Handheld Arcade Digital Clock Display -->
+                <div class="my-5">
+                    <div class="arcade-screen rounded-2xl p-5 sm:p-7 text-center relative">
+                        
+                        <!-- Top LCD Status Bar -->
+                        <div class="flex justify-between items-center text-[10px] font-arcade tracking-widest text-emerald-400/90 mb-2 border-b border-emerald-900/50 pb-1">
+                            <span id="lcd-mode-text">TARGET: DEEP FOCUS</span>
+                            <span id="lcd-heartbeat" class="animate-pulse">● SYNC ACTIVE</span>
+                        </div>
+
+                        <!-- Massive 8-Bit Glowing Digits -->
+                        <div class="relative py-2">
+                            <div id="timer-display" class="font-retro text-7xl sm:text-9xl md:text-[10rem] font-bold tracking-tight text-white select-none drop-shadow-[0_0_15px_rgba(255,255,255,0.4)] leading-none">
+                                25:00
+                            </div>
+                        </div>
+
+                        <!-- Chunky Tactile Progress Gauge -->
+                        <div class="mt-4 space-y-1.5">
+                            <div class="flex justify-between text-xs font-arcade text-zinc-300">
+                                <span>SESSION PROGRESS</span>
+                                <span id="progress-percent" class="text-yellow-300 font-bold">0%</span>
+                            </div>
+                            <div class="w-full h-5 bg-black/80 rounded-lg border-2 border-zinc-700 p-0.5 overflow-hidden">
+                                <div id="progress-bar" class="h-full bg-sun border border-black rounded transition-all duration-500 ease-out striped-bar" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 text-[11px] font-mono text-zinc-400 flex items-center justify-center gap-2">
+                            <span>📡 Realtime Synced to ESP32-S3 Core</span>
+                            <span>•</span>
+                            <span id="db-latency">Row ID #1</span>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Tactile Arcade Push Buttons (Start, Pause, Next, Reset) -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 pt-2">
+                    <button id="btn-toggle-run" class="neo-btn bg-mint hover:bg-mint-light text-black py-3 px-2 flex flex-col items-center justify-center gap-1" onclick="toggleTimer()">
+                        <span class="text-lg" id="btn-run-icon">▶</span>
+                        <span class="font-display font-black text-xs uppercase" id="btn-run-text">START</span>
+                    </button>
+
+                    <button class="neo-btn bg-bubblegum hover:bg-cyan-200 text-black py-3 px-2 flex flex-col items-center justify-center gap-1" onclick="skipPhase()">
+                        <span class="text-lg">⏭</span>
+                        <span class="font-display font-black text-xs uppercase">SKIP PHASE</span>
+                    </button>
+
+                    <button class="neo-btn bg-sun hover:bg-yellow-200 text-black py-3 px-2 flex flex-col items-center justify-center gap-1" onclick="resetCurrentPhase()">
+                        <span class="text-lg">↺</span>
+                        <span class="font-display font-black text-xs uppercase">RESET</span>
+                    </button>
+
+                    <button class="neo-btn bg-pink-300 hover:bg-pink-200 text-black py-3 px-2 flex flex-col items-center justify-center gap-1" onclick="triggerConfettiParty()">
+                        <span class="text-lg">🎉</span>
+                        <span class="font-display font-black text-xs uppercase">CELEBRATE</span>
+                    </button>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- RIGHT / GAMIFICATION & LOGS BATTLE-DECK (Column 8-12) -->
+        <section class="lg:col-span-5 flex flex-col gap-6">
+
+            <!-- Gamification Level & XP Card -->
+            <div class="neo-card bg-white p-5">
+                <div class="flex items-center justify-between mb-3 border-b-2 border-black pb-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-10 h-10 rounded-xl bg-sun border-2 border-black flex items-center justify-center text-xl shadow-neo-sm">
+                            🏆
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-arcade text-zinc-500 font-bold block uppercase">CURRENT RANK</span>
+                            <h2 id="xp-rank-title" class="font-display font-black text-lg sm:text-xl text-black leading-tight">
+                                SPROUT CADET
+                            </h2>
+                        </div>
+                    </div>
+                    <span id="xp-level-badge" class="bg-black text-white font-arcade text-xs px-2.5 py-1 rounded border border-black shadow-neo-sm">
+                        LVL 1
+                    </span>
+                </div>
+
+                <!-- XP Bar -->
+                <div class="space-y-1.5">
+                    <div class="flex justify-between text-xs font-bold font-body">
+                        <span>XP ACCUMULATED</span>
+                        <span id="xp-counter-text" class="font-arcade text-tomato font-bold">0 / 250 XP</span>
+                    </div>
+                    <div class="w-full h-4 bg-paper rounded-full border-2 border-black p-0.5 overflow-hidden">
+                        <div id="xp-fill-bar" class="h-full bg-tomato rounded-full transition-all duration-700 ease-out" style="width: 5%"></div>
+                    </div>
+                    <div class="flex justify-between items-center text-[11px] text-zinc-600 font-medium">
+                        <span id="xp-next-milestone">🌱 +10 XP per focus minute</span>
+                        <span class="font-arcade text-[10px] text-zinc-400">NEXT: CHERRY POPPER</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3 Neo-Brutalist Daily Metrics Blocks -->
+            <div class="grid grid-cols-3 gap-3">
+                
+                <!-- Smashed Tomatoes Metric -->
+                <div class="neo-card bg-tomato text-white p-3.5 flex flex-col justify-between">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-arcade text-[10px] uppercase font-bold text-white/90">SMASHED</span>
+                        <span>🍅</span>
+                    </div>
+                    <div class="my-2">
+                        <div id="stat-smashed" class="font-display font-black text-3xl sm:text-4xl leading-none">
+                            0
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-bold text-white/80 uppercase">Sessions Done</span>
+                </div>
+
+                <!-- Zone Focus Hours Metric -->
+                <div class="neo-card bg-sun text-black p-3.5 flex flex-col justify-between">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-arcade text-[10px] uppercase font-bold text-black/80">ZONE TIME</span>
+                        <span>⚡</span>
+                    </div>
+                    <div class="my-2">
+                        <div class="font-display font-black text-3xl sm:text-4xl leading-none flex items-baseline">
+                            <span id="stat-focus-hours">0.0</span>
+                            <span class="text-xs font-normal ml-0.5">h</span>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-bold text-black/75 uppercase">Deep Focus</span>
+                </div>
+
+                <!-- Rest & Chill Metric -->
+                <div class="neo-card bg-mint text-black p-3.5 flex flex-col justify-between">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-arcade text-[10px] uppercase font-bold text-black/80">CHILLED</span>
+                        <span>🧃</span>
+                    </div>
+                    <div class="my-2">
+                        <div id="stat-break-count" class="font-display font-black text-3xl sm:text-4xl leading-none">
+                            0
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-bold text-black/75 uppercase">Breaks Taken</span>
+                </div>
+
+            </div>
+
+            <!-- Playful Session History & Breakdown Chart -->
+            <div class="neo-card bg-white p-5 flex flex-col flex-grow">
+                
+                <div class="flex items-center justify-between mb-4 border-b-2 border-black pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="text-lg">📜</span>
+                        <h3 class="font-display font-black text-base text-black">
+                            HARVEST LOGS & BREAKDOWN
+                        </h3>
+                    </div>
+                    <span class="text-[10px] font-arcade bg-paper border border-black px-2 py-0.5 rounded">
+                        TODAY
+                    </span>
+                </div>
+
+                <!-- Custom Tactile Focus vs Rest Visualizer -->
+                <div class="mb-4 bg-paper border-2 border-black p-3 rounded-xl">
+                    <div class="flex justify-between items-center text-xs font-bold mb-1.5 font-arcade">
+                        <span class="text-tomato flex items-center gap-1">
+                            <span class="w-2.5 h-2.5 bg-tomato border border-black inline-block"></span>
+                            WORK (<span id="ratio-work-pct">100%</span>)
+                        </span>
+                        <span class="text-mint-dark flex items-center gap-1">
+                            <span class="w-2.5 h-2.5 bg-mint border border-black inline-block"></span>
+                            BREAK (<span id="ratio-break-pct">0%</span>)
+                        </span>
+                    </div>
+                    <div class="h-4 w-full bg-zinc-200 rounded-md border border-black flex overflow-hidden">
+                        <div id="ratio-work-bar" class="h-full bg-tomato border-r border-black transition-all duration-500" style="width: 100%"></div>
+                        <div id="ratio-break-bar" class="h-full bg-mint transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Recent Smashed Sessions List Feed -->
+                <div class="flex-grow">
+                    <div class="flex justify-between items-center text-xs font-arcade font-bold text-zinc-500 mb-2">
+                        <span>RECENT COMPLETED SESSIONS</span>
+                        <span id="log-count-tag">0 LOGS</span>
+                    </div>
+                    
+                    <div id="session-log-list" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+                        <!-- Loaded dynamically from session_logs table -->
+                        <div class="p-4 border-2 border-dashed border-zinc-400 rounded-xl text-center text-zinc-500 text-xs font-bold">
+                            🍅 Press physical ESP32 button to complete your first session!
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Bottom Retro Operational Bar -->
+    <footer class="max-w-6xl mx-auto w-full mt-6">
+        <div class="neo-card bg-black text-white p-3.5 sm:p-4 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                <span class="font-arcade text-[10px] sm:text-xs text-emerald-400">
+                    STATUS: ESP32-S3 REALTIME PROTOCOL READY
+                </span>
+            </div>
+            <div class="flex items-center gap-4 text-zinc-400 font-mono text-[11px]">
+                <span>FIRMWARE: v2.4-IOT</span>
+                <span>•</span>
+                <span>SYNC: 1000ms TICK</span>
+                <span>•</span>
+                <span class="text-yellow-400 font-bold">TABLE: device_state [ID=1]</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive Toast Notification Element -->
+    <div id="toast-bubble" class="fixed bottom-6 right-6 z-50 transform translate-y-32 transition-transform duration-300 pointer-events-none">
+        <div class="neo-card bg-sun text-black px-4 py-2.5 font-display font-bold text-sm shadow-neo flex items-center gap-2">
+            <span id="toast-icon">🍅</span>
+            <span id="toast-text">Toast message</span>
+        </div>
+    </div>
+
+    <!-- MAIN APPLICATION SCRIPT -->
+    <script>
+        // =========================================================================
+        // 1. HARD TECHNICAL CREDENTIALS & SUPABASE INIT (DO NOT CHANGE)
+        // =========================================================================
+        const SUPABASE_URL = "https://ykncypzibxorhaatyqah.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlrbmN5cHppYnhvcmhhYXR5cWFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxOTE4MDgsImV4cCI6MjEwNzc2NzgwOH0.cVWlzZOw5et55NiYcp3n1g6ophDvmp-GgCHyo9Vf5sI";
+
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // =========================================================================
+        // 2. RETRO WEB AUDIO API SYNTHESIZER (No external mp3 files!)
+        // =========================================================================
+        const AudioEngine = {
+            ctx: null,
+            muted: localStorage.getItem('pomoboy_muted') === 'true',
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) {
+                        this.ctx = new AudioContext();
+                    }
+                }
+            },
+
+            playTone(freq, type = 'sine', duration = 0.1, startTime = 0, volume = 0.15) {
+                if (this.muted) return;
+                try {
+                    this.init();
+                    if (this.ctx && this.ctx.state === 'suspended') {
+                        this.ctx.resume();
+                    }
+                    if (!this.ctx) return;
+
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime + startTime);
+                    gain.gain.setValueAtTime(volume, this.ctx.currentTime + startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + startTime + duration);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start(this.ctx.currentTime + startTime);
+                    osc.stop(this.ctx.currentTime + startTime + duration);
+                } catch (e) {
+                    console.warn('Audio synthesis note error:', e);
+                }
+            },
+
+            click() {
+                this.playTone(850, 'square', 0.04, 0, 0.08);
+            },
+
+            blip() {
+                this.playTone(1200, 'sine', 0.03, 0, 0.04);
+            },
+
+            powerUp() {
+                // Arcade 3-note power up
+                this.playTone(523.25, 'triangle', 0.08, 0, 0.15);     // C5
+                this.playTone(659.25, 'triangle', 0.08, 0.08, 0.15); // E5
+                this.playTone(783.99, 'triangle', 0.16, 0.16, 0.18); // G5
+            },
+
+            powerDown() {
+                this.playTone(440, 'sawtooth', 0.08, 0, 0.12);
+                this.playTone(329.63, 'sawtooth', 0.14, 0.08, 0.12);
+            },
+
+            celebrate() {
+                // Mario-style victory fanfare
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => {
+                    this.playTone(freq, 'square', 0.1, i * 0.09, 0.12);
+                });
+                setTimeout(() => {
+                    this.playTone(1046.50, 'triangle', 0.35, 0, 0.2);
+                    this.playTone(1318.51, 'triangle', 0.45, 0.1, 0.22);
+                }, 380);
+            },
+
+            toggleMute() {
+                this.muted = !this.muted;
+                localStorage.setItem('pomoboy_muted', this.muted);
+                this.updateUI();
+                if (!this.muted) {
+                    this.playTone(880, 'triangle', 0.1, 0, 0.15);
+                    showToast("🔊 SFX ENABLED!", "sound");
+                } else {
+                    showToast("🔇 SFX MUTED", "mute");
+                }
+            },
+
+            updateUI() {
+                const icon = document.getElementById('sfx-icon');
+                const text = document.getElementById('sfx-text');
+                if (this.muted) {
+                    icon.innerText = '🔇';
+                    text.innerText = 'MUTED';
+                } else {
+                    icon.innerText = '🔊';
+                    text.innerText = 'SFX ON';
+                }
+            }
+        };
+
+        // Unlock Web Audio Context on first interaction
+        window.addEventListener('click', () => {
+            if (AudioEngine.ctx && AudioEngine.ctx.state === 'suspended') {
+                AudioEngine.ctx.resume();
+            }
+        }, { once: true });
+
+        // =========================================================================
+        // 3. REACTIVE CHARACTER MASCOT: "TOMMY THE POMODORO"
+        // =========================================================================
+        const Mascot = {
+            quotes: {
+                WORK: [
+                    "LOCK IN! Let's crush this 25 min sprint!",
+                    "Tomatoes don't harvest themselves! Stay focused!",
+                    "Zero distractions. Flow state unlocked!",
+                    "ESP32-S3 sensor is watching your focus streak!",
+                    "Keep grinding! Next level is within reach!"
+                ],
+                BREAK: [
+                    "Hydrate or diedrate! Grab a cool drink! 🧃",
+                    "Rest those eyes! Look 20 feet away for 20 seconds.",
+                    "Stretch those shoulders! You earned this break!",
+                    "Brain recharge in progress... 🔋",
+                    "Deep breath in... deep breath out!"
+                ],
+                PAUSED: [
+                    "Timer is resting! Tap START or push the ESP32 button!",
+                    "Waiting on your command, Captain! 🕹️",
+                    "Ready when you are! Let's get back in the zone!",
+                    "Did someone pause? Let's keep the momentum!"
+                ]
+            },
+
+            render(phase, isRunning) {
+                const svg = document.getElementById('mascot-svg');
+                const speech = document.getElementById('mascot-speech');
+                const statusTag = document.getElementById('mascot-status-tag');
+                const stage = document.getElementById('mascot-stage');
+
+                let mode = !isRunning ? 'PAUSED' : (phase === 'WORK' ? 'WORK' : 'BREAK');
+
+                // Render dynamic SVG face according to mode
+                if (mode === 'WORK') {
+                    statusTag.innerText = "FOCUSED";
+                    statusTag.className = "text-[9px] bg-tomato text-white px-1.5 py-0.2 rounded font-arcade font-bold";
+                    stage.className = "w-36 h-36 sm:w-40 sm:h-40 flex items-center justify-center mascot-bounce transition-transform group-hover:scale-105 group-active:scale-95";
+
+                    svg.innerHTML = `
+                        <!-- Steam Puffs -->
+                        <circle cx="50" cy="20" r="5" fill="#FFE144" class="steam-puff-1" opacity="0.8" />
+                        <circle cx="110" cy="18" r="6" fill="#FFE144" class="steam-puff-2" opacity="0.8" />
+
+                        <!-- Stem Leaves -->
+                        <path d="M72 35 C70 15, 85 8, 88 5 C91 18, 88 35, 88 35" fill="#00F0A8" stroke="#000" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M65 36 C45 30, 35 15, 30 20 C42 35, 62 40, 65 36" fill="#00F0A8" stroke="#000" stroke-width="3" stroke-linejoin="round" />
+                        <path d="M95 36 C115 30, 125 15, 130 20 C118 35, 98 40, 95 36" fill="#00F0A8" stroke="#000" stroke-width="3" stroke-linejoin="round" />
+
+                        <!-- Tomato Main Body -->
+                        <ellipse cx="80" cy="90" rx="60" ry="54" fill="#FF4343" stroke="#000" stroke-width="4.5" />
+                        <ellipse cx="60" cy="62" rx="14" ry="7" fill="#FFA3A3" opacity="0.6" transform="rotate(-20 60 62)" />
+
+                        <!-- Karate Headband -->
+                        <path d="M22 75 Q80 82 138 75 L140 88 Q80 95 20 88 Z" fill="#FFFFFF" stroke="#000" stroke-width="3.5" />
+                        <!-- Red Sun Badge in Center -->
+                        <circle cx="80" cy="83" r="6" fill="#FF4343" stroke="#000" stroke-width="2" />
+                        <!-- Headband Tails blowing -->
+                        <path d="M136 78 C155 70, 150 95, 158 92" fill="none" stroke="#000" stroke-width="3.5" stroke-linecap="round" />
+
+                        <!-- Intense Focus Eyes -->
+                        <ellipse cx="58" cy="100" rx="7" ry="9" fill="#000" />
+                        <ellipse cx="102" cy="100" rx="7" ry="9" fill="#000" />
+                        <!-- Eye Highlights -->
+                        <circle cx="56" cy="97" r="2.5" fill="#FFF" />
+                        <circle cx="100" cy="97" r="2.5" fill="#FFF" />
+                        <!-- Fierce Eyebrows -->
+                        <line x1="48" y1="88" x2="68" y2="95" stroke="#000" stroke-width="4" stroke-linecap="round" />
+                        <line x1="112" y1="88" x2="92" y2="95" stroke="#000" stroke-width="4" stroke-linecap="round" />
+
+                        <!-- Determined Smile / Mouth -->
+                        <path d="M72 115 Q80 122 88 115" stroke="#000" stroke-width="3.5" stroke-linecap="round" fill="none" />
+
+                        <!-- Sweat Drop -->
+                        <ellipse cx="130" cy="98" rx="3" ry="5" fill="#38E1FF" class="sweat-drop" />
+                    `;
+                } else if (mode === 'BREAK') {
+                    statusTag.innerText = "CHILLING";
+                    statusTag.className = "text-[9px] bg-mint text-black px-1.5 py-0.2 rounded font-arcade font-bold";
+                    stage.className = "w-36 h-36 sm:w-40 sm:h-40 flex items-center justify-center transition-transform group-hover:scale-105 group-active:scale-95";
+
+                    svg.innerHTML = `
+                        <!-- Floating Music Notes / Zzz -->
+                        <text x="110" y="25" font-family="Silkscreen" font-size="14" font-weight="bold" fill="#38E1FF" class="steam-puff-1">♪</text>
+                        <text x="125" y="15" font-family="Silkscreen" font-size="12" font-weight="bold" fill="#00F0A8" class="steam-puff-2">♫</text>
+
+                        <!-- Stem Leaves -->
+                        <path d="M72 35 C70 15, 85 8, 88 5 C91 18, 88 35, 88 35" fill="#00F0A8" stroke="#000" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M65 36 C45 30, 35 15, 30 20 C42 35, 62 40, 65 36" fill="#00F0A8" stroke="#000" stroke-width="3" stroke-linejoin="round" />
+                        <path d="M95 36 C115 30, 125 15, 130 20 C118 35, 98 40, 95 36" fill="#00F0A8" stroke="#000" stroke-width="3" stroke-linejoin="round" />
+
+                        <!-- Tomato Main Body -->
+                        <ellipse cx="80" cy="90" rx="60" ry="54" fill="#FF4343" stroke="#000" stroke-width="4.5" />
+                        <ellipse cx="60" cy="62" rx="14" ry="7" fill="#FFA3A3" opacity="0.6" transform="rotate(-20 60 62)" />
+
+                        <!-- Cool Pixel Sunglasses -->
+                        <rect x="42" y="80" width="32" height="20" rx="4" fill="#000" stroke="#000" stroke-width="3" />
+                        <rect x="86" y="80" width="32" height="20" rx="4" fill="#000" stroke="#000" stroke-width="3" />
+                        <line x1="74" y1="88" x2="86" y2="88" stroke="#000" stroke-width="4" stroke-linecap="round" />
+                        <!-- White Glare Lines on Shades -->
+                        <line x1="46" y1="84" x2="56" y2="94" stroke="#FFF" stroke-width="2.5" stroke-linecap="round" />
+                        <line x1="90" y1="84" x2="100" y2="94" stroke="#FFF" stroke-width="2.5" stroke-linecap="round" />
+
+                        <!-- Rosy Cheeks -->
+                        <circle cx="38" cy="108" r="7" fill="#FF8585" />
+                        <circle cx="122" cy="108" r="7" fill="#FF8585" />
+
+                        <!-- Big Relaxed Smile -->
+                        <path d="M68 112 Q80 126 92 112" stroke="#000" stroke-width="4" stroke-linecap="round" fill="#FFF" />
+
+                        <!-- Juice Box in Hand -->
+                        <rect x="120" y="105" width="22" height="30" rx="3" fill="#38E1FF" stroke="#000" stroke-width="2.5" />
+                        <line x1="127" y1="105" x2="124" y2="92" stroke="#FFE144" stroke-width="3" stroke-linecap="round" />
+                    `;
+                } else {
+                    // PAUSED / WAITING
+                    statusTag.innerText = "WAITING";
+                    statusTag.className = "text-[9px] bg-sun text-black px-1.5 py-0.2 rounded font-arcade font-bold";
+                    stage.className = "w-36 h-36 sm:w-40 sm:h-40 flex items-center justify-center transition-transform group-hover:scale-105 group-active:scale-95";
+
+                    svg.innerHTML = `
+                        <!-- Bouncing Question Mark -->
+                        <g class="steam-puff-1">
+                            <text x="110" y="30" font-family="Silkscreen" font-size="24" font-weight="bold" fill="#FFE144" stroke="#000" stroke-width="1.5">?</text>
+                        </g>
+
+                        <!-- Stem Leaves -->
+                        <path d="M72 35 C70 15, 85 8, 88 5 C91 18, 88 35, 88 35" fill="#00F0A8" stroke="#000" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M65 36 C45 30, 35 15, 30 20 C42 35, 62 40, 65 36" fill="#00F0A8" stroke="#000" stroke-width="3" stroke-linejoin="round" />
+                        <path d="M95 36 C115 30, 125 15, 130 20 C118 35, 98 40, 95 36" fill="#00F0A8" stroke="#000" stroke-width="3" stroke-linejoin="round" />
+
+                        <!-- Tomato Main Body (Tilted Head) -->
+                        <ellipse cx="80" cy="90" rx="60" ry="54" fill="#FF4343" stroke="#000" stroke-width="4.5" transform="rotate(-4 80 90)" />
+
+                        <!-- Wondering Big Eyes -->
+                        <circle cx="58" cy="92" r="10" fill="#000" />
+                        <circle cx="102" cy="92" r="10" fill="#000" />
+                        <circle cx="61" cy="89" r="4" fill="#FFF" />
+                        <circle cx="105" cy="89" r="4" fill="#FFF" />
+
+                        <!-- Raised Eyebrows -->
+                        <path d="M50 78 Q58 72 66 78" stroke="#000" stroke-width="3.5" stroke-linecap="round" fill="none" />
+                        <path d="M94 74 Q102 68 110 74" stroke="#000" stroke-width="3.5" stroke-linecap="round" fill="none" />
+
+                        <!-- Curious / Wavy Mouth -->
+                        <path d="M74 115 Q80 110 86 116" stroke="#000" stroke-width="3.5" stroke-linecap="round" fill="none" />
+                    `;
+                }
+
+                // Random quote pick if speech box wasn't poked recently
+                if (!this.pokedRecently) {
+                    const pool = this.quotes[mode] || this.quotes.WORK;
+                    speech.innerText = `"${pool[Math.floor(Math.random() * pool.length)]}"`;
+                }
+            },
+
+            poke() {
+                AudioEngine.playTone(987.77, 'triangle', 0.08, 0, 0.2); // B5 Squeak
+                this.pokedRecently = true;
+                const stage = document.getElementById('mascot-stage');
+                stage.classList.add('rotate-12', 'scale-110');
+                setTimeout(() => {
+                    stage.classList.remove('rotate-12', 'scale-110');
+                }, 180);
+
+                const funPokes = [
+                    "BEEP BOOP! Hey, that tickles! 🍅",
+                    "Ready to crush your goals! Let's go!",
+                    "Did you press the physical button yet?",
+                    "100% Organic, High-Productivity Tomato!",
+                    "ESP32-S3 and I are synced in harmony!"
+                ];
+                const speech = document.getElementById('mascot-speech');
+                speech.innerText = `"${funPokes[Math.floor(Math.random() * funPokes.length)]}"`;
+
+                setTimeout(() => {
+                    this.pokedRecently = false;
+                }, 4000);
+            }
+        };
+
+        // =========================================================================
+        // 4. CORE STATE VARIABLES & DOM ELEMENTS
+        // =========================================================================
+        let localSeconds = 1500;
+        let totalSeconds = 1500;
+        let currentPhase = 'WORK';
+        let isRunning = false;
+        let pomodoroCount = 0;
+        let localTimerInterval = null;
+        let isFirstLoad = true;
+
+        const timerDisplay = document.getElementById("timer-display");
+        const phaseBadge = document.getElementById("phase-badge");
+        const statusBadge = document.getElementById("status-badge");
+        const progressBar = document.getElementById("progress-bar");
+        const progressPercent = document.getElementById("progress-percent");
+        const connDot = document.getElementById("conn-dot");
+        const connLabel = document.getElementById("conn-label");
+        const connPill = document.getElementById("conn-pill");
+        const btnRunIcon = document.getElementById("btn-run-icon");
+        const btnRunText = document.getElementById("btn-run-text");
+        const mainContainer = document.getElementById("main-timer-container");
+        const lcdModeText = document.getElementById("lcd-mode-text");
+
+        // Format Seconds into MM:SS
+        function formatTime(secs) {
+            const m = Math.floor(secs / 60).toString().padStart(2, '0');
+            const s = (secs % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        // =========================================================================
+        // 5. UI STATE APPLIER (Local & Realtime)
+        // =========================================================================
+        function applyState(data) {
+            const prevRunning = isRunning;
+            const prevPhase = currentPhase;
+            const prevSecs = localSeconds;
+
+            localSeconds = Number.isInteger(data.remaining_seconds) ? data.remaining_seconds : 1500;
+            totalSeconds = data.total_phase_seconds || 1500;
+            currentPhase = data.phase || 'WORK';
+            isRunning = !!data.is_running;
+            pomodoroCount = data.pomodoro_count || 0;
+
+            // Audio cues on state transitions
+            if (!isFirstLoad) {
+                if (!prevRunning && isRunning) {
+                    AudioEngine.powerUp();
+                    showToast("▶ TIMER STARTED", "start");
+                } else if (prevRunning && !isRunning) {
+                    AudioEngine.powerDown();
+                    showToast("⏸ TIMER PAUSED", "pause");
+                }
+
+                if (prevPhase !== currentPhase) {
+                    AudioEngine.celebrate();
+                    triggerConfettiParty();
+                    showToast(`✨ SWITCHED TO ${currentPhase}!`, "phase");
+                    loadAnalytics(); // Reload logs
+                }
+            }
+            isFirstLoad = false;
+
+            // Display Digital Time
+            timerDisplay.innerText = formatTime(localSeconds);
+
+            // Phase Badge & Theme Styling
+            if (currentPhase === "WORK") {
+                phaseBadge.innerText = "🔥 WORK PROTOCOL";
+                phaseBadge.className = "font-arcade text-xs sm:text-sm font-bold px-3 py-1 rounded-md border-2 border-black bg-tomato text-white shadow-neo-sm uppercase";
+                progressBar.className = "h-full bg-tomato border border-black rounded transition-all duration-500 ease-out striped-bar";
+                lcdModeText.innerText = "TARGET: DEEP FOCUS";
+                document.body.style.backgroundColor = "#FAF7EE";
+            } else if (currentPhase === "SHORT_BREAK") {
+                phaseBadge.innerText = "🌴 SHORT BREAK";
+                phaseBadge.className = "font-arcade text-xs sm:text-sm font-bold px-3 py-1 rounded-md border-2 border-black bg-mint text-black shadow-neo-sm uppercase";
+                progressBar.className = "h-full bg-mint border border-black rounded transition-all duration-500 ease-out striped-bar";
+                lcdModeText.innerText = "TARGET: 5 MIN RECHARGE";
+                document.body.style.backgroundColor = "#F0FAF5";
+            } else {
+                phaseBadge.innerText = "🏆 LONG BREAK";
+                phaseBadge.className = "font-arcade text-xs sm:text-sm font-bold px-3 py-1 rounded-md border-2 border-black bg-purple-400 text-black shadow-neo-sm uppercase";
+                progressBar.className = "h-full bg-purple-400 border border-black rounded transition-all duration-500 ease-out striped-bar";
+                lcdModeText.innerText = "TARGET: EXTENDED CHILL";
+                document.body.style.backgroundColor = "#F8F0FA";
+            }
+
+            // Running / Paused Badges & Action Button
+            if (isRunning) {
+                statusBadge.innerText = "RUNNING";
+                statusBadge.className = "font-arcade text-[11px] font-bold px-2.5 py-1 rounded-md border-2 border-black bg-mint text-black shadow-neo-sm uppercase animate-pulse";
+                btnRunIcon.innerText = "⏸";
+                btnRunText.innerText = "PAUSE";
+            } else {
+                statusBadge.innerText = "PAUSED";
+                statusBadge.className = "font-arcade text-[11px] font-bold px-2.5 py-1 rounded-md border-2 border-black bg-sun text-black shadow-neo-sm uppercase";
+                btnRunIcon.innerText = "▶";
+                btnRunText.innerText = "RESUME";
+            }
+
+            // Render 4 Cycle Slots
+            renderCycleSlots(pomodoroCount);
+
+            // Progress bar update
+            updateProgress();
+
+            // Mascot character update
+            Mascot.render(currentPhase, isRunning);
+
+            // Start or stop smooth local 1s timer
+            startLocalTicker();
+        }
+
+        function renderCycleSlots(count) {
+            const container = document.getElementById("cycle-slots");
+            let html = "";
+            for (let i = 0; i < 4; i++) {
+                if (i < count) {
+                    html += `<span class="w-4 h-4 rounded-full border-2 border-black bg-tomato flex items-center justify-center text-[10px] text-white font-bold" title="Completed">✓</span>`;
+                } else if (i === count && currentPhase === 'WORK') {
+                    html += `<span class="w-4 h-4 rounded-full border-2 border-black bg-sun animate-pulse" title="In Progress"></span>`;
+                } else {
+                    html += `<span class="w-4 h-4 rounded-full border border-black bg-zinc-300" title="Pending"></span>`;
+                }
+            }
+            container.innerHTML = html;
+        }
+
+        function updateProgress() {
+            const elapsed = Math.max(0, totalSeconds - localSeconds);
+            const pct = Math.min(100, Math.round((elapsed / totalSeconds) * 100)) || 0;
+            progressBar.style.width = `${pct}%`;
+            progressPercent.innerText = `${pct}%`;
+        }
+
+        // =========================================================================
+        // 6. SMOOTH LOCAL 1-SECOND TICKER
+        // =========================================================================
+        function startLocalTicker() {
+            if (localTimerInterval) clearInterval(localTimerInterval);
+
+            if (isRunning) {
+                localTimerInterval = setInterval(() => {
+                    if (localSeconds > 0) {
+                        localSeconds--;
+                        timerDisplay.innerText = formatTime(localSeconds);
+                        updateProgress();
+
+                        // Gentle tick sound on the last 5 seconds
+                        if (localSeconds <= 5 && localSeconds > 0) {
+                            AudioEngine.blip();
+                        }
+                    } else {
+                        // Timer naturally completed!
+                        clearInterval(localTimerInterval);
+                        AudioEngine.celebrate();
+                        triggerConfettiParty();
+                        showToast("🎉 SESSION COMPLETE!", "done");
+                        // Refresh analytics
+                        loadAnalytics();
+                    }
+                }, 1000);
+            }
+        }
+
+        // =========================================================================
+        // 7. SUPABASE FETCH & REALTIME SUBSCRIPTION
+        // =========================================================================
+        async function fetchInitialState() {
+            try {
+                setConnectionStatus('CONNECTING');
+                const { data, error } = await supabaseClient
+                    .from('device_state')
+                    .select('*')
+                    .eq('id', 1)
+                    .single();
+
+                if (error) throw error;
+
+                if (data) {
+                    applyState(data);
+                    setConnectionStatus('ONLINE');
+                }
+            } catch (err) {
+                console.error("Initial fetch error:", err);
+                setConnectionStatus('ERROR');
+            }
+        }
+
+        function subscribeToRealtime() {
+            supabaseClient
+                .channel('device_state_feed')
+                .on(
+                    'postgres_changes',
+                    { event: 'UPDATE', schema: 'public', table: 'device_state', filter: 'id=eq.1' },
+                    (payload) => {
+                        console.log("ESP32 Realtime Packet:", payload.new);
+                        applyState(payload.new);
+                        setConnectionStatus('ONLINE');
+                    }
+                )
+                .subscribe((status) => {
+                    console.log("Realtime Channel Status:", status);
+                    if (status === 'SUBSCRIBED') {
+                        setConnectionStatus('ONLINE');
+                    } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+                        setConnectionStatus('SEARCHING');
+                    }
+                });
+        }
+
+        function setConnectionStatus(status) {
+            if (status === 'ONLINE') {
+                connDot.className = "w-3 h-3 rounded-full bg-emerald-400 border border-black";
+                connLabel.innerText = "ESP32 BEAMED IN";
+                connLabel.className = "font-arcade text-[10px] font-bold text-emerald-600 uppercase tracking-wider leading-none";
+                connPill.className = "flex items-center gap-2 bg-emerald-50 border-2 border-black px-3 py-1.5 rounded-lg shadow-neo-sm";
+            } else if (status === 'CONNECTING' || status === 'SEARCHING') {
+                connDot.className = "w-3 h-3 rounded-full bg-amber-400 border border-black animate-ping";
+                connLabel.innerText = "BEACON SEARCH...";
+                connLabel.className = "font-arcade text-[10px] font-bold text-amber-600 uppercase tracking-wider leading-none";
+                connPill.className = "flex items-center gap-2 bg-amber-50 border-2 border-black px-3 py-1.5 rounded-lg shadow-neo-sm";
+            } else {
+                connDot.className = "w-3 h-3 rounded-full bg-red-500 border border-black";
+                connLabel.innerText = "LINK DROPPED";
+                connLabel.className = "font-arcade text-[10px] font-bold text-red-600 uppercase tracking-wider leading-none";
+                connPill.className = "flex items-center gap-2 bg-red-50 border-2 border-black px-3 py-1.5 rounded-lg shadow-neo-sm";
+            }
+        }
+
+        // =========================================================================
+        // 8. TACTILE WEB REMOTE CONTROLS (Syncs to DB -> Physical ESP32)
+        // =========================================================================
+        async function updateDeviceState(updates) {
+            AudioEngine.click();
+            try {
+                const { error } = await supabaseClient
+                    .from('device_state')
+                    .update({
+                        ...updates,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', 1);
+
+                if (error) throw error;
+            } catch (err) {
+                console.error("Failed to update device_state:", err);
+                showToast("⚠️ Could not reach ESP32", "error");
+            }
+        }
+
+        function toggleTimer() {
+            updateDeviceState({ is_running: !isRunning });
+        }
+
+        function skipPhase() {
+            let nextPhase = currentPhase === 'WORK' ? 'SHORT_BREAK' : 'WORK';
+            let nextTotal = nextPhase === 'WORK' ? 1500 : 300;
+            let nextCount = currentPhase === 'WORK' ? (pomodoroCount + 1) % 5 : pomodoroCount;
+
+            if (nextCount === 4 && nextPhase === 'SHORT_BREAK') {
+                nextPhase = 'LONG_BREAK';
+                nextTotal = 900;
+            }
+
+            updateDeviceState({
+                phase: nextPhase,
+                remaining_seconds: nextTotal,
+                total_phase_seconds: nextTotal,
+                pomodoro_count: nextCount,
+                is_running: false
+            });
+        }
+
+        function resetCurrentPhase() {
+            updateDeviceState({
+                remaining_seconds: totalSeconds,
+                is_running: false
+            });
+        }
+
+        async function manualSync() {
+            const spinner = document.getElementById('sync-spinner');
+            spinner.classList.add('rotate-180');
+            AudioEngine.blip();
+            await fetchInitialState();
+            await loadAnalytics();
+            setTimeout(() => {
+                spinner.classList.remove('rotate-180');
+                showToast("🔄 HARDWARE SYNCED!", "sync");
+            }, 300);
+        }
+
+        // =========================================================================
+        // 9. ANALYTICS, GAMIFICATION & SESSION LOGS
+        // =========================================================================
+        async function loadAnalytics() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('session_logs')
+                    .select('*')
+                    .order('completed_at', { ascending: false });
+
+                if (error || !data) return;
+
+                let workCount = 0;
+                let breakCount = 0;
+                let totalFocusMinutes = 0;
+
+                data.forEach(session => {
+                    if (session.phase === 'WORK') {
+                        workCount++;
+                        totalFocusMinutes += session.duration_minutes || 25;
+                    } else {
+                        breakCount++;
+                    }
+                });
+
+                // Update Metric Blocks
+                document.getElementById('stat-focus-hours').innerText = (totalFocusMinutes / 60).toFixed(1);
+                document.getElementById('stat-smashed').innerText = workCount;
+                document.getElementById('stat-break-count').innerText = breakCount;
+
+                // Update Focus vs Rest Ratio Bar
+                const totalSessions = workCount + breakCount;
+                if (totalSessions > 0) {
+                    const workPct = Math.round((workCount / totalSessions) * 100);
+                    const breakPct = 100 - workPct;
+                    document.getElementById('ratio-work-pct').innerText = `${workPct}%`;
+                    document.getElementById('ratio-break-pct').innerText = `${breakPct}%`;
+                    document.getElementById('ratio-work-bar').style.width = `${workPct}%`;
+                    document.getElementById('ratio-break-bar').style.width = `${breakPct}%`;
+                }
+
+                // Update Gamification / XP Engine
+                updateGamification(totalFocusMinutes, workCount);
+
+                // Render Recent Smashed Sessions List Feed
+                renderSessionLogs(data.slice(0, 8));
+
+            } catch (err) {
+                console.warn("Analytics load warning:", err);
+            }
+        }
+
+        function updateGamification(totalMinutes, workCount) {
+            // 10 XP per completed focus minute
+            const totalXP = totalMinutes * 10;
+
+            const ranks = [
+                { name: "SPROUT CADET", level: 1, minXP: 0, maxXP: 250, badge: "🌱" },
+                { name: "CHERRY POPPER", level: 2, minXP: 250, maxXP: 750, badge: "🍅" },
+                { name: "JUICE BOXER", level: 3, minXP: 750, maxXP: 1500, badge: "🥊" },
+                { name: "TOMATO TITAN", level: 4, minXP: 1500, maxXP: 3000, badge: "⚡" },
+                { name: "SALSA SOVEREIGN", level: 5, minXP: 3000, maxXP: 6000, badge: "👑" },
+            ];
+
+            let currentRank = ranks[0];
+            for (let r of ranks) {
+                if (totalXP >= r.minXP) {
+                    currentRank = r;
+                }
+            }
+
+            document.getElementById('xp-rank-title').innerText = `${currentRank.badge} ${currentRank.name}`;
+            document.getElementById('xp-level-badge').innerText = `LVL ${currentRank.level}`;
+
+            const xpInLevel = totalXP - currentRank.minXP;
+            const xpSpan = currentRank.maxXP - currentRank.minXP;
+            const xpPct = Math.min(100, Math.max(5, Math.round((xpInLevel / xpSpan) * 100)));
+
+            document.getElementById('xp-fill-bar').style.width = `${xpPct}%`;
+            document.getElementById('xp-counter-text').innerText = `${totalXP} / ${currentRank.maxXP} XP`;
+        }
+
+        function renderSessionLogs(logs) {
+            const list = document.getElementById('session-log-list');
+            const countTag = document.getElementById('log-count-tag');
+
+            countTag.innerText = `${logs.length} RECORDED`;
+
+            if (logs.length === 0) {
+                list.innerHTML = `
+                    <div class="p-4 border-2 border-dashed border-zinc-400 rounded-xl text-center text-zinc-500 text-xs font-bold">
+                        🍅 Press physical ESP32 button to smash your first session!
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = logs.map(session => {
+                const isWork = session.phase === 'WORK';
+                const timeStr = session.completed_at ? new Date(session.completed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent';
+                const icon = isWork ? '🍅' : '🧃';
+                const badgeBg = isWork ? 'bg-tomato text-white' : 'bg-mint text-black';
+                const xpGain = isWork ? `+${(session.duration_minutes || 25) * 10} XP` : '+25 XP';
+
+                return `
+                    <div class="flex items-center justify-between p-2.5 bg-paper border-2 border-black rounded-xl shadow-neo-sm">
+                        <div class="flex items-center gap-2">
+                            <span class="text-base">${icon}</span>
+                            <div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="font-arcade text-[10px] font-bold px-1.5 py-0.5 rounded border border-black ${badgeBg}">
+                                        ${session.phase}
+                                    </span>
+                                    <span class="text-xs font-bold text-zinc-800">
+                                        ${session.duration_minutes || 25} MINS
+                                    </span>
+                                </div>
+                                <span class="text-[10px] font-mono text-zinc-500">${timeStr}</span>
+                            </div>
+                        </div>
+                        <span class="font-arcade text-xs font-bold text-emerald-600 bg-emerald-100 border border-black px-2 py-0.5 rounded">
+                            ${xpGain}
+                        </span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // =========================================================================
+        // 10. CELEBRATION EFFECTS & TOASTS
+        // =========================================================================
+        function triggerConfettiParty() {
+            AudioEngine.celebrate();
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 75,
+                    spread: 80,
+                    origin: { y: 0.65 },
+                    colors: ['#FF4343', '#FFE144', '#00F0A8', '#38E1FF', '#C084FC']
+                });
+            }
+        }
+
+        function showToast(text, type = 'info') {
+            const toast = document.getElementById('toast-bubble');
+            const toastText = document.getElementById('toast-text');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastText.innerText = text;
+            if (type === 'start') toastIcon.innerText = '▶';
+            else if (type === 'pause') toastIcon.innerText = '⏸';
+            else if (type === 'phase') toastIcon.innerText = '✨';
+            else if (type === 'done') toastIcon.innerText = '🏆';
+            else if (type === 'sound') toastIcon.innerText = '🔊';
+            else if (type === 'mute') toastIcon.innerText = '🔇';
+            else toastIcon.innerText = '🍅';
+
+            toast.classList.remove('translate-y-32');
+            setTimeout(() => {
+                toast.classList.add('translate-y-32');
+            }, 2500);
+        }
+
+        // =========================================================================
+        // 11. BOOTSTRAP DASHBOARD
+        // =========================================================================
+        AudioEngine.updateUI();
+        Mascot.render('WORK', false);
+        fetchInitialState();
+        subscribeToRealtime();
+        loadAnalytics();
+    </script>
+</body>
+
+</html>
