@@ -715,74 +715,86 @@
             </div>
 
             <!-- Card 2: S.H.I.E.L.D. Mission Logs Card -->
-            <div class="neo-card bg-white p-6 flex flex-col justify-between flex-1" id="mission-logs-card">
+            <div id="mission-logs-card" class="bg-white p-6 flex flex-col justify-between flex-1 border-4 border-black rounded-3xl shadow-[6px_6px_0px_0px_#000]">
                 
                 <!-- Standardized Card Header -->
                 <div class="flex items-center justify-between pb-0">
                     <div class="flex items-center gap-3">
-                        <div class="w-[36px] h-[36px] min-w-[36px] min-h-[36px] rounded-lg bg-[#FACC15] border-2 border-black flex items-center justify-center text-black shadow-none">
+                        <div class="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-black p-2 shadow-none">
                             <i data-lucide="clipboard-list" class="w-5 h-5"></i>
                         </div>
                         <div>
                             <span class="text-[10px] font-mono text-[#64748B] font-bold block uppercase tracking-wider leading-none mb-1">TACTICAL DEBRIEF</span>
-                            <h3 class="font-comic text-[18px] text-black font-bold leading-tight tracking-wide">
+                            <h3 class="font-comic italic text-lg sm:text-xl text-black font-black leading-tight tracking-wide uppercase">
                                 S.H.I.E.L.D. MISSION LOGS
                             </h3>
                         </div>
                     </div>
 
-                    <span class="hud-badge bg-white text-black">
+                    <span class="border-2 border-black rounded-lg px-3 py-1 font-mono text-xs font-bold bg-white text-black shadow-none">
                         TODAY
                     </span>
                 </div>
 
                 <!-- Divider Line -->
-                <div class="border-t-2 border-black mt-4 mb-5 w-full"></div>
+                <div class="border-t-2 border-black my-4 w-full"></div>
 
-                <!-- Standardized Progress Bar: Combat vs Rest Ratio Gauge -->
+                <!-- Combat vs Recharge Ratio Bar -->
                 <div class="mb-4">
-                    <div class="flex justify-between items-center text-[11px] font-mono font-bold uppercase tracking-wider text-black mb-1.5">
+                    <div class="flex justify-between items-center text-xs font-mono font-bold uppercase tracking-wider text-black mb-1.5">
                         <span class="text-[#E11D48] flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 bg-[#E11D48] border border-black inline-block rounded-sm"></span>
+                            <span class="w-2.5 h-2.5 bg-[#E11D48] border border-black inline-block rounded-xs"></span>
                             <span>COMBAT ( <span id="ratio-work-pct">100%</span> )</span>
                         </span>
                         <span class="text-[#06B6D4] flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 bg-[#06B6D4] border border-black inline-block rounded-sm"></span>
+                            <span class="w-2.5 h-2.5 bg-[#06B6D4] border border-black inline-block rounded-xs"></span>
                             <span>RECHARGE ( <span id="ratio-break-pct">0%</span> )</span>
                         </span>
                     </div>
-                    <div class="w-full h-[14px] bg-white rounded-full border-2 border-black p-0 overflow-hidden flex relative shadow-none">
-                        <div id="ratio-work-bar" class="h-full bg-[#E11D48] border-r border-black transition-all duration-500" style="width: 100%"></div>
-                        <div id="ratio-break-bar" class="h-full bg-[#06B6D4] transition-all duration-500" style="width: 0%"></div>
+                    <div class="w-full h-5 bg-white rounded-full border-[3px] border-black p-0 overflow-hidden flex relative shadow-none">
+                        <div id="ratio-work-bar" class="h-full bg-[#E11D48] border-r-2 border-black transition-all duration-500" style="width: 100%;"></div>
+                        <div id="ratio-break-bar" class="h-full bg-[#06B6D4] transition-all duration-500" style="width: 0%;"></div>
                     </div>
                 </div>
 
-                <!-- Unified Sub-Well: Daily Target Milestones Checklist -->
-                <div class="sub-well">
-                    <div class="flex justify-between items-center text-[11px] font-mono font-bold uppercase tracking-wider text-black mb-3">
-                        <span class="flex items-center gap-1.5">
-                            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-[#E11D48]"></i>
+                <!-- Mission Progress & Checklist Inner Container -->
+                <div class="bg-[#F7F4EB] border-[3px] border-black rounded-2xl p-4">
+                    <div class="flex justify-between items-center text-xs font-mono font-bold uppercase tracking-wider text-black mb-3.5">
+                        <span class="flex items-center gap-1.5 font-bold">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-[#E11D48]"></i>
                             <span>DAILY TARGET: 4 SESSIONS</span>
                         </span>
-                        <span id="target-counter" class="text-slate-500">0 / 4 DONE</span>
+                        <span id="target-counter" class="text-slate-600 font-mono font-bold text-xs">[ 0 ] / 4 DONE</span>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2.5" id="daily-milestones-grid">
-                        <button class="mission-btn neo-btn flex items-center gap-2 text-xs font-mono font-bold px-3 py-2 bg-white text-black" onclick="toggleMission(1, event)">
-                            <span class="milestone-check w-4 h-4 rounded border border-black flex items-center justify-center text-[10px] bg-zinc-100 text-zinc-700 font-bold">1</span>
-                            <span>Mission Alpha</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5" id="daily-milestones-grid">
+                        <button class="mission-btn w-full bg-white text-black border-[3px] border-black rounded-xl p-3 font-comic font-black tracking-wider uppercase flex items-center justify-between shadow-[2px_2px_0px_#000] hover:translate-y-[-1px] transition-all cursor-pointer select-none" onclick="toggleMission(1, event)">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-6 h-6 rounded-md border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-xs shrink-0">[ 1 ]</span>
+                                <span class="text-xs sm:text-sm font-bold truncate">MISSION ALPHA</span>
+                            </div>
+                            <span class="text-[10px] font-mono text-zinc-500 font-bold hidden sm:inline-block shrink-0">STANDBY</span>
                         </button>
-                        <button class="mission-btn neo-btn flex items-center gap-2 text-xs font-mono font-bold px-3 py-2 bg-white text-black" onclick="toggleMission(2, event)">
-                            <span class="milestone-check w-4 h-4 rounded border border-black flex items-center justify-center text-[10px] bg-zinc-100 text-zinc-700 font-bold">2</span>
-                            <span>Mission Beta</span>
+                        <button class="mission-btn w-full bg-white text-black border-[3px] border-black rounded-xl p-3 font-comic font-black tracking-wider uppercase flex items-center justify-between shadow-[2px_2px_0px_#000] hover:translate-y-[-1px] transition-all cursor-pointer select-none" onclick="toggleMission(2, event)">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-6 h-6 rounded-md border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-xs shrink-0">[ 2 ]</span>
+                                <span class="text-xs sm:text-sm font-bold truncate">MISSION BETA</span>
+                            </div>
+                            <span class="text-[10px] font-mono text-zinc-500 font-bold hidden sm:inline-block shrink-0">STANDBY</span>
                         </button>
-                        <button class="mission-btn neo-btn flex items-center gap-2 text-xs font-mono font-bold px-3 py-2 bg-white text-black" onclick="toggleMission(3, event)">
-                            <span class="milestone-check w-4 h-4 rounded border border-black flex items-center justify-center text-[10px] bg-zinc-100 text-zinc-700 font-bold">3</span>
-                            <span>Mission Gamma</span>
+                        <button class="mission-btn w-full bg-white text-black border-[3px] border-black rounded-xl p-3 font-comic font-black tracking-wider uppercase flex items-center justify-between shadow-[2px_2px_0px_#000] hover:translate-y-[-1px] transition-all cursor-pointer select-none" onclick="toggleMission(3, event)">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-6 h-6 rounded-md border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-xs shrink-0">[ 3 ]</span>
+                                <span class="text-xs sm:text-sm font-bold truncate">MISSION GAMMA</span>
+                            </div>
+                            <span class="text-[10px] font-mono text-zinc-500 font-bold hidden sm:inline-block shrink-0">STANDBY</span>
                         </button>
-                        <button class="mission-btn neo-btn flex items-center gap-2 text-xs font-mono font-bold px-3 py-2 bg-white text-black" onclick="toggleMission(4, event)">
-                            <span class="milestone-check w-4 h-4 rounded border border-black flex items-center justify-center text-[10px] bg-zinc-100 text-zinc-700 font-bold">4</span>
-                            <span>Mission Delta</span>
+                        <button class="mission-btn w-full bg-white text-black border-[3px] border-black rounded-xl p-3 font-comic font-black tracking-wider uppercase flex items-center justify-between shadow-[2px_2px_0px_#000] hover:translate-y-[-1px] transition-all cursor-pointer select-none" onclick="toggleMission(4, event)">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-6 h-6 rounded-md border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-xs shrink-0">[ 4 ]</span>
+                                <span class="text-xs sm:text-sm font-bold truncate">MISSION DELTA</span>
+                            </div>
+                            <span class="text-[10px] font-mono text-zinc-500 font-bold hidden sm:inline-block shrink-0">STANDBY</span>
                         </button>
                     </div>
                 </div>
@@ -1775,6 +1787,14 @@
             renderInfinityGauntlet(pomodoroCount, currentPhase);
             updateProgress();
             renderHero(currentPhase, isRunning);
+            if (typeof hardwareState !== 'undefined') {
+                hardwareState.is_running = isRunning;
+                hardwareState.phase = currentPhase;
+                hardwareState.pomodoro_count = pomodoroCount;
+            }
+            if (typeof renderTacticalMissions === 'function') {
+                renderTacticalMissions();
+            }
             startLocalTicker();
 
             if (window.lucide) lucide.createIcons();
@@ -1806,6 +1826,9 @@
                         triggerHeroEnergyBeam(currentHeroKey);
                         showToast("MISSION COMPLETE!", "done");
                         loadAnalytics();
+                        if (typeof updateTacticalDebrief === 'function') {
+                            updateTacticalDebrief();
+                        }
                     }
                 }, 1000);
             }
@@ -1835,6 +1858,7 @@
         }
 
         function subscribeToRealtime() {
+            // Live Hardware Device State Listener (id = 1)
             supabaseClient
                 .channel('device_state_feed')
                 .on(
@@ -1853,6 +1877,25 @@
                         setConnectionStatus('SEARCHING');
                     }
                 });
+
+            // Live Session Logs Auto-Refresh Listener
+            supabaseClient
+                .channel('shield_logs_channel')
+                .on(
+                    'postgres_changes',
+                    { event: 'INSERT', schema: 'public', table: 'session_logs' },
+                    (payload) => {
+                        console.log("S.H.I.E.L.D. Mission Logged:", payload.new);
+                        // Auto-refresh the debrief section immediately without full page reload
+                        if (typeof updateTacticalDebrief === 'function') {
+                            updateTacticalDebrief();
+                        }
+                        loadAnalytics();
+                        AudioEngine.fanfare();
+                        showToast("TACTICAL DEBRIEF UPDATED: MISSION LOGGED!", "done");
+                    }
+                )
+                .subscribe();
         }
 
         function setConnectionStatus(status) {
@@ -1880,6 +1923,9 @@
             AudioEngine.repulsorZap();
             await fetchInitialState();
             await loadAnalytics();
+            if (typeof updateTacticalDebrief === 'function') {
+                await updateTacticalDebrief();
+            }
             setTimeout(() => {
                 spinner.classList.remove('rotate-180');
                 showToast("HARDWARE SYNCED!", "sync");
@@ -1887,8 +1933,28 @@
         }
 
         // =========================================================================
-        // 7. S.H.I.E.L.D. ANALYTICS & GAMIFICATION
+        // 7. S.H.I.E.L.D. ANALYTICS & GAMIFICATION (TACTICAL DEBRIEF & MISSION LOGS)
         // =========================================================================
+        let hardwareState = {
+            phase: 'WORK',
+            is_running: false,
+            pomodoro_count: 0
+        };
+
+        let todayStats = {
+            workSessions: 0,
+            breakSessions: 0,
+            workMinutes: 0,
+            breakMinutes: 0
+        };
+
+        const MISSION_NAMES = [
+            { id: 1, name: "MISSION ALPHA" },
+            { id: 2, name: "MISSION BETA" },
+            { id: 3, name: "MISSION GAMMA" },
+            { id: 4, name: "MISSION DELTA" }
+        ];
+
         let completedMissions = JSON.parse(localStorage.getItem('avengers_completed_missions') || '[]');
 
         function toggleMission(index, event) {
@@ -1904,7 +1970,7 @@
             }
 
             localStorage.setItem('avengers_completed_missions', JSON.stringify(completedMissions));
-            renderMissionButtons();
+            renderTacticalMissions();
 
             if (completedMissions.length === 4) {
                 AudioEngine.fanfare();
@@ -1915,31 +1981,141 @@
             }
         }
 
-        function renderMissionButtons() {
+        function renderTacticalMissions() {
             const counter = document.getElementById('target-counter');
+            const grid = document.getElementById('daily-milestones-grid');
+
+            const completedCount = completedMissions.length;
             if (counter) {
-                counter.innerText = `${completedMissions.length} / 4 DONE`;
+                counter.innerText = `[ ${Math.min(4, completedCount)} ] / 4 DONE`;
             }
 
-            for (let i = 1; i <= 4; i++) {
-                const btn = document.querySelector(`button[onclick*="toggleMission(${i}"]`);
-                if (!btn) continue;
-                const isDone = completedMissions.includes(i);
-                const badge = btn.querySelector('.milestone-check');
+            if (!grid) return;
 
-                if (isDone) {
-                    btn.className = "mission-btn neo-btn flex items-center gap-2 text-sm font-comic font-bold tracking-wide uppercase px-3 py-2 bg-emerald-50 text-black";
-                    if (badge) {
-                        badge.className = "milestone-check w-4 h-4 rounded border border-black flex items-center justify-center text-[10px] bg-emerald-400 text-black font-bold shadow-none";
-                        badge.innerHTML = `<svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`;
-                    }
-                } else {
-                    btn.className = "mission-btn neo-btn flex items-center gap-2 text-sm font-comic font-bold tracking-wide uppercase px-3 py-2 bg-white text-black";
-                    if (badge) {
-                        badge.className = "milestone-check w-4 h-4 rounded border border-black flex items-center justify-center text-[10px] bg-zinc-100 text-zinc-700 font-bold shadow-none";
-                        badge.innerText = `${i}`;
+            const isWorkRunning = hardwareState.is_running && hardwareState.phase === 'WORK';
+
+            // Find first uncompleted mission (1..4) to display as IN PROGRESS if work is active
+            let activeMissionId = null;
+            if (isWorkRunning) {
+                for (let i = 1; i <= 4; i++) {
+                    if (!completedMissions.includes(i)) {
+                        activeMissionId = i;
+                        break;
                     }
                 }
+            }
+
+            grid.innerHTML = MISSION_NAMES.map(m => {
+                const isDone = completedMissions.includes(m.id);
+                const isActive = !isDone && (m.id === activeMissionId);
+
+                if (isDone) {
+                    return `
+                        <button class="mission-btn w-full bg-[#10B981] text-black border-[3px] border-black rounded-xl p-3 font-comic font-black tracking-wider uppercase flex items-center justify-between shadow-[2px_2px_0px_#000] hover:translate-y-[-1px] transition-all cursor-pointer select-none" onclick="toggleMission(${m.id}, event)" title="Click to toggle">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-6 h-6 rounded-md border-2 border-black bg-black text-[#10B981] flex items-center justify-center font-mono font-bold text-xs shrink-0">✓</span>
+                                <span class="text-xs sm:text-sm font-bold truncate line-through opacity-85">${m.name}</span>
+                            </div>
+                            <span class="font-comic font-black text-[9px] sm:text-[10px] tracking-wider uppercase bg-[#FACC15] text-black border-2 border-black px-1.5 sm:px-2 py-0.5 rounded shadow-[2px_2px_0px_#000] rotate-[-3deg] shrink-0">ACCOMPLISHED</span>
+                        </button>
+                    `;
+                } else if (isActive) {
+                    return `
+                        <button class="mission-btn w-full bg-[#FEF3C7] text-black border-[3px] border-black rounded-xl p-3 font-comic font-black tracking-wider uppercase flex items-center justify-between shadow-[3px_3px_0px_#000] ring-2 ring-amber-400 animate-pulse hover:translate-y-[-1px] transition-all cursor-pointer select-none" onclick="toggleMission(${m.id}, event)" title="Click to toggle">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-6 h-6 rounded-md border-2 border-black bg-amber-400 text-black flex items-center justify-center font-mono font-bold text-xs shrink-0">[ ${m.id} ]</span>
+                                <span class="text-xs sm:text-sm font-bold truncate text-black">${m.name}</span>
+                            </div>
+                            <span class="inline-flex items-center gap-1 font-mono text-[9px] font-bold uppercase bg-amber-400 text-black border border-black px-1.5 py-0.5 rounded shadow-[1px_1px_0px_#000] shrink-0">
+                                <span class="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping"></span>
+                                <span>IN PROGRESS</span>
+                            </span>
+                        </button>
+                    `;
+                } else {
+                    return `
+                        <button class="mission-btn w-full bg-white text-black border-[3px] border-black rounded-xl p-3 font-comic font-black tracking-wider uppercase flex items-center justify-between shadow-[2px_2px_0px_#000] hover:translate-y-[-1px] transition-all cursor-pointer select-none" onclick="toggleMission(${m.id}, event)" title="Click to toggle">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-6 h-6 rounded-md border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-xs shrink-0">[ ${m.id} ]</span>
+                                <span class="text-xs sm:text-sm font-bold truncate text-black">${m.name}</span>
+                            </div>
+                            <span class="text-[10px] font-mono text-zinc-500 font-bold hidden sm:inline-block shrink-0">STANDBY</span>
+                        </button>
+                    `;
+                }
+            }).join('');
+        }
+
+        async function updateTacticalDebrief() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const { data, error } = await supabaseClient
+                    .from('session_logs')
+                    .select('*')
+                    .gte('completed_at', today + 'T00:00:00Z')
+                    .order('completed_at', { ascending: true });
+
+                if (error) {
+                    console.warn("Supabase fetch today's session_logs error:", error);
+                    return;
+                }
+
+                let workCount = 0;
+                let breakCount = 0;
+                let workMinutes = 0;
+                let breakMinutes = 0;
+
+                if (data && data.length > 0) {
+                    data.forEach(session => {
+                        const mins = Number(session.duration_minutes) || (session.phase === 'WORK' ? 25 : (session.phase === 'LONG_BREAK' ? 15 : 5));
+                        if (session.phase === 'WORK') {
+                            workCount++;
+                            workMinutes += mins;
+                        } else {
+                            breakCount++;
+                            breakMinutes += mins;
+                        }
+                    });
+                }
+
+                todayStats.workSessions = workCount;
+                todayStats.breakSessions = breakCount;
+                todayStats.workMinutes = workMinutes;
+                todayStats.breakMinutes = breakMinutes;
+
+                // Calculate Combat % vs Recharge %
+                const totalMinutes = workMinutes + breakMinutes;
+                let workPct = 100;
+                let breakPct = 0;
+                if (totalMinutes > 0) {
+                    workPct = Math.round((workMinutes / totalMinutes) * 100);
+                    breakPct = 100 - workPct;
+                }
+
+                // Update UI elements
+                const workPctEl = document.getElementById('ratio-work-pct');
+                const breakPctEl = document.getElementById('ratio-break-pct');
+                const workBarEl = document.getElementById('ratio-work-bar');
+                const breakBarEl = document.getElementById('ratio-break-bar');
+
+                if (workPctEl) workPctEl.innerText = `${workPct}%`;
+                if (breakPctEl) breakPctEl.innerText = `${breakPct}%`;
+                if (workBarEl) workBarEl.style.width = `${workPct}%`;
+                if (breakBarEl) breakBarEl.style.width = `${breakPct}%`;
+
+                // Automatically synchronize completed missions with today's completed work count
+                const cappedCount = Math.min(4, workCount);
+                for (let i = 1; i <= cappedCount; i++) {
+                    if (!completedMissions.includes(i)) {
+                        completedMissions.push(i);
+                    }
+                }
+                localStorage.setItem('avengers_completed_missions', JSON.stringify(completedMissions));
+
+                renderTacticalMissions();
+
+            } catch (err) {
+                console.error("updateTacticalDebrief error:", err);
             }
         }
 
@@ -1969,34 +2145,13 @@
                 document.getElementById('stat-smashed').innerText = workCount;
                 document.getElementById('stat-break-count').innerText = breakCount;
 
-                const totalSessions = workCount + breakCount;
-                if (totalSessions > 0) {
-                    const workPct = Math.round((workCount / totalSessions) * 100);
-                    const breakPct = 100 - workPct;
-                    document.getElementById('ratio-work-pct').innerText = `${workPct}%`;
-                    document.getElementById('ratio-break-pct').innerText = `${breakPct}%`;
-                    document.getElementById('ratio-work-bar').style.width = `${workPct}%`;
-                    document.getElementById('ratio-break-bar').style.width = `${breakPct}%`;
-                }
-
-                updateDailyMilestones(workCount);
                 updateShieldClearance(totalFocusMinutes);
                 renderMissionDebriefs(data.slice(0, 8));
+                await updateTacticalDebrief();
 
             } catch (err) {
                 console.warn("Analytics load error:", err);
             }
-        }
-
-        function updateDailyMilestones(completedCount) {
-            if (completedMissions.length === 0 && completedCount > 0) {
-                const count = Math.min(4, completedCount);
-                for (let i = 1; i <= count; i++) {
-                    if (!completedMissions.includes(i)) completedMissions.push(i);
-                }
-                localStorage.setItem('avengers_completed_missions', JSON.stringify(completedMissions));
-            }
-            renderMissionButtons();
         }
 
         function updateShieldClearance(totalMinutes) {
@@ -2761,9 +2916,10 @@
         });
 
         renderHero('WORK', false);
-        renderMissionButtons();
+        renderTacticalMissions();
         fetchInitialState();
         subscribeToRealtime();
+        updateTacticalDebrief();
         loadAnalytics();
 
         if (window.lucide) lucide.createIcons();
