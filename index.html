@@ -2680,22 +2680,140 @@
                     ]
                 },
                 renderSVG: (mode) => `
-                    <circle cx="80" cy="85" r="60" fill="#10B981" stroke="#000" stroke-width="4.5" />
-                    <path d="M32 60 Q80 20 128 60 Q110 40 80 42 Q50 40 32 60 Z" fill="#1E293B" stroke="#000" stroke-width="4" />
-                    <line x1="45" y1="72" x2="72" y2="82" stroke="#000" stroke-width="5" stroke-linecap="round" />
-                    <line x1="115" y1="72" x2="88" y2="82" stroke="#000" stroke-width="5" stroke-linecap="round" />
-                    <circle cx="62" cy="88" r="7" fill="#000" />
-                    <circle cx="98" cy="88" r="7" fill="#000" />
-                    <circle cx="64" cy="86" r="2.5" fill="#FFF" />
-                    <circle cx="100" cy="86" r="2.5" fill="#FFF" />
-                    ${mode === 'BREAK' ? `
-                        <path d="M60 115 Q80 132 100 115" stroke="#000" stroke-width="4.5" stroke-linecap="round" fill="#FFF" />
+                    <!-- 1. Massive Green Trapezius Shoulders & Striations -->
+                    <path d="M12 155 C16 122, 42 114, 56 110 L104 110 C118 114, 144 122, 148 155 Z" fill="#047857" stroke="#000" stroke-width="4.5" stroke-linejoin="round" />
+                    <path d="M28 148 C34 134, 46 126, 56 120" fill="none" stroke="#065F46" stroke-width="2.5" stroke-linecap="round" />
+                    <path d="M132 148 C126 134, 114 126, 104 120" fill="none" stroke="#065F46" stroke-width="2.5" stroke-linecap="round" />
+
+                    <!-- 2. Shredded Purple Tattered Shirt / Collar -->
+                    <path d="M14 155 L24 144 L32 150 L42 140 L52 148 L62 140 L72 150 L80 142 L90 152 L98 142 L108 150 L118 142 L128 152 L136 144 L146 155 Z" fill="#581C87" stroke="#000" stroke-width="3" stroke-linejoin="round" />
+                    <path d="M20 155 L28 148 L36 153 L46 145 L56 152 L66 145 L76 154 L84 146 L94 154 L102 146 L112 152 L122 146 L132 154 L140 155 Z" fill="#7E22CE" opacity="0.7" />
+
+                    <!-- 3. Heavy Ears -->
+                    <path d="M36 80 C24 82, 24 100, 36 102 Z" fill="#059669" stroke="#000" stroke-width="3" stroke-linejoin="round" />
+                    <path d="M33 86 C28 88, 28 96, 34 98" fill="none" stroke="#047857" stroke-width="2" />
+                    <path d="M124 80 C136 82, 136 100, 124 102 Z" fill="#059669" stroke="#000" stroke-width="3" stroke-linejoin="round" />
+                    <path d="M127 86 C132 88, 132 96, 126 98" fill="none" stroke="#047857" stroke-width="2" />
+
+                    <!-- 4. Chiseled Brutal Mandible & Cleft Jaw -->
+                    <path d="M36 68 C30 82, 32 102, 36 112 C40 124, 56 134, 70 137 L90 137 C104 134, 120 124, 124 112 C128 102, 130 82, 124 68 C115 48, 45 48, 36 68 Z" fill="#10B981" stroke="#000" stroke-width="4.5" stroke-linejoin="round" />
+
+                    <!-- Jaw Shading & Cleft Chin -->
+                    <path d="M54 126 C62 133, 98 133, 106 126 C98 136, 62 136, 54 126 Z" fill="#047857" stroke="#000" stroke-width="1.5" />
+                    <path d="M78 130 L80 135 L82 130" fill="none" stroke="#047857" stroke-width="2.5" stroke-linecap="round" />
+
+                    <!-- Cheekbone & Jaw Contour Inks -->
+                    <path d="M42 94 C46 98, 52 101, 56 102" fill="none" stroke="#047857" stroke-width="2" stroke-linecap="round" />
+                    <path d="M118 94 C114 98, 108 101, 104 102" fill="none" stroke="#047857" stroke-width="2" stroke-linecap="round" />
+
+                    <!-- 5. Forehead Furrows & Anger Wrinkles -->
+                    <path d="M54 58 Q80 63 106 58" fill="none" stroke="#047857" stroke-width="2.5" stroke-linecap="round" />
+                    <path d="M60 52 Q80 56 100 52" fill="none" stroke="#047857" stroke-width="2.5" stroke-linecap="round" />
+                    <line x1="77" y1="67" x2="76" y2="76" stroke="#000" stroke-width="3" stroke-linecap="round" />
+                    <line x1="83" y1="67" x2="84" y2="76" stroke="#000" stroke-width="3" stroke-linecap="round" />
+
+                    <!-- 6. Thick Jagged Eyebrows -->
+                    <polygon points="36,70 58,74 74,80 75,74 58,68 36,64" fill="#0F172A" stroke="#000" stroke-width="1.8" />
+                    <polygon points="124,70 102,74 86,80 85,74 102,68 124,64" fill="#0F172A" stroke="#000" stroke-width="1.8" />
+
+                    <!-- 7. Eyes (Mode-Specific) -->
+                    ${mode === 'WORK' ? `
+                        <!-- Radioactive Blazing Gamma Slit Eyes -->
+                        <polygon points="50,81 72,85 68,91 52,89" fill="#064E3B" stroke="#000" stroke-width="2.5" />
+                        <polygon points="53,83 69,86 66,89 54,88" fill="#34D399" class="energy-pulse" />
+                        <polygon points="57,84 66,86 64,88 58,87" fill="#FFFFFF" />
+                        <polygon points="110,81 88,85 92,91 108,89" fill="#064E3B" stroke="#000" stroke-width="2.5" />
+                        <polygon points="107,83 91,86 94,89 106,88" fill="#34D399" class="energy-pulse" />
+                        <polygon points="103,84 94,86 96,88 102,87" fill="#FFFFFF" />
+
+                        <!-- Temple Gamma Vein Pulses -->
+                        <path d="M40 82 L32 78 L36 86 L26 84" fill="none" stroke="#34D399" stroke-width="2.5" stroke-linecap="round" />
+                        <path d="M120 82 L128 78 L124 86 L134 84" fill="none" stroke="#34D399" stroke-width="2.5" stroke-linecap="round" />
+                    ` : (mode === 'BREAK' ? `
+                        <!-- Calm Zen Half-Lidded Eyes -->
+                        <path d="M52 82 Q64 80 74 85" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" />
+                        <ellipse cx="63" cy="86" rx="5" ry="4" fill="#047857" stroke="#000" stroke-width="1.5" />
+                        <circle cx="63" cy="86" r="2" fill="#10B981" />
+                        <circle cx="64" cy="85" r="0.8" fill="#FFF" />
+                        <path d="M108 82 Q96 80 86 85" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" />
+                        <ellipse cx="97" cy="86" rx="5" ry="4" fill="#047857" stroke="#000" stroke-width="1.5" />
+                        <circle cx="97" cy="86" r="2" fill="#10B981" />
+                        <circle cx="98" cy="85" r="0.8" fill="#FFF" />
                     ` : `
-                        <rect x="55" y="110" width="50" height="18" rx="6" fill="#FFF" stroke="#000" stroke-width="3.5" />
-                        <line x1="68" y1="110" x2="68" y2="128" stroke="#000" stroke-width="2" />
-                        <line x1="80" y1="110" x2="80" y2="128" stroke="#000" stroke-width="2" />
-                        <line x1="92" y1="110" x2="92" y2="128" stroke="#000" stroke-width="2" />
-                    `}
+                        <!-- Puzzled / Squint Eyes on Standby -->
+                        <path d="M48 76 Q62 76 72 82" fill="none" stroke="#000" stroke-width="3.5" stroke-linecap="round" />
+                        <path d="M112 80 Q98 77 88 84" fill="none" stroke="#000" stroke-width="3.5" stroke-linecap="round" />
+                        <ellipse cx="62" cy="86" rx="4.5" ry="5.5" fill="#000" />
+                        <circle cx="64" cy="84" r="1.8" fill="#FFF" />
+                        <ellipse cx="98" cy="86" rx="4.5" ry="5.5" fill="#000" />
+                        <circle cx="96" cy="84" r="1.8" fill="#FFF" />
+                    `)}
+
+                    <!-- 8. Comic Snarl Nose -->
+                    <path d="M72 87 L74 97 C74 100, 86 100, 86 97 L88 87" fill="none" stroke="#047857" stroke-width="2.5" />
+                    <path d="M71 97 Q80 101 89 97" fill="none" stroke="#000" stroke-width="2.5" />
+                    <ellipse cx="75" cy="98" rx="2.5" ry="1.5" fill="#000" />
+                    <ellipse cx="85" cy="98" rx="2.5" ry="1.5" fill="#000" />
+                    <path d="M58 92 C62 98, 62 105, 56 112" fill="none" stroke="#047857" stroke-width="2.5" stroke-linecap="round" />
+                    <path d="M102 92 C98 98, 98 105, 104 112" fill="none" stroke="#047857" stroke-width="2.5" stroke-linecap="round" />
+
+                    <!-- 9. Mouth Expression (Mode-Specific) -->
+                    ${mode === 'WORK' ? `
+                        <!-- Clenched Teeth Battle Roar -->
+                        <path d="M52 108 Q80 103 108 108 C105 125, 96 127, 80 126 C64 127, 55 125, 52 108 Z" fill="#2A0808" stroke="#000" stroke-width="3.5" stroke-linejoin="round" />
+                        <path d="M54 108 L106 108 L104 114 Q80 115 56 114 Z" fill="#F8FAFC" stroke="#000" stroke-width="1.2" />
+                        <path d="M58 123 L102 123 L100 117 Q80 116 60 117 Z" fill="#F8FAFC" stroke="#000" stroke-width="1.2" />
+                        <line x1="62" y1="108" x2="62" y2="123" stroke="#000" stroke-width="1.5" />
+                        <line x1="70" y1="108" x2="70" y2="123" stroke="#000" stroke-width="1.5" />
+                        <line x1="77" y1="108" x2="77" y2="123" stroke="#000" stroke-width="1.5" />
+                        <line x1="83" y1="108" x2="83" y2="123" stroke="#000" stroke-width="1.5" />
+                        <line x1="90" y1="108" x2="90" y2="123" stroke="#000" stroke-width="1.5" />
+                        <line x1="98" y1="108" x2="98" y2="123" stroke="#000" stroke-width="1.5" />
+                        <path d="M48 106 L53 111" stroke="#000" stroke-width="2.5" stroke-linecap="round" />
+                        <path d="M112 106 L107 111" stroke="#000" stroke-width="2.5" stroke-linecap="round" />
+                        <path d="M66 128 Q80 131 94 128" fill="none" stroke="#047857" stroke-width="2.5" stroke-linecap="round" />
+                    ` : (mode === 'BREAK' ? `
+                        <!-- Zen Hulk Smile -->
+                        <path d="M60 112 Q80 124 100 112" fill="#047857" stroke="#000" stroke-width="3" stroke-linecap="round" />
+                        <path d="M66 113 Q80 119 94 113" fill="#FFF" stroke="#000" stroke-width="1.5" />
+                        <path d="M68 124 Q80 127 92 124" fill="none" stroke="#047857" stroke-width="2" stroke-linecap="round" />
+                    ` : `
+                        <!-- Grumbling Underbite Snarl -->
+                        <path d="M58 118 Q80 110 102 118" fill="#1E293B" stroke="#000" stroke-width="3.5" stroke-linecap="round" />
+                        <polygon points="68,118 72,112 76,118" fill="#FFF" stroke="#000" stroke-width="1.5" />
+                        <polygon points="84,118 88,112 92,118" fill="#FFF" stroke="#000" stroke-width="1.5" />
+                        <path d="M66 126 Q80 128 94 126" fill="none" stroke="#047857" stroke-width="2" stroke-linecap="round" />
+                    `)}
+
+                    <!-- 10. Wild Spiky Comic Hair -->
+                    <path d="M26 68 C20 48, 30 26, 52 18 C64 12, 96 12, 108 18 C130 26, 140 48, 134 68 C128 58, 122 52, 116 56 C110 46, 102 44, 94 54 C88 42, 72 42, 66 54 C60 46, 50 46, 44 56 C38 52, 32 58, 26 68 Z" fill="#0F172A" stroke="#000" stroke-width="4" stroke-linejoin="round" />
+                    <!-- Front Bangs / Forehead Spikes -->
+                    <polygon points="40,54 48,68 54,56" fill="#1E293B" stroke="#000" stroke-width="2" stroke-linejoin="round" />
+                    <polygon points="56,52 64,70 72,54" fill="#1E293B" stroke="#000" stroke-width="2" stroke-linejoin="round" />
+                    <polygon points="74,50 82,72 90,52" fill="#1E293B" stroke="#000" stroke-width="2" stroke-linejoin="round" />
+                    <polygon points="92,52 100,69 108,54" fill="#1E293B" stroke="#000" stroke-width="2" stroke-linejoin="round" />
+                    <polygon points="108,56 114,68 122,58" fill="#1E293B" stroke="#000" stroke-width="2" stroke-linejoin="round" />
+                    <!-- Hair Sheen Highlights -->
+                    <path d="M46 28 C56 20, 80 18, 92 20" fill="none" stroke="#334155" stroke-width="3" stroke-linecap="round" />
+                    <path d="M62 26 C74 22, 98 22, 112 28" fill="none" stroke="#334155" stroke-width="2.5" stroke-linecap="round" />
+                    <path d="M34 44 C38 34, 46 28, 54 26" fill="none" stroke="#334155" stroke-width="2" stroke-linecap="round" />
+                    <path d="M126 44 C122 34, 114 28, 106 26" fill="none" stroke="#334155" stroke-width="2" stroke-linecap="round" />
+
+                    <!-- 11. Mode-Specific Atmospheric Overlays -->
+                    ${mode === 'WORK' ? `
+                        <polygon points="16,28 22,34 26,26 20,38" fill="#34D399" stroke="#000" stroke-width="1.2" />
+                        <polygon points="144,28 138,34 134,26 140,38" fill="#34D399" stroke="#000" stroke-width="1.2" />
+                        <circle cx="18" cy="70" r="2.5" fill="#34D399" stroke="#000" stroke-width="1" />
+                        <circle cx="142" cy="70" r="2.5" fill="#34D399" stroke="#000" stroke-width="1" />
+                    ` : (mode === 'BREAK' ? `
+                        <rect x="120" y="104" width="22" height="26" rx="4" fill="#10B981" stroke="#000" stroke-width="2.5" />
+                        <path d="M142 110 Q149 116 142 122" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" />
+                        <path d="M126 98 Q128 92 126 86" fill="none" stroke="#34D399" stroke-width="2" stroke-linecap="round" />
+                        <path d="M132 99 Q134 93 132 87" fill="none" stroke="#34D399" stroke-width="2" stroke-linecap="round" />
+                        <text x="124" y="38" font-family="Bangers" font-size="20" fill="#10B981" stroke="#000" stroke-width="1">ZEN</text>
+                    ` : `
+                        <text x="124" y="38" font-family="Bangers" font-size="20" fill="#FACC15" stroke="#000" stroke-width="1">???</text>
+                    `)}
                 `
             }
         };
