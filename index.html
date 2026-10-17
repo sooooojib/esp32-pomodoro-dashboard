@@ -12,9 +12,9 @@
     <!-- Google Fonts: Fredoka, Space Grotesk, Bangers, JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@500;600;700&family=VT323&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@500;600;700&family=JetBrains+Mono:wght@600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Lucide Icons CDN (Consistent, cohesive vector icon system - zero emoji dependency) -->
+    <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <!-- Supabase JS v2 CDN -->
@@ -32,7 +32,6 @@
                         display: ['Fredoka', 'cursive', 'sans-serif'],
                         body: ['"Space Grotesk"', 'sans-serif'],
                         mono: ['"JetBrains Mono"', 'monospace'],
-                        retro: ['VT323', 'monospace'],
                     },
                     colors: {
                         stark: {
@@ -112,30 +111,9 @@
             box-shadow: 1px 1px 0px 0px #000;
         }
 
-        /* Stark Arc Reactor HUD Screen */
-        .hud-screen {
-            background-color: #0B1118;
-            position: relative;
-            overflow: hidden;
-            border: 3.5px solid #000;
-            box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.9), 5px 5px 0px 0px #000;
-        }
-
-        .hud-screen::after {
-            content: " ";
-            display: block;
-            position: absolute;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%);
-            background-size: 100% 4px;
-            z-index: 2;
-            pointer-events: none;
-            opacity: 0.65;
-        }
-
         @keyframes energyPulse {
-            0%, 100% { transform: scale(1); opacity: 0.9; }
-            50% { transform: scale(1.04); opacity: 1; }
+            0%, 100% { transform: scale(1); opacity: 0.95; }
+            50% { transform: scale(1.03); opacity: 1; }
         }
 
         .energy-pulse {
@@ -150,23 +128,6 @@
 
         .comic-shake {
             animation: comicShake 0.4s ease-in-out;
-        }
-
-        @keyframes candyStripes {
-            0% { background-position: 0 0; }
-            100% { background-position: 40px 0; }
-        }
-
-        .striped-bar {
-            background-image: repeating-linear-gradient(
-                -45deg,
-                rgba(0, 0, 0, 0.15),
-                rgba(0, 0, 0, 0.15) 10px,
-                transparent 10px,
-                transparent 20px
-            );
-            background-size: 40px 40px;
-            animation: candyStripes 1.5s linear infinite;
         }
 
         /* Custom Scrollbar */
@@ -257,7 +218,7 @@
 
         </div>
 
-        <!-- HERO OPERATOR ROSTER SELECTOR (Idea B) with Vector Icons -->
+        <!-- HERO OPERATOR ROSTER SELECTOR -->
         <div class="neo-card bg-paper p-3 flex flex-wrap items-center justify-between gap-2.5">
             <div class="flex items-center gap-2">
                 <i data-lucide="shield" class="w-4 h-4 text-black"></i>
@@ -325,152 +286,245 @@
 
     </header>
 
-    <!-- Main Superhero Mission Center Matrix -->
+    <!-- Main Superhero Mission Center Matrix (Redesigned Cohesive Layout) -->
     <main class="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        <!-- LEFT / MAIN TACTICAL HUD CONSOLE (Column 1-7) -->
-        <section class="lg:col-span-7 flex flex-col gap-6">
+        <!-- LEFT COLUMN (Column 1-6): Hero Operator & S.H.I.E.L.D. Mission Debriefs -->
+        <section class="lg:col-span-6 flex flex-col gap-6">
 
-            <!-- Primary Command Station -->
-            <div id="main-hud-card" class="neo-card bg-white p-5 sm:p-7 relative overflow-hidden flex flex-col justify-between">
+            <!-- Active Superhero Operator Dossier Card -->
+            <div class="neo-card bg-white p-5 sm:p-6 flex flex-col justify-between">
                 
-                <!-- Mission Phase Banner -->
-                <div class="border-b-3 border-black pb-4 mb-5 flex flex-wrap items-center justify-between gap-3">
-                    <div class="flex items-center gap-2.5">
-                        <span id="phase-badge" class="font-comic text-base sm:text-lg tracking-wider px-3.5 py-1 rounded-md border-2 border-black bg-stark-red text-white shadow-neo-sm uppercase flex items-center gap-1.5">
-                            <i data-lucide="swords" class="w-4 h-4"></i>
-                            <span>COMBAT PROTOCOL</span>
-                        </span>
-                        <span id="status-badge" class="font-mono text-[11px] font-bold px-2.5 py-1 rounded-md border-2 border-black bg-stark-gold text-black shadow-neo-sm uppercase">
-                            PAUSED
-                        </span>
-                    </div>
-
-                    <!-- Infinity Gauntlet 4-Stone Cycle Matrix with Faceted Vector Gem Icons -->
-                    <div class="flex items-center gap-2 bg-paper border-2 border-black px-3 py-1.5 rounded-xl shadow-neo-sm">
-                        <span class="text-[10px] font-mono font-bold text-zinc-700">INFINITY CYCLE:</span>
-                        <div class="flex items-center gap-1.5" id="infinity-slots">
-                            <!-- Injected dynamically in JS -->
+                <!-- Operator Card Top Header -->
+                <div class="flex items-center justify-between border-b-2 border-black pb-3 mb-4">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-lg bg-stark-gold border-2 border-black flex items-center justify-center text-black" id="hero-emblem-icon">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="12 6 18 16 6 16" fill="currentColor"/></svg>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-mono text-zinc-500 font-bold block uppercase tracking-wider">ACTIVE OPERATOR</span>
+                            <h3 id="hero-name-label" class="font-comic text-lg text-black leading-tight tracking-wide">
+                                IRON MAN (TONY STARK)
+                            </h3>
                         </div>
                     </div>
+
+                    <span id="hero-status-tag" class="text-[9px] bg-black text-white px-2 py-0.5 rounded font-mono font-bold tracking-wider uppercase">
+                        COMBAT LOCK
+                    </span>
                 </div>
 
-                <!-- Interactive Hero Mascot Bay & Dialogue -->
-                <div class="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-5 my-2">
-                    
+                <!-- Hero Mascot Stage & Comic Speech Balloon -->
+                <div class="flex flex-col sm:flex-row items-center gap-4 my-2">
                     <!-- Dynamic Hero Avatar (SVG) -->
-                    <div class="relative cursor-pointer group" onclick="triggerHeroCheer()" title="Click to trigger Superhero battle cry!">
-                        <div id="hero-avatar-stage" class="w-36 h-36 sm:w-44 sm:h-44 flex items-center justify-center energy-pulse transition-transform group-hover:scale-105 group-active:scale-95">
-                            <svg id="hero-svg" viewBox="0 0 160 160" class="w-full h-full drop-shadow-[5px_5px_0px_#000]">
+                    <div class="relative cursor-pointer group flex-shrink-0" onclick="triggerHeroCheer()" title="Click to trigger Superhero battle cry!">
+                        <div id="hero-avatar-stage" class="w-32 h-32 sm:w-36 sm:h-36 flex items-center justify-center energy-pulse transition-transform group-hover:scale-105 group-active:scale-95">
+                            <svg id="hero-svg" viewBox="0 0 160 160" class="w-full h-full drop-shadow-[4px_4px_0px_#000]">
                                 <!-- Dynamically drawn based on selected hero and state -->
                             </svg>
                         </div>
 
                         <!-- Comic Action Sticker -->
-                        <span id="hero-action-sticker" class="absolute -bottom-1 -right-1 bg-stark-gold border-2 border-black text-[10px] font-comic px-2 py-0.5 rounded shadow-neo-sm font-bold rotate-6 group-hover:rotate-12 transition-transform">
+                        <span id="hero-action-sticker" class="absolute -bottom-1 -right-1 bg-stark-gold border-2 border-black text-[9px] font-comic px-1.5 py-0.5 rounded shadow-neo-sm font-bold rotate-6 group-hover:rotate-12 transition-transform">
                             BAM!
                         </span>
                     </div>
 
                     <!-- Comic Dialogue Speech Balloon -->
                     <div class="flex-1 w-full">
-                        <div class="relative bg-paper border-3 border-black p-4 rounded-2xl shadow-neo-sm">
-                            <!-- Comic arrow pointer -->
-                            <div class="hidden sm:block absolute -left-3 top-7 w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-r-8 border-r-black"></div>
-                            <div class="hidden sm:block absolute -left-2 top-7 w-0 h-0 border-t-7 border-t-transparent border-b-7 border-b-transparent border-r-7 border-r-paper"></div>
+                        <div class="relative bg-paper border-3 border-black p-3.5 sm:p-4 rounded-2xl shadow-neo-sm">
+                            <div class="hidden sm:block absolute -left-3 top-6 w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-r-8 border-r-black"></div>
+                            <div class="hidden sm:block absolute -left-2 top-6 w-0 h-0 border-t-7 border-t-transparent border-b-7 border-b-transparent border-r-7 border-r-paper"></div>
 
-                            <div class="flex items-center justify-between mb-1.5">
-                                <span class="font-comic text-base tracking-wide text-stark-red flex items-center gap-2">
-                                    <span id="hero-name-label">IRON MAN (TONY STARK)</span>
-                                    <span id="hero-status-tag" class="text-[9px] bg-black text-white px-1.5 py-0.2 rounded font-mono font-bold">COMBAT READY</span>
-                                </span>
-                                <span class="w-5 h-5 flex items-center justify-center text-zinc-800" id="hero-emblem-icon">
-                                    <i data-lucide="zap" class="w-4 h-4"></i>
-                                </span>
-                            </div>
-
-                            <p id="hero-speech" class="font-display font-bold text-sm sm:text-base text-zinc-900 leading-snug">
+                            <p id="hero-speech" class="font-display font-bold text-sm text-zinc-900 leading-snug">
                                 "F.R.I.D.A.Y. is online. Press the button on your physical ESP32 to engage focus thrusters!"
                             </p>
                         </div>
                     </div>
-
                 </div>
 
-                <!-- Giant Stark Arc Reactor / HUD Digital Clock -->
-                <div class="my-5">
-                    <div class="hud-screen rounded-2xl p-5 sm:p-7 text-center relative">
-                        
-                        <!-- Top HUD Telemetry Line -->
-                        <div class="flex justify-between items-center text-[10px] font-mono tracking-wider text-cyan-400 mb-2 border-b border-cyan-900/60 pb-1.5">
-                            <span id="hud-mode-text" class="flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping inline-block"></span>
-                                PROTOCOL: MAXIMUM FOCUS OUTPUT
-                            </span>
-                            <span id="hud-target-reticle" class="text-yellow-400 font-bold flex items-center gap-1">
-                                <i data-lucide="target" class="w-3.5 h-3.5"></i>
-                                <span>TARGET: ZERO DISTRACTION</span>
-                            </span>
-                        </div>
-
-                        <!-- Massive 8-Bit Glowing Clock Digits -->
-                        <div class="relative py-2">
-                            <div id="timer-display" class="font-retro text-7xl sm:text-9xl md:text-[10rem] font-bold tracking-tight text-white select-none drop-shadow-[0_0_20px_rgba(0,240,255,0.4)] leading-none">
-                                25:00
-                            </div>
-                        </div>
-
-                        <!-- Superhero Tactile Energy Progress Gauge -->
-                        <div class="mt-4 space-y-1.5">
-                            <div class="flex justify-between text-xs font-mono text-zinc-300 font-bold">
-                                <span id="progress-bar-label">REPULSOR CORE CHARGE</span>
-                                <span id="progress-percent" class="text-stark-gold">0%</span>
-                            </div>
-                            <div class="w-full h-5 bg-black/80 rounded-lg border-2 border-zinc-700 p-0.5 overflow-hidden">
-                                <div id="progress-bar" class="h-full bg-stark-gold border border-black rounded transition-all duration-500 ease-out striped-bar" style="width: 0%"></div>
-                            </div>
-                        </div>
-
-                        <div class="mt-3 text-[11px] font-mono text-zinc-400 flex items-center justify-center gap-2">
-                            <i data-lucide="radio" class="w-3.5 h-3.5 text-cyan-400"></i>
-                            <span>Realtime Mirror of ESP32-S3 Physical Timer</span>
-                            <span>•</span>
-                            <span id="db-latency" class="text-cyan-400 font-bold">Row ID #1</span>
-                        </div>
-
+                <!-- Infinity Gauntlet 4-Cycle Matrix -->
+                <div class="mt-4 pt-3 border-t-2 border-black flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-1.5 text-xs font-mono font-bold text-zinc-700">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5 text-stark-gold"></i>
+                        <span>INFINITY CYCLE:</span>
+                    </div>
+                    <div class="flex items-center gap-2" id="infinity-slots">
+                        <!-- Injected dynamically in JS -->
                     </div>
                 </div>
 
-                <!-- Physical Hardware Controller Notification Banner (Web Controls Removed) -->
-                <div class="bg-paper border-3 border-black p-4 rounded-xl shadow-neo-sm flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-stark-gold border-2 border-black flex items-center justify-center text-black shadow-neo-sm">
-                            <i data-lucide="cpu" class="w-5 h-5"></i>
+                <!-- Hardware Controller Command Banner (Zero Web Controls) -->
+                <div class="mt-4 bg-paper border-2 border-black p-3 rounded-xl shadow-neo-sm flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-stark-gold border border-black flex items-center justify-center text-black flex-shrink-0">
+                            <i data-lucide="cpu" class="w-4 h-4"></i>
                         </div>
                         <div>
-                            <h4 class="font-comic text-base tracking-wide text-black">
-                                PHYSICAL CONTROLLER IN COMMAND
-                            </h4>
-                            <p id="hardware-instruction-text" class="text-xs font-bold text-zinc-600">
-                                Press the physical button on your ESP32-S3 on your desk to START, PAUSE, or ADVANCE.
+                            <span class="text-[9px] font-mono font-bold text-zinc-500 uppercase tracking-wider block">HARDWARE MIRROR</span>
+                            <p id="hardware-instruction-text" class="text-xs font-bold text-black font-body leading-tight">
+                                Press the button on your desk ESP32-S3 to control session state.
                             </p>
                         </div>
                     </div>
-                    
-                    <button class="neo-btn bg-stark-gold hover:bg-yellow-300 text-black px-4 py-2 font-comic text-sm tracking-wide flex items-center gap-1.5 shadow-neo-sm" onclick="triggerHeroCheer()">
-                        <i data-lucide="zap" class="w-4 h-4"></i>
-                        <span>AVENGERS ASSEMBLE!</span>
+                    <button class="neo-btn bg-stark-gold hover:bg-yellow-300 text-black px-3 py-1.5 font-comic text-xs tracking-wider flex items-center gap-1 flex-shrink-0" onclick="triggerHeroCheer()">
+                        <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                        <span>ASSEMBLE!</span>
                     </button>
+                </div>
+
+            </div>
+
+            <!-- S.H.I.E.L.D. Mission Debriefs Card (Image 1 Style - Balanced & Clean) -->
+            <div class="neo-card bg-white p-5 sm:p-6 flex flex-col">
+                
+                <div class="flex items-center justify-between mb-4 border-b-2 border-black pb-3">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="clipboard-list" class="w-5 h-5 text-black"></i>
+                        <h3 class="font-comic text-lg text-black tracking-wide">
+                            S.H.I.E.L.D. MISSION LOGS
+                        </h3>
+                    </div>
+                    <span class="text-[10px] font-mono font-bold bg-paper border border-black px-2 py-0.5 rounded">
+                        TODAY
+                    </span>
+                </div>
+
+                <!-- Combat vs Rest Ratio Gauge with Tight Clean Typography -->
+                <div class="mb-4 bg-paper border-2 border-black p-3 rounded-xl">
+                    <div class="flex justify-between items-center text-xs font-bold mb-1.5 font-body">
+                        <span class="text-stark-red flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 bg-stark-red border border-black inline-block rounded-sm"></span>
+                            COMBAT (<span id="ratio-work-pct">100%</span>)
+                        </span>
+                        <span class="text-cyan-600 flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 bg-cyan-400 border border-black inline-block rounded-sm"></span>
+                            RECHARGE (<span id="ratio-break-pct">0%</span>)
+                        </span>
+                    </div>
+                    <div class="h-3.5 w-full bg-zinc-200 rounded-md border border-black flex overflow-hidden">
+                        <div id="ratio-work-bar" class="h-full bg-stark-red border-r border-black transition-all duration-500" style="width: 100%"></div>
+                        <div id="ratio-break-bar" class="h-full bg-cyan-400 transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Daily Target Milestones Checklist -->
+                <div class="mb-4 bg-paper border-2 border-black p-3 rounded-xl">
+                    <div class="flex justify-between items-center text-xs font-bold font-body mb-2">
+                        <span class="text-black flex items-center gap-1.5">
+                            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-stark-red"></i>
+                            <span>DAILY TARGET: 4 SESSIONS</span>
+                        </span>
+                        <span id="target-counter" class="font-mono text-[10px] text-zinc-600 font-bold">0 / 4 DONE</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2" id="daily-milestones-grid">
+                        <div class="flex items-center gap-2 text-xs font-mono font-bold p-1.5 bg-white border border-black rounded-lg">
+                            <span class="milestone-check w-4 h-4 rounded border border-black flex items-center justify-center text-[10px] bg-zinc-100 text-zinc-500">1</span>
+                            <span class="text-zinc-700">Mission Alpha</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs font-mono font-bold p-1.5 bg-white border border-black rounded-lg">
+                            <span class="milestone-check w-4 h-4 rounded border border-black flex items-center justify-center text-[10px] bg-zinc-100 text-zinc-500">2</span>
+                            <span class="text-zinc-700">Mission Beta</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs font-mono font-bold p-1.5 bg-white border border-black rounded-lg">
+                            <span class="milestone-check w-4 h-4 rounded border border-black flex items-center justify-center text-[10px] bg-zinc-100 text-zinc-500">3</span>
+                            <span class="text-zinc-700">Mission Gamma</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs font-mono font-bold p-1.5 bg-white border border-black rounded-lg">
+                            <span class="milestone-check w-4 h-4 rounded border border-black flex items-center justify-center text-[10px] bg-zinc-100 text-zinc-500">4</span>
+                            <span class="text-zinc-700">Mission Delta</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Smashed Sessions List Feed -->
+                <div>
+                    <div class="flex justify-between items-center text-xs font-mono font-bold text-zinc-500 mb-2">
+                        <span>RECENT MISSION DEBRIEFS</span>
+                        <span id="log-count-tag">0 RECORDED</span>
+                    </div>
+                    
+                    <div id="session-log-list" class="space-y-2 max-h-52 overflow-y-auto pr-1">
+                        <div class="p-4 border-2 border-dashed border-zinc-400 rounded-xl text-center text-zinc-600 text-xs font-bold font-body flex flex-col items-center gap-2 bg-paper">
+                            <i data-lucide="zap" class="w-5 h-5 text-stark-gold"></i>
+                            <span>Push the physical button on your ESP32-S3 to complete your first session!</span>
+                        </div>
+                    </div>
                 </div>
 
             </div>
 
         </section>
 
-        <!-- RIGHT / S.H.I.E.L.D. CLEARANCE & MISSION BATTLE-DECK (Column 8-12) -->
-        <section class="lg:col-span-5 flex flex-col gap-6">
+        <!-- RIGHT COLUMN (Column 7-12): THE HERO CLOCK (In Place of Image 3) + S.H.I.E.L.D. Metrics -->
+        <section class="lg:col-span-6 flex flex-col gap-6">
 
-            <!-- S.H.I.E.L.D. Clearance & XP Card -->
+            <!-- THE BRAND NEW HERO CLOCK CARD (Matching Image 3 & Image 1 Design System) -->
+            <div id="main-clock-card" class="neo-card bg-white p-5 sm:p-7 relative overflow-hidden flex flex-col justify-between">
+                
+                <!-- Clock Top Header Line -->
+                <div class="flex items-center justify-between border-b-2 border-black pb-3 mb-5">
+                    <div class="flex items-center gap-2">
+                        <span id="phase-badge" class="font-comic text-base tracking-wider px-3 py-1 rounded-md border-2 border-black bg-stark-red text-white shadow-neo-sm uppercase flex items-center gap-1.5">
+                            <i data-lucide="swords" class="w-4 h-4"></i>
+                            <span>COMBAT PROTOCOL</span>
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <span id="status-badge" class="font-mono text-xs font-bold px-2.5 py-1 rounded-md border-2 border-black bg-stark-gold text-black shadow-neo-sm uppercase">
+                            STANDBY PAUSED
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Clock Core Display (Bold, Clean, Punchy Typography - Zero Dark CRT Clutter) -->
+                <div class="bg-paper border-3 border-black rounded-2xl p-6 sm:p-8 text-center my-1 relative shadow-neo-sm">
+                    <div class="flex justify-between items-center text-xs font-mono tracking-wider text-zinc-600 font-bold mb-3 border-b border-zinc-200 pb-2">
+                        <span id="hud-mode-text" class="flex items-center gap-1.5 text-stark-red">
+                            <span class="w-2 h-2 rounded-full bg-red-500 animate-ping inline-block"></span>
+                            COMBAT FOCUS SPRINT
+                        </span>
+                        <span class="text-zinc-700 flex items-center gap-1">
+                            <i data-lucide="target" class="w-3.5 h-3.5 text-stark-red"></i>
+                            <span>TARGET: DEEP FOCUS</span>
+                        </span>
+                    </div>
+
+                    <!-- Giant Bold High-Contrast Clock Digits -->
+                    <div class="py-2">
+                        <div id="timer-display" class="font-display font-black text-7xl sm:text-8xl md:text-9xl tracking-tight text-black select-none leading-none drop-shadow-[2px_2px_0px_rgba(0,0,0,0.15)]">
+                            25:00
+                        </div>
+                    </div>
+
+                    <!-- Clean Energy Core Charge Progress Bar (Matching Image 3 Style) -->
+                    <div class="mt-5 space-y-1.5">
+                        <div class="flex justify-between text-xs font-mono text-zinc-800 font-bold">
+                            <span class="flex items-center gap-1">
+                                <i data-lucide="zap" class="w-3.5 h-3.5 text-stark-red"></i>
+                                <span>REPULSOR CORE CHARGE</span>
+                            </span>
+                            <span id="progress-percent" class="text-stark-red font-black">0%</span>
+                        </div>
+                        <div class="w-full h-4 bg-white rounded-full border-2 border-black p-0.5 overflow-hidden">
+                            <div id="progress-bar" class="h-full bg-stark-red rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Hardware Status Telemetry -->
+                    <div class="mt-4 pt-2.5 border-t border-zinc-200 text-[11px] font-mono text-zinc-500 flex items-center justify-center gap-2">
+                        <i data-lucide="radio" class="w-3.5 h-3.5 text-emerald-600"></i>
+                        <span class="font-bold text-zinc-700">ESP32-S3 Physical Sensor Sync</span>
+                        <span>•</span>
+                        <span id="db-latency" class="text-stark-red font-bold">Row #1</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- S.H.I.E.L.D. Clearance & XP Card (Image 3 Top - Perfectly Matched) -->
             <div class="neo-card bg-white p-5">
                 <div class="flex items-center justify-between mb-3 border-b-2 border-black pb-3">
                     <div class="flex items-center gap-2.5">
@@ -479,8 +533,8 @@
                         </div>
                         <div>
                             <span class="text-[10px] font-mono text-zinc-500 font-bold block uppercase tracking-wider">S.H.I.E.L.D. CLEARANCE</span>
-                            <h2 id="xp-rank-title" class="font-comic text-xl text-black leading-tight tracking-wide flex items-center gap-1.5">
-                                <span>LEVEL 1 RECRUIT</span>
+                            <h2 id="xp-rank-title" class="font-comic text-xl text-black leading-tight tracking-wide">
+                                LEVEL 1 RECRUIT
                             </h2>
                         </div>
                     </div>
@@ -508,7 +562,7 @@
                 </div>
             </div>
 
-            <!-- 3 Superhero Comic Metrics Blocks with Lucide Vector Icons -->
+            <!-- 3 Superhero Comic Metrics Blocks (Image 3 Bottom - Exact Authentic Styling) -->
             <div class="grid grid-cols-3 gap-3">
                 
                 <!-- Threats Neutralized -->
@@ -552,87 +606,6 @@
                         </div>
                     </div>
                     <span class="text-[9px] font-bold text-black/75 uppercase">Breaks Taken</span>
-                </div>
-
-            </div>
-
-            <!-- S.H.I.E.L.D. Mission Debriefs & Breakdown Card (Fixed Layout & Balanced Content) -->
-            <div class="neo-card bg-white p-5 flex flex-col">
-                
-                <div class="flex items-center justify-between mb-4 border-b-2 border-black pb-3">
-                    <div class="flex items-center gap-2">
-                        <i data-lucide="clipboard-list" class="w-5 h-5 text-black"></i>
-                        <h3 class="font-comic text-lg text-black tracking-wide">
-                            S.H.I.E.L.D. MISSION LOGS
-                        </h3>
-                    </div>
-                    <span class="text-[10px] font-mono font-bold bg-paper border border-black px-2 py-0.5 rounded">
-                        TODAY
-                    </span>
-                </div>
-
-                <!-- Combat vs Rest Ratio Gauge with Crisp Tight Typography -->
-                <div class="mb-4 bg-paper border-2 border-black p-3 rounded-xl">
-                    <div class="flex justify-between items-center text-xs font-bold mb-1.5 font-body">
-                        <span class="text-stark-red flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 bg-stark-red border border-black inline-block rounded-sm"></span>
-                            COMBAT (<span id="ratio-work-pct">100%</span>)
-                        </span>
-                        <span class="text-cyan-600 flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 bg-cyan-400 border border-black inline-block rounded-sm"></span>
-                            RECHARGE (<span id="ratio-break-pct">0%</span>)
-                        </span>
-                    </div>
-                    <div class="h-4 w-full bg-zinc-200 rounded-md border border-black flex overflow-hidden">
-                        <div id="ratio-work-bar" class="h-full bg-stark-red border-r border-black transition-all duration-500" style="width: 100%"></div>
-                        <div id="ratio-break-bar" class="h-full bg-cyan-400 transition-all duration-500" style="width: 0%"></div>
-                    </div>
-                </div>
-
-                <!-- Daily Target Milestones Checklist (Fills Card Purposefully) -->
-                <div class="mb-4 bg-paper border-2 border-black p-3 rounded-xl">
-                    <div class="flex justify-between items-center text-xs font-bold font-body mb-2">
-                        <span class="text-black flex items-center gap-1.5">
-                            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-stark-red"></i>
-                            <span>DAILY TARGET: 4 SESSIONS</span>
-                        </span>
-                        <span id="target-counter" class="font-mono text-[10px] text-zinc-600">0 / 4 DONE</span>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2" id="daily-milestones-grid">
-                        <div class="flex items-center gap-2 text-xs font-mono font-bold p-1.5 bg-white border border-black rounded-lg">
-                            <span class="milestone-check w-4 h-4 rounded border border-black flex items-center justify-center text-[10px] bg-zinc-100 text-zinc-400">1</span>
-                            <span class="text-zinc-700">Mission Alpha</span>
-                        </div>
-                        <div class="flex items-center gap-2 text-xs font-mono font-bold p-1.5 bg-white border border-black rounded-lg">
-                            <span class="milestone-check w-4 h-4 rounded border border-black flex items-center justify-center text-[10px] bg-zinc-100 text-zinc-400">2</span>
-                            <span class="text-zinc-700">Mission Beta</span>
-                        </div>
-                        <div class="flex items-center gap-2 text-xs font-mono font-bold p-1.5 bg-white border border-black rounded-lg">
-                            <span class="milestone-check w-4 h-4 rounded border border-black flex items-center justify-center text-[10px] bg-zinc-100 text-zinc-400">3</span>
-                            <span class="text-zinc-700">Mission Gamma</span>
-                        </div>
-                        <div class="flex items-center gap-2 text-xs font-mono font-bold p-1.5 bg-white border border-black rounded-lg">
-                            <span class="milestone-check w-4 h-4 rounded border border-black flex items-center justify-center text-[10px] bg-zinc-100 text-zinc-400">4</span>
-                            <span class="text-zinc-700">Mission Delta</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent Smashed Sessions List Feed -->
-                <div>
-                    <div class="flex justify-between items-center text-xs font-mono font-bold text-zinc-500 mb-2">
-                        <span>RECENT MISSION DEBRIEFS</span>
-                        <span id="log-count-tag">0 RECORDED</span>
-                    </div>
-                    
-                    <div id="session-log-list" class="space-y-2 max-h-56 overflow-y-auto pr-1">
-                        <!-- Loaded dynamically from session_logs table -->
-                        <div class="p-4 border-2 border-dashed border-zinc-400 rounded-xl text-center text-zinc-600 text-xs font-bold font-body flex flex-col items-center gap-2">
-                            <i data-lucide="zap" class="w-5 h-5 text-stark-gold"></i>
-                            <span>Push the physical button on your ESP32-S3 to complete your first session!</span>
-                        </div>
-                    </div>
                 </div>
 
             </div>
@@ -827,7 +800,6 @@
                     ]
                 },
                 renderSVG: (mode) => `
-                    <!-- Iron Man Helmet & Arc Reactor -->
                     <circle cx="80" cy="80" r="62" fill="#E62429" stroke="#000" stroke-width="4.5" />
                     <path d="M42 55 L118 55 L110 115 L80 135 L50 115 Z" fill="#FFD700" stroke="#000" stroke-width="4" />
                     <path d="M52 45 L108 45 L118 55 L42 55 Z" fill="#9E1A1A" stroke="#000" stroke-width="3" />
@@ -871,7 +843,6 @@
                     ]
                 },
                 renderSVG: (mode) => `
-                    <!-- Cap Vibranium Shield Body -->
                     <circle cx="80" cy="80" r="64" fill="#E62429" stroke="#000" stroke-width="4.5" />
                     <circle cx="80" cy="80" r="50" fill="#FFFFFF" stroke="#000" stroke-width="3.5" />
                     <circle cx="80" cy="80" r="36" fill="#E62429" stroke="#000" stroke-width="3.5" />
@@ -909,7 +880,6 @@
                     ]
                 },
                 renderSVG: (mode) => `
-                    <!-- Thor Winged Helmet & Mjolnir -->
                     <circle cx="80" cy="85" r="54" fill="#FDE047" stroke="#000" stroke-width="4" />
                     <path d="M42 75 C42 45, 118 45, 118 75 Z" fill="#94A3B8" stroke="#000" stroke-width="4" />
                     <path d="M38 65 L18 40 L36 48 Z" fill="#FFFFFF" stroke="#000" stroke-width="3" />
@@ -951,7 +921,6 @@
                     ]
                 },
                 renderSVG: (mode) => `
-                    <!-- Spider-Man Mask -->
                     <ellipse cx="80" cy="85" rx="54" ry="58" fill="#EF4444" stroke="#000" stroke-width="4.5" />
                     <line x1="80" y1="30" x2="80" y2="140" stroke="#000" stroke-width="2" />
                     <line x1="30" y1="85" x2="130" y2="85" stroke="#000" stroke-width="2" />
@@ -994,7 +963,6 @@
                     ]
                 },
                 renderSVG: (mode) => `
-                    <!-- Hulk Face -->
                     <circle cx="80" cy="85" r="60" fill="#10B981" stroke="#000" stroke-width="4.5" />
                     <path d="M32 60 Q80 20 128 60 Q110 40 80 42 Q50 40 32 60 Z" fill="#1E293B" stroke="#000" stroke-width="4" />
                     <line x1="45" y1="72" x2="72" y2="82" stroke="#000" stroke-width="5" stroke-linecap="round" />
@@ -1053,13 +1021,13 @@
 
             if (mode === 'WORK') {
                 statusTag.innerText = "COMBAT LOCK";
-                statusTag.className = "text-[9px] bg-stark-red text-white px-1.5 py-0.2 rounded font-mono font-bold";
+                statusTag.className = "text-[9px] bg-stark-red text-white px-2 py-0.5 rounded font-mono font-bold";
             } else if (mode === 'BREAK') {
                 statusTag.innerText = "RECHARGE";
-                statusTag.className = "text-[9px] bg-cyan-400 text-black px-1.5 py-0.2 rounded font-mono font-bold";
+                statusTag.className = "text-[9px] bg-cyan-400 text-black px-2 py-0.5 rounded font-mono font-bold";
             } else {
                 statusTag.innerText = "STANDBY";
-                statusTag.className = "text-[9px] bg-stark-gold text-black px-1.5 py-0.2 rounded font-mono font-bold";
+                statusTag.className = "text-[9px] bg-stark-gold text-black px-2 py-0.5 rounded font-mono font-bold";
             }
 
             svg.innerHTML = hero.renderSVG(mode);
@@ -1193,30 +1161,33 @@
 
             if (currentPhase === "WORK") {
                 phaseBadge.innerHTML = `<i data-lucide="swords" class="w-4 h-4"></i><span>COMBAT PROTOCOL</span>`;
-                phaseBadge.className = "font-comic text-base sm:text-lg tracking-wider px-3.5 py-1 rounded-md border-2 border-black bg-stark-red text-white shadow-neo-sm uppercase flex items-center gap-1.5";
-                progressBar.className = "h-full bg-stark-red border border-black rounded transition-all duration-500 ease-out striped-bar";
-                hudModeText.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500 animate-ping inline-block"></span> PROTOCOL: COMBAT FOCUS SPRINT`;
+                phaseBadge.className = "font-comic text-base tracking-wider px-3 py-1 rounded-md border-2 border-black bg-stark-red text-white shadow-neo-sm uppercase flex items-center gap-1.5";
+                progressBar.className = "h-full bg-stark-red rounded-full transition-all duration-500 ease-out";
+                progressPercent.className = "text-stark-red font-black";
+                hudModeText.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500 animate-ping inline-block"></span> COMBAT FOCUS SPRINT`;
                 hardwareInstructionText.innerText = "Focus in progress! Press the physical ESP32 button on your desk to pause.";
             } else if (currentPhase === "SHORT_BREAK") {
                 phaseBadge.innerHTML = `<i data-lucide="battery-charging" class="w-4 h-4"></i><span>TACTICAL RECHARGE</span>`;
-                phaseBadge.className = "font-comic text-base sm:text-lg tracking-wider px-3.5 py-1 rounded-md border-2 border-black bg-cyan-400 text-black shadow-neo-sm uppercase flex items-center gap-1.5";
-                progressBar.className = "h-full bg-cyan-400 border border-black rounded transition-all duration-500 ease-out striped-bar";
-                hudModeText.innerHTML = `<span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping inline-block"></span> PROTOCOL: 5 MIN SERUM RECOVERY`;
+                phaseBadge.className = "font-comic text-base tracking-wider px-3 py-1 rounded-md border-2 border-black bg-cyan-400 text-black shadow-neo-sm uppercase flex items-center gap-1.5";
+                progressBar.className = "h-full bg-cyan-400 rounded-full transition-all duration-500 ease-out";
+                progressPercent.className = "text-cyan-600 font-black";
+                hudModeText.innerHTML = `<span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping inline-block"></span> 5 MIN SERUM RECOVERY`;
                 hardwareInstructionText.innerText = "Take a breather! Drink water or stretch. Physical ESP32 tracks recovery.";
             } else {
                 phaseBadge.innerHTML = `<i data-lucide="award" class="w-4 h-4"></i><span>SHAWARMA LONG BREAK</span>`;
-                phaseBadge.className = "font-comic text-base sm:text-lg tracking-wider px-3.5 py-1 rounded-md border-2 border-black bg-stark-gold text-black shadow-neo-sm uppercase flex items-center gap-1.5";
-                progressBar.className = "h-full bg-stark-gold border border-black rounded transition-all duration-500 ease-out striped-bar";
-                hudModeText.innerHTML = `<span class="w-2 h-2 rounded-full bg-yellow-400 animate-ping inline-block"></span> PROTOCOL: SHAWARMA PARTY (EXTENDED REST)`;
+                phaseBadge.className = "font-comic text-base tracking-wider px-3 py-1 rounded-md border-2 border-black bg-stark-gold text-black shadow-neo-sm uppercase flex items-center gap-1.5";
+                progressBar.className = "h-full bg-stark-gold rounded-full transition-all duration-500 ease-out";
+                progressPercent.className = "text-black font-black";
+                hudModeText.innerHTML = `<span class="w-2 h-2 rounded-full bg-yellow-400 animate-ping inline-block"></span> SHAWARMA PARTY (EXTENDED REST)`;
                 hardwareInstructionText.innerText = "Infinity cycle achieved! Enjoy your extended rest before assembling again.";
             }
 
             if (isRunning) {
                 statusBadge.innerText = "MISSION ACTIVE";
-                statusBadge.className = "font-mono text-[11px] font-bold px-2.5 py-1 rounded-md border-2 border-black bg-emerald-400 text-black shadow-neo-sm uppercase animate-pulse";
+                statusBadge.className = "font-mono text-xs font-bold px-2.5 py-1 rounded-md border-2 border-black bg-emerald-400 text-black shadow-neo-sm uppercase animate-pulse";
             } else {
                 statusBadge.innerText = "STANDBY PAUSED";
-                statusBadge.className = "font-mono text-[11px] font-bold px-2.5 py-1 rounded-md border-2 border-black bg-stark-gold text-black shadow-neo-sm uppercase";
+                statusBadge.className = "font-mono text-xs font-bold px-2.5 py-1 rounded-md border-2 border-black bg-stark-gold text-black shadow-neo-sm uppercase";
             }
 
             renderInfinityGauntlet(pomodoroCount, currentPhase);
@@ -1362,7 +1333,6 @@
                 document.getElementById('stat-smashed').innerText = workCount;
                 document.getElementById('stat-break-count').innerText = breakCount;
 
-                // Focus vs Rest Ratio
                 const totalSessions = workCount + breakCount;
                 if (totalSessions > 0) {
                     const workPct = Math.round((workCount / totalSessions) * 100);
@@ -1373,9 +1343,7 @@
                     document.getElementById('ratio-break-bar').style.width = `${breakPct}%`;
                 }
 
-                // Update Daily Milestones Checklist
                 updateDailyMilestones(workCount);
-
                 updateShieldClearance(totalFocusMinutes);
                 renderMissionDebriefs(data.slice(0, 8));
 
