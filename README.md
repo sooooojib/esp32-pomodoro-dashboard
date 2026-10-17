@@ -1,85 +1,62 @@
-# 🍅 PomoBoy 3000 • ESP32-S3 IoT Pomodoro Companion
+# ⚡ AVENGERS FOCUS HUD • ESP32-S3 Physical Companion
 
-A playful, character-rich Neo-Brutalist web dashboard built for a physical ESP32-S3 IoT Pomodoro Timer. Synced in real-time with physical hardware via Supabase.
+A playful, comic pop-art **Avengers-themed** web dashboard companion built for a physical ESP32-S3 IoT Pomodoro Timer. Synced in real-time with physical hardware via Supabase.
 
-![PomoBoy 3000 Preview](https://img.shields.io/badge/Hardware-ESP32--S3-FF4343?style=for-the-badge&logo=espressif&logoColor=white)
-![Supabase Realtime](https://img.shields.io/badge/Database-Supabase%20Realtime-00F0A8?style=for-the-badge&logo=supabase&logoColor=black)
-![Styling](https://img.shields.io/badge/Aesthetic-Neo--Brutalist%20Arcade-FFE144?style=for-the-badge&logo=retroarch&logoColor=black)
+![Hardware](https://img.shields.io/badge/Hardware-ESP32--S3-E62429?style=for-the-badge&logo=espressif&logoColor=white)
+![Supabase Realtime](https://img.shields.io/badge/Database-Supabase%20Realtime-00F0FF?style=for-the-badge&logo=supabase&logoColor=black)
+![Aesthetic](https://img.shields.io/badge/Theme-Avengers%20%7C%20Marvel%20Comic%20HUD-FFD700?style=for-the-badge&logo=marvel&logoColor=black)
 
 ---
 
 ## ✨ Features
 
-- **🕹️ Anti-AI / Neo-Brutalist Arcade Aesthetic**:
-  - Chunky tactile buttons (`active:translate` 3D press effects).
-  - High-energy pop color palette (Tomato Red `#FF4343`, Sun Yellow `#FFE144`, Mint Green `#00F0A8`, Bubblegum Cyan `#38E1FF`).
-  - Google Fonts: **Fredoka** (playful headers), **Space Grotesk** (brutalist body), and **VT323 / Silkscreen** (8-bit arcade telemetry).
+- **🕹️ Pure Hardware Mirror (Zero Web Distraction)**:
+  - Web play/pause controls have been intentionally removed! The physical button on your desk ESP32-S3 is the sole commander.
+  - The website acts as a high-tech **S.H.I.E.L.D. Tactical HUD** that responds in real-time to physical button presses.
 
-- **🍅 Reactive Mascot — "Tommy the Pomodoro"**:
-  - **Work Mode**: Focused face, karate headband, anime focus eyes, and steam puffs rising from his stem.
-  - **Break Mode**: Pixel sunglasses, chill smile, rosy cheeks, and sipping a juice box.
-  - **Paused Mode**: Tilted head with a bouncing `?` question mark bubble.
-  - **Pokeable**: Click/tap Tommy to trigger a bounce animation, 8-bit squeak, and random motivational speech lines.
+- **🦸‍♂️ "Assemble Your Operator" — 5 Playable Avengers**:
+  - 🦾 **Iron Man (Tony Stark)**: Repulsor beam charge, HUD targeting, high-tech snarky quotes, and repulsor SFX.
+  - 🛡️ **Captain America (Steve Rogers)**: Vibranium star shield, military discipline, motivational quotes, and shield ricochet SFX.
+  - ⚡ **Thor (Odinson)**: Winged helmet, crackling Mjolnir lightning bolts, Asgardian thunder quotes, and thunder boom SFX.
+  - 🕷️ **Spider-Man (Peter Parker)**: Web-slinging, spider-sense tingles, friendly quips, and web-zip SFX.
+  - 🟢 **Hulk (Bruce Banner)**: Gamma green power meter, roaring battle cries, and seismic smash SFX.
 
-- **📡 Realtime Physical Hardware Sync**:
-  - Seamless two-way synchronization with ESP32-S3 via Supabase Realtime WebSocket (`device_state`, row `id = 1`).
-  - Smooth local JavaScript 1-second countdown ticker when running to eliminate lag and reduce database reads.
-  - Instant re-sync whenever hardware buttons are pressed on the ESP32.
-  - Tactile on-screen web remote buttons (`START / PAUSE`, `SKIP PHASE`, `RESET`, `CELEBRATE`).
+- **💎 Infinity Gauntlet 4-Cycle Tracker**:
+  - Each completed Pomodoro lights up an Infinity Stone:
+    1. 🟣 **Power Stone**
+    2. 🔵 **Space Stone**
+    3. 🔴 **Reality Stone**
+    4. 🟠 **Soul Stone**
+  - Completing all 4 unlocks the **Shawarma Long Break** with a gold confetti fanfare!
 
-- **🏆 Gamification & Analytics**:
-  - **XP & Rank Progression**: Earn +10 XP per completed focus minute to rank up from *Sprout Cadet* to *Salsa Sovereign*.
-  - **Session Breakdown**: Focus vs. Rest ratio bar and daily statistics (*Tomatoes Smashed*, *Zone Time Hours*, *Chill Breaks*).
-  - **Harvest Ledger**: Real-time log of completed sessions fetched from `session_logs`.
+- **🛡️ S.H.I.E.L.D. Clearance & Gamification**:
+  - Earn +10 XP per minute to unlock ranks:
+    - *Rank 1: Level 1 Recruit*
+    - *Rank 2: Reserve Avenger*
+    - *Rank 3: Super Soldier*
+    - *Rank 4: God of Thunder*
+    - *Rank 5: Stark Mastermind*
+  - **Metrics**: Threats Smashed (Work sessions), Arc Reactor Output (Hours), Serum Recovery (Break time).
 
-- **🔊 Web Audio API Synthesizer (Zero External MP3s)**:
-  - 100% self-contained 8-bit sound effects (clicks, timer ticks, power-ups, fanfare).
-  - Header audio toggle (`SFX ON` / `SFX MUTED`) saved in `localStorage`.
-  - Confetti party explosion powered by `canvas-confetti`.
-
----
-
-## 🗄️ Database Architecture (Supabase)
-
-### 1. `device_state` (Live Sync Row)
-Tracks the real-time state of the physical timer:
-- `id`: `1`
-- `phase`: `'WORK'` | `'SHORT_BREAK'` | `'LONG_BREAK'`
-- `is_running`: boolean
-- `remaining_seconds`: integer (e.g. `1500`, `300`, `900`)
-- `total_phase_seconds`: integer
-- `pomodoro_count`: integer (`0` to `4`)
-- `updated_at`: timestamp
-
-### 2. `session_logs` (Historical Log)
-Records completed focus and break intervals:
-- `id`: integer / uuid
-- `phase`: `'WORK'` | `'SHORT_BREAK'` | `'LONG_BREAK'`
-- `duration_minutes`: integer
-- `completed_at`: timestamp
+- **🔊 100% Self-Contained Web Audio API SFX**:
+  - Authentic 8-bit sound effects for repulsors, shield clangs, thunder, and web-zips. No external mp3 files required!
+  - Audio toggle with persistent mute state in `localStorage`.
 
 ---
 
-## 🚀 Quick Start / Local Testing
+## 🗄️ Database Schema (Supabase)
 
-Because this dashboard is fully self-contained in `index.html` with CDN dependencies (Tailwind, Supabase JS, Canvas Confetti, Google Fonts), you can run it immediately without complex build steps:
+- **`device_state` (Row `id = 1`)**:
+  - Columns: `phase` ('WORK', 'SHORT_BREAK', 'LONG_BREAK'), `is_running` (boolean), `remaining_seconds` (int), `total_phase_seconds` (int), `pomodoro_count` (int, 0–4), `updated_at`.
+- **`session_logs`**:
+  - Columns: `id`, `phase`, `duration_minutes`, `completed_at`.
 
+---
+
+## 🚀 Quick Start
+
+Open `index.html` in your web browser or run:
 ```bash
-# Option 1: Python simple server
 python3 -m http.server 8080
-
-# Option 2: Node.js npx serve
-npx serve .
-
-# Option 3: Simply open index.html in any modern web browser!
-open index.html
 ```
-
----
-
-## 🌐 Deploy to GitHub Pages
-
-1. Push this repository to GitHub.
-2. Go to **Settings** > **Pages** in your GitHub repository.
-3. Under **Branch**, select `main` and folder `/ (root)`.
-4. Click **Save**. Your PomoBoy 3000 dashboard will be live on the web!
+Visit `http://localhost:8080/index.html`.

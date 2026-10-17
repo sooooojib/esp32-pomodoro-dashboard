@@ -4,15 +4,15 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PomoBoy 3000 • ESP32-S3 Physical Companion</title>
+    <title>AVENGERS FOCUS HUD • ESP32-S3 Physical Companion</title>
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Google Fonts: Fredoka, Space Grotesk, Silkscreen, VT323 -->
+    <!-- Google Fonts: Fredoka, Space Grotesk, Silkscreen, VT323, Bangers -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Silkscreen:wght@400;700&family=Space+Grotesk:wght@500;600;700&family=VT323&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@400;500;600;700&family=Silkscreen:wght@400;700&family=Space+Grotesk:wght@500;600;700&family=VT323&display=swap" rel="stylesheet">
 
     <!-- Supabase JS v2 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -25,37 +25,45 @@
             theme: {
                 extend: {
                     fontFamily: {
+                        comic: ['Bangers', 'cursive'],
                         display: ['Fredoka', 'cursive', 'sans-serif'],
                         body: ['"Space Grotesk"', 'sans-serif'],
                         arcade: ['Silkscreen', 'monospace'],
                         retro: ['VT323', 'monospace'],
                     },
                     colors: {
-                        tomato: {
-                            DEFAULT: '#FF4343',
-                            dark: '#D92222',
-                            light: '#FF6E6E',
+                        stark: {
+                            red: '#E62429',
+                            darkRed: '#9E1A1A',
+                            gold: '#FFD700',
+                            arc: '#00F0FF',
                         },
-                        sun: {
-                            DEFAULT: '#FFE144',
-                            dark: '#E5C418',
+                        cap: {
+                            blue: '#0D47A1',
+                            red: '#E62429',
+                            shield: '#1E88E5',
                         },
-                        mint: {
-                            DEFAULT: '#00F0A8',
-                            dark: '#05B883',
-                            light: '#65FFCD',
+                        thor: {
+                            purple: '#6B21A8',
+                            gold: '#FACC15',
+                            lightning: '#38BDF8',
                         },
-                        bubblegum: {
-                            DEFAULT: '#38E1FF',
-                            dark: '#16B4D1',
+                        spidey: {
+                            red: '#EF4444',
+                            blue: '#2563EB',
+                            web: '#06B6D4',
                         },
-                        paper: '#FAF7EE',
+                        hulk: {
+                            green: '#10B981',
+                            darkGreen: '#047857',
+                            purple: '#7C3AED',
+                        },
+                        paper: '#FFFDF5',
                     },
                     boxShadow: {
                         'neo': '4px 4px 0px 0px #000',
                         'neo-lg': '6px 6px 0px 0px #000',
                         'neo-sm': '2px 2px 0px 0px #000',
-                        'neo-inner': 'inset 3px 3px 0px 0px rgba(0,0,0,0.15)',
                     }
                 }
             }
@@ -63,22 +71,22 @@
     </script>
 
     <style>
-        /* Neo-Brutalist Polka-Dot Canvas Pattern */
+        /* Comic Pop-Art Halftone & Ben-Day Dots Background */
         body {
-            background-color: #FAF7EE;
-            background-image: radial-gradient(#1A1A1A 1.2px, transparent 1.2px);
-            background-size: 24px 24px;
+            background-color: #FFFDF5;
+            background-image: radial-gradient(#1A1A1A 1.3px, transparent 1.3px);
+            background-size: 20px 20px;
             color: #111111;
             font-family: 'Space Grotesk', sans-serif;
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Tactile Neo-Brutalist Classes */
+        /* Tactile Neo-Brutalist Comic Elements */
         .neo-card {
             border: 3.5px solid #000;
             box-shadow: 5px 5px 0px 0px #000;
             border-radius: 1.25rem;
-            transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .neo-btn {
@@ -101,65 +109,55 @@
             box-shadow: 1px 1px 0px 0px #000;
         }
 
-        /* Scanline Overlay for Handheld Arcade Screen */
-        .arcade-screen {
-            background-color: #0F171E;
+        /* Stark Arc Reactor HUD Screen */
+        .hud-screen {
+            background-color: #0B1118;
             position: relative;
             overflow: hidden;
             border: 3.5px solid #000;
-            box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.8), 4px 4px 0px 0px #000;
+            box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.9), 5px 5px 0px 0px #000;
         }
 
-        .arcade-screen::after {
+        .hud-screen::after {
             content: " ";
             display: block;
             position: absolute;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%);
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%);
             background-size: 100% 4px;
             z-index: 2;
             pointer-events: none;
             opacity: 0.65;
         }
 
-        /* Custom Marquee & Animations */
-        @keyframes marquee {
-            0% { transform: translateX(0%); }
-            100% { transform: translateX(-50%); }
+        /* Radar scanline animation */
+        @keyframes radarSweep {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        .animate-marquee {
-            display: inline-flex;
-            white-space: nowrap;
-            animation: marquee 16s linear infinite;
+        .radar-spinner {
+            animation: radarSweep 6s linear infinite;
         }
 
-        @keyframes steamFloat {
-            0% { opacity: 0; transform: translateY(0) scale(0.7); }
-            50% { opacity: 0.8; transform: translateY(-12px) scale(1.1); }
-            100% { opacity: 0; transform: translateY(-24px) scale(1.4); }
+        @keyframes energyPulse {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.04); opacity: 1; }
         }
 
-        .steam-puff-1 { animation: steamFloat 1.8s ease-out infinite; }
-        .steam-puff-2 { animation: steamFloat 1.8s ease-out infinite 0.7s; }
-
-        @keyframes mascotBounce {
-            0%, 100% { transform: translateY(0) scale(1); }
-            50% { transform: translateY(-6px) scale(1.02); }
+        .energy-pulse {
+            animation: energyPulse 2s ease-in-out infinite;
         }
 
-        .mascot-bounce { animation: mascotBounce 2.5s ease-in-out infinite; }
-
-        @keyframes sweatDrop {
-            0% { opacity: 0; transform: translateY(0); }
-            50% { opacity: 1; transform: translateY(8px); }
-            100% { opacity: 0; transform: translateY(16px); }
+        @keyframes comicShake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-3deg); }
+            75% { transform: rotate(3deg); }
         }
 
-        .sweat-drop { animation: sweatDrop 1.2s ease-in infinite; }
+        .comic-shake {
+            animation: comicShake 0.4s ease-in-out;
+        }
 
         @keyframes candyStripes {
             0% { background-position: 0 0; }
@@ -169,8 +167,8 @@
         .striped-bar {
             background-image: repeating-linear-gradient(
                 -45deg,
-                rgba(0, 0, 0, 0.12),
-                rgba(0, 0, 0, 0.12) 10px,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 10px,
                 transparent 10px,
                 transparent 20px
             );
@@ -178,61 +176,63 @@
             animation: candyStripes 1.5s linear infinite;
         }
 
-        /* Custom scrollbar */
+        /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #FAF7EE;
+            background: #FFFDF5;
             border-left: 2px solid #000;
         }
         ::-webkit-scrollbar-thumb {
-            background: #FFE144;
+            background: #FFD700;
             border: 2px solid #000;
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #FF4343;
+            background: #E62429;
         }
     </style>
 </head>
 
-<body class="min-h-screen px-3 py-4 sm:px-6 sm:py-8 lg:p-8 flex flex-col justify-between selection:bg-tomato selection:text-white">
+<body class="min-h-screen px-3 py-4 sm:px-6 sm:py-8 lg:p-8 flex flex-col justify-between selection:bg-red-500 selection:text-white">
 
-    <!-- Top Floating Neo-Brutalist Arcade Bar -->
+    <!-- Top Comic Navigation & Operator Selector Header -->
     <header class="max-w-6xl mx-auto w-full mb-6">
-        <div class="neo-card bg-sun p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
+        
+        <!-- Main Top Banner -->
+        <div class="neo-card bg-stark-red text-white p-4 sm:p-5 mb-3 flex flex-wrap items-center justify-between gap-4">
             
-            <!-- Brand Logo & Identity -->
+            <!-- Logo & Avengers Compound Identity -->
             <div class="flex items-center gap-3">
-                <div class="w-12 h-12 bg-tomato border-3 border-black rounded-xl shadow-neo-sm flex items-center justify-center text-2xl font-bold transform -rotate-3 hover:rotate-6 transition-transform cursor-pointer" onclick="Mascot.poke()">
-                    🍅
+                <div class="w-12 h-12 bg-stark-gold text-black border-3 border-black rounded-xl shadow-neo-sm flex items-center justify-center text-3xl font-black transform -rotate-3 hover:rotate-6 transition-transform cursor-pointer" onclick="triggerHeroCheer()">
+                    ⚡
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <span class="font-display font-black text-xl sm:text-2xl tracking-tight text-black">
-                            POMO-BOY 3000
+                        <span class="font-comic text-2xl sm:text-3xl tracking-wider text-stark-gold drop-shadow-[2px_2px_0px_#000]">
+                            AVENGERS FOCUS HUD
                         </span>
                         <span class="bg-black text-white text-[10px] sm:text-xs font-arcade px-2 py-0.5 rounded border border-black uppercase">
-                            ESP32-S3 LIVE
+                            S.H.I.E.L.D. PROTOCOL
                         </span>
                     </div>
-                    <p class="font-body text-xs font-bold text-black/75 tracking-wide">
-                        Physical Hardware Console & Desk Companion
+                    <p class="font-body text-xs font-bold text-white/90 tracking-wide">
+                        Physical ESP32-S3 Hardware Companion • Zero Web Distractions
                     </p>
                 </div>
             </div>
 
-            <!-- Telemetry & Controls Group -->
+            <!-- Hardware Telemetry & Audio SFX -->
             <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
                 
-                <!-- ESP32 Signal Antenna Indicator -->
-                <div id="conn-pill" class="flex items-center gap-2 bg-white border-2 border-black px-3 py-1.5 rounded-lg shadow-neo-sm">
-                    <span id="conn-dot" class="w-3 h-3 rounded-full bg-amber-400 border border-black animate-ping"></span>
+                <!-- ESP32 Signal Beacon Indicator -->
+                <div id="conn-pill" class="flex items-center gap-2 bg-white text-black border-2 border-black px-3 py-1.5 rounded-lg shadow-neo-sm">
+                    <span id="conn-dot" class="w-3 h-3 rounded-full bg-emerald-400 border border-black animate-ping"></span>
                     <div class="flex flex-col">
                         <span id="conn-label" class="font-arcade text-[10px] font-bold text-black uppercase tracking-wider leading-none">
-                            ACQUIRING BEACON
+                            ESP32 BEAMED IN
                         </span>
                         <span id="conn-sub" class="text-[9px] font-mono text-zinc-500 font-bold leading-tight">
                             PORT: 443 / SUPABASE
@@ -246,8 +246,8 @@
                     <span id="sfx-text" class="hidden sm:inline font-bold">SFX ON</span>
                 </button>
 
-                <!-- Manual Force Re-Sync Button -->
-                <button class="neo-btn bg-white hover:bg-zinc-100 text-black px-3 py-1.5 flex items-center gap-1.5 text-xs font-display" title="Fetch fresh state from Supabase" onclick="manualSync()">
+                <!-- Ping Hardware Resync Button -->
+                <button class="neo-btn bg-stark-gold hover:bg-yellow-300 text-black px-3 py-1.5 flex items-center gap-1.5 text-xs font-display" title="Refresh state from Supabase" onclick="manualSync()">
                     <span id="sync-spinner" class="inline-block transition-transform">🔄</span>
                     <span class="hidden sm:inline font-bold">SYNC</span>
                 </button>
@@ -255,140 +255,170 @@
             </div>
 
         </div>
+
+        <!-- HERO OPERATOR ROSTER SELECTOR (Idea B) -->
+        <div class="neo-card bg-paper p-3 flex flex-wrap items-center justify-between gap-2.5">
+            <div class="flex items-center gap-2">
+                <span class="font-comic text-lg text-black tracking-wide">ASSEMBLE OPERATOR:</span>
+                <span class="text-xs font-bold text-zinc-500 font-body hidden md:inline">Pick your active superhero companion</span>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2" id="hero-roster">
+                <button class="hero-tab neo-btn bg-stark-red text-white px-3 py-1.5 text-xs flex items-center gap-1.5" onclick="selectHero('ironman')">
+                    <span>🦾</span>
+                    <span class="font-display font-bold">IRON MAN</span>
+                </button>
+                <button class="hero-tab neo-btn bg-white hover:bg-blue-50 text-black px-3 py-1.5 text-xs flex items-center gap-1.5" onclick="selectHero('cap')">
+                    <span>🛡️</span>
+                    <span class="font-display font-bold">CAPTAIN AMERICA</span>
+                </button>
+                <button class="hero-tab neo-btn bg-white hover:bg-purple-50 text-black px-3 py-1.5 text-xs flex items-center gap-1.5" onclick="selectHero('thor')">
+                    <span>⚡</span>
+                    <span class="font-display font-bold">THOR</span>
+                </button>
+                <button class="hero-tab neo-btn bg-white hover:bg-red-50 text-black px-3 py-1.5 text-xs flex items-center gap-1.5" onclick="selectHero('spidey')">
+                    <span>🕷️</span>
+                    <span class="font-display font-bold">SPIDER-MAN</span>
+                </button>
+                <button class="hero-tab neo-btn bg-white hover:bg-emerald-50 text-black px-3 py-1.5 text-xs flex items-center gap-1.5" onclick="selectHero('hulk')">
+                    <span>🟢</span>
+                    <span class="font-display font-bold">HULK</span>
+                </button>
+            </div>
+        </div>
+
     </header>
 
-    <!-- Main Arcade Station Matrix -->
+    <!-- Main Superhero Mission Center Matrix -->
     <main class="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow">
         
-        <!-- LEFT / MAIN CONSOLE (Column 1-7) -->
+        <!-- LEFT / MAIN TACTICAL HUD CONSOLE (Column 1-7) -->
         <section class="lg:col-span-7 flex flex-col gap-6">
 
-            <!-- Primary Handheld Timer Station -->
-            <div id="main-timer-container" class="neo-card bg-white p-5 sm:p-7 relative overflow-hidden flex flex-col justify-between">
+            <!-- Primary Command Station -->
+            <div id="main-hud-card" class="neo-card bg-white p-5 sm:p-7 relative overflow-hidden flex flex-col justify-between">
                 
-                <!-- Phase Announcement Banner / Ticker Tape -->
+                <!-- Mission Phase Banner -->
                 <div class="border-b-3 border-black pb-4 mb-5 flex flex-wrap items-center justify-between gap-3">
                     <div class="flex items-center gap-2.5">
-                        <span id="phase-badge" class="font-arcade text-xs sm:text-sm font-bold px-3 py-1 rounded-md border-2 border-black bg-tomato text-white shadow-neo-sm uppercase">
-                            🔥 WORK PROTOCOL
+                        <span id="phase-badge" class="font-comic text-base sm:text-lg tracking-wider px-3.5 py-1 rounded-md border-2 border-black bg-stark-red text-white shadow-neo-sm uppercase">
+                            💥 COMBAT PROTOCOL
                         </span>
-                        <span id="status-badge" class="font-arcade text-[11px] font-bold px-2.5 py-1 rounded-md border-2 border-black bg-sun text-black shadow-neo-sm uppercase">
+                        <span id="status-badge" class="font-arcade text-[11px] font-bold px-2.5 py-1 rounded-md border-2 border-black bg-stark-gold text-black shadow-neo-sm uppercase">
                             PAUSED
                         </span>
                     </div>
 
-                    <!-- 4-Stage Pomodoro Cycle Tracker -->
-                    <div class="flex items-center gap-1.5 bg-paper border-2 border-black px-2.5 py-1 rounded-lg">
-                        <span class="text-[10px] font-arcade font-bold mr-1">CYCLE:</span>
-                        <div class="flex gap-1" id="cycle-slots">
-                            <span class="w-4 h-4 rounded-full border border-black bg-zinc-200 inline-block" title="Slot 1"></span>
-                            <span class="w-4 h-4 rounded-full border border-black bg-zinc-200 inline-block" title="Slot 2"></span>
-                            <span class="w-4 h-4 rounded-full border border-black bg-zinc-200 inline-block" title="Slot 3"></span>
-                            <span class="w-4 h-4 rounded-full border border-black bg-zinc-200 inline-block" title="Slot 4 (Long Break)"></span>
+                    <!-- Infinity Gauntlet 4-Stone Cycle Matrix -->
+                    <div class="flex items-center gap-2 bg-paper border-2 border-black px-3 py-1.5 rounded-xl shadow-neo-sm">
+                        <span class="text-[10px] font-arcade font-bold">INFINITY CYCLE:</span>
+                        <div class="flex items-center gap-1.5" id="infinity-slots">
+                            <!-- Injected dynamically in JS -->
                         </div>
                     </div>
                 </div>
 
-                <!-- Interactive Mascot & Dynamic Face Stage -->
+                <!-- Interactive Hero Mascot Bay & Dialogue -->
                 <div class="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-5 my-2">
                     
-                    <!-- Reactive Tommy Character (SVG) -->
-                    <div class="relative cursor-pointer group" onclick="Mascot.poke()" title="Click to poke Tommy!">
-                        <div id="mascot-stage" class="w-36 h-36 sm:w-40 sm:h-40 flex items-center justify-center mascot-bounce transition-transform group-hover:scale-105 group-active:scale-95">
-                            
-                            <!-- Mascot SVG Content Injected Dynamically Based on State -->
-                            <svg id="mascot-svg" viewBox="0 0 160 160" class="w-full h-full drop-shadow-[4px_4px_0px_#000]">
-                                <!-- Dynamically replaced in JS -->
+                    <!-- Dynamic Hero Avatar (SVG) -->
+                    <div class="relative cursor-pointer group" onclick="triggerHeroCheer()" title="Click to trigger Superhero battle cry!">
+                        <div id="hero-avatar-stage" class="w-36 h-36 sm:w-44 sm:h-44 flex items-center justify-center energy-pulse transition-transform group-hover:scale-105 group-active:scale-95">
+                            <svg id="hero-svg" viewBox="0 0 160 160" class="w-full h-full drop-shadow-[5px_5px_0px_#000]">
+                                <!-- Dynamically drawn based on selected hero and state -->
                             </svg>
-
                         </div>
 
-                        <!-- Touch Me Ping Sticker -->
-                        <span class="absolute -bottom-1 -right-1 bg-yellow-300 border-2 border-black text-[9px] font-arcade px-1.5 py-0.5 rounded shadow-neo-sm font-bold rotate-6 group-hover:rotate-12 transition-transform">
-                            POKE ME!
+                        <!-- Comic Action Sticker -->
+                        <span id="hero-action-sticker" class="absolute -bottom-1 -right-1 bg-stark-gold border-2 border-black text-[10px] font-comic px-2 py-0.5 rounded shadow-neo-sm font-bold rotate-6 group-hover:rotate-12 transition-transform">
+                            BAM!
                         </span>
                     </div>
 
-                    <!-- Mascot Comic Speech Bubble -->
+                    <!-- Comic Dialogue Speech Balloon -->
                     <div class="flex-1 w-full">
-                        <div class="relative bg-paper border-3 border-black p-3.5 sm:p-4 rounded-2xl shadow-neo-sm">
-                            <!-- Bubble pointer arrow -->
-                            <div class="hidden sm:block absolute -left-3 top-6 w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-r-8 border-r-black"></div>
-                            <div class="hidden sm:block absolute -left-2 top-6 w-0 h-0 border-t-7 border-t-transparent border-b-7 border-b-transparent border-r-7 border-r-paper"></div>
+                        <div class="relative bg-paper border-3 border-black p-4 rounded-2xl shadow-neo-sm">
+                            <!-- Comic arrow pointer -->
+                            <div class="hidden sm:block absolute -left-3 top-7 w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-r-8 border-r-black"></div>
+                            <div class="hidden sm:block absolute -left-2 top-7 w-0 h-0 border-t-7 border-t-transparent border-b-7 border-b-transparent border-r-7 border-r-paper"></div>
 
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="font-display font-black text-xs uppercase tracking-wider text-tomato flex items-center gap-1">
-                                    <span>TOMMY DESK BUDDY</span>
-                                    <span id="mascot-status-tag" class="text-[9px] bg-black text-white px-1.5 py-0.2 rounded font-arcade">READY</span>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-comic text-base tracking-wide text-stark-red flex items-center gap-1.5">
+                                    <span id="hero-name-label">IRON MAN (TONY STARK)</span>
+                                    <span id="hero-status-tag" class="text-[9px] bg-black text-white px-1.5 py-0.2 rounded font-arcade">COMBAT READY</span>
                                 </span>
-                                <span class="text-xs">🕹️</span>
+                                <span class="text-base" id="hero-emblem-icon">🦾</span>
                             </div>
 
-                            <p id="mascot-speech" class="font-display font-semibold text-sm sm:text-base text-zinc-900 leading-snug">
-                                "Ready to harvest productivity! Press the physical ESP32 button or web toggle below!"
+                            <p id="hero-speech" class="font-display font-bold text-sm sm:text-base text-zinc-900 leading-snug">
+                                "F.R.I.D.A.Y. is online. Press the button on your physical ESP32 to engage focus thrusters!"
                             </p>
                         </div>
                     </div>
 
                 </div>
 
-                <!-- Giant Handheld Arcade Digital Clock Display -->
+                <!-- Giant Stark Arc Reactor / HUD Digital Clock -->
                 <div class="my-5">
-                    <div class="arcade-screen rounded-2xl p-5 sm:p-7 text-center relative">
+                    <div class="hud-screen rounded-2xl p-5 sm:p-7 text-center relative">
                         
-                        <!-- Top LCD Status Bar -->
-                        <div class="flex justify-between items-center text-[10px] font-arcade tracking-widest text-emerald-400/90 mb-2 border-b border-emerald-900/50 pb-1">
-                            <span id="lcd-mode-text">TARGET: DEEP FOCUS</span>
-                            <span id="lcd-heartbeat" class="animate-pulse">● SYNC ACTIVE</span>
+                        <!-- Top HUD Telemetry Line -->
+                        <div class="flex justify-between items-center text-[10px] font-arcade tracking-widest text-cyan-400 mb-2 border-b border-cyan-900/60 pb-1.5">
+                            <span id="hud-mode-text" class="flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping inline-block"></span>
+                                PROTOCOL: MAXIMUM FOCUS OUTPUT
+                            </span>
+                            <span id="hud-target-reticle" class="text-yellow-400 font-bold">
+                                🎯 TARGET: ZERO DISTRACTION
+                            </span>
                         </div>
 
-                        <!-- Massive 8-Bit Glowing Digits -->
+                        <!-- Massive 8-Bit Glowing Clock Digits -->
                         <div class="relative py-2">
-                            <div id="timer-display" class="font-retro text-7xl sm:text-9xl md:text-[10rem] font-bold tracking-tight text-white select-none drop-shadow-[0_0_15px_rgba(255,255,255,0.4)] leading-none">
+                            <div id="timer-display" class="font-retro text-7xl sm:text-9xl md:text-[10rem] font-bold tracking-tight text-white select-none drop-shadow-[0_0_20px_rgba(0,240,255,0.4)] leading-none">
                                 25:00
                             </div>
                         </div>
 
-                        <!-- Chunky Tactile Progress Gauge -->
+                        <!-- Superhero Tactile Energy Progress Gauge -->
                         <div class="mt-4 space-y-1.5">
                             <div class="flex justify-between text-xs font-arcade text-zinc-300">
-                                <span>SESSION PROGRESS</span>
-                                <span id="progress-percent" class="text-yellow-300 font-bold">0%</span>
+                                <span id="progress-bar-label">REPULSOR CORE CHARGE</span>
+                                <span id="progress-percent" class="text-stark-gold font-bold">0%</span>
                             </div>
                             <div class="w-full h-5 bg-black/80 rounded-lg border-2 border-zinc-700 p-0.5 overflow-hidden">
-                                <div id="progress-bar" class="h-full bg-sun border border-black rounded transition-all duration-500 ease-out striped-bar" style="width: 0%"></div>
+                                <div id="progress-bar" class="h-full bg-stark-gold border border-black rounded transition-all duration-500 ease-out striped-bar" style="width: 0%"></div>
                             </div>
                         </div>
 
                         <div class="mt-3 text-[11px] font-mono text-zinc-400 flex items-center justify-center gap-2">
-                            <span>📡 Realtime Synced to ESP32-S3 Core</span>
+                            <span>📡 Realtime Mirror of ESP32-S3 Physical Timer</span>
                             <span>•</span>
-                            <span id="db-latency">Row ID #1</span>
+                            <span id="db-latency" class="text-cyan-400">Row ID #1</span>
                         </div>
 
                     </div>
                 </div>
 
-                <!-- Tactile Arcade Push Buttons (Start, Pause, Next, Reset) -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 pt-2">
-                    <button id="btn-toggle-run" class="neo-btn bg-mint hover:bg-mint-light text-black py-3 px-2 flex flex-col items-center justify-center gap-1" onclick="toggleTimer()">
-                        <span class="text-lg" id="btn-run-icon">▶</span>
-                        <span class="font-display font-black text-xs uppercase" id="btn-run-text">START</span>
-                    </button>
-
-                    <button class="neo-btn bg-bubblegum hover:bg-cyan-200 text-black py-3 px-2 flex flex-col items-center justify-center gap-1" onclick="skipPhase()">
-                        <span class="text-lg">⏭</span>
-                        <span class="font-display font-black text-xs uppercase">SKIP PHASE</span>
-                    </button>
-
-                    <button class="neo-btn bg-sun hover:bg-yellow-200 text-black py-3 px-2 flex flex-col items-center justify-center gap-1" onclick="resetCurrentPhase()">
-                        <span class="text-lg">↺</span>
-                        <span class="font-display font-black text-xs uppercase">RESET</span>
-                    </button>
-
-                    <button class="neo-btn bg-pink-300 hover:bg-pink-200 text-black py-3 px-2 flex flex-col items-center justify-center gap-1" onclick="triggerConfettiParty()">
-                        <span class="text-lg">🎉</span>
-                        <span class="font-display font-black text-xs uppercase">CELEBRATE</span>
+                <!-- Physical Hardware Controller Notification Banner (Web Controls Removed) -->
+                <div class="bg-paper border-3 border-black p-4 rounded-xl shadow-neo-sm flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-stark-gold border-2 border-black flex items-center justify-center text-xl shadow-neo-sm">
+                            🕹️
+                        </div>
+                        <div>
+                            <h4 class="font-comic text-base tracking-wide text-black">
+                                PHYSICAL CONTROLLER IN COMMAND
+                            </h4>
+                            <p id="hardware-instruction-text" class="text-xs font-bold text-zinc-600">
+                                Press the physical button on your ESP32-S3 on your desk to START, PAUSE, or ADVANCE.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <button class="neo-btn bg-stark-gold hover:bg-yellow-300 text-black px-4 py-2 font-comic text-sm tracking-wide flex items-center gap-1.5" onclick="triggerHeroCheer()">
+                        <span>💥</span>
+                        <span>AVENGERS ASSEMBLE!</span>
                     </button>
                 </div>
 
@@ -396,100 +426,100 @@
 
         </section>
 
-        <!-- RIGHT / GAMIFICATION & LOGS BATTLE-DECK (Column 8-12) -->
+        <!-- RIGHT / S.H.I.E.L.D. CLEARANCE & MISSION BATTLE-DECK (Column 8-12) -->
         <section class="lg:col-span-5 flex flex-col gap-6">
 
-            <!-- Gamification Level & XP Card -->
+            <!-- S.H.I.E.L.D. Clearance & XP Card -->
             <div class="neo-card bg-white p-5">
                 <div class="flex items-center justify-between mb-3 border-b-2 border-black pb-3">
                     <div class="flex items-center gap-2.5">
-                        <div class="w-10 h-10 rounded-xl bg-sun border-2 border-black flex items-center justify-center text-xl shadow-neo-sm">
-                            🏆
+                        <div class="w-10 h-10 rounded-xl bg-stark-red text-white border-2 border-black flex items-center justify-center text-xl shadow-neo-sm">
+                            🛡️
                         </div>
                         <div>
-                            <span class="text-[10px] font-arcade text-zinc-500 font-bold block uppercase">CURRENT RANK</span>
-                            <h2 id="xp-rank-title" class="font-display font-black text-lg sm:text-xl text-black leading-tight">
-                                SPROUT CADET
+                            <span class="text-[10px] font-arcade text-zinc-500 font-bold block uppercase">S.H.I.E.L.D. CLEARANCE</span>
+                            <h2 id="xp-rank-title" class="font-comic text-xl text-black leading-tight tracking-wide">
+                                LEVEL 1 RECRUIT
                             </h2>
                         </div>
                     </div>
-                    <span id="xp-level-badge" class="bg-black text-white font-arcade text-xs px-2.5 py-1 rounded border border-black shadow-neo-sm">
-                        LVL 1
+                    <span id="xp-level-badge" class="bg-black text-stark-gold font-arcade text-xs px-2.5 py-1 rounded border border-black shadow-neo-sm">
+                        RANK 1
                     </span>
                 </div>
 
-                <!-- XP Bar -->
+                <!-- XP Progress Bar -->
                 <div class="space-y-1.5">
                     <div class="flex justify-between text-xs font-bold font-body">
-                        <span>XP ACCUMULATED</span>
-                        <span id="xp-counter-text" class="font-arcade text-tomato font-bold">0 / 250 XP</span>
+                        <span>MISSION COMBAT XP</span>
+                        <span id="xp-counter-text" class="font-arcade text-stark-red font-bold">0 / 250 XP</span>
                     </div>
                     <div class="w-full h-4 bg-paper rounded-full border-2 border-black p-0.5 overflow-hidden">
-                        <div id="xp-fill-bar" class="h-full bg-tomato rounded-full transition-all duration-700 ease-out" style="width: 5%"></div>
+                        <div id="xp-fill-bar" class="h-full bg-stark-red rounded-full transition-all duration-700 ease-out" style="width: 5%"></div>
                     </div>
                     <div class="flex justify-between items-center text-[11px] text-zinc-600 font-medium">
-                        <span id="xp-next-milestone">🌱 +10 XP per focus minute</span>
-                        <span class="font-arcade text-[10px] text-zinc-400">NEXT: CHERRY POPPER</span>
+                        <span id="xp-next-milestone">⚡ +10 XP per focus minute</span>
+                        <span class="font-arcade text-[10px] text-zinc-500">NEXT: SUPER SOLDIER</span>
                     </div>
                 </div>
             </div>
 
-            <!-- 3 Neo-Brutalist Daily Metrics Blocks -->
+            <!-- 3 Superhero Comic Metrics Blocks -->
             <div class="grid grid-cols-3 gap-3">
                 
-                <!-- Smashed Tomatoes Metric -->
-                <div class="neo-card bg-tomato text-white p-3.5 flex flex-col justify-between">
+                <!-- Threats Neutralized -->
+                <div class="neo-card bg-stark-red text-white p-3.5 flex flex-col justify-between">
                     <div class="flex items-center justify-between text-xs">
-                        <span class="font-arcade text-[10px] uppercase font-bold text-white/90">SMASHED</span>
-                        <span>🍅</span>
+                        <span class="font-arcade text-[9px] uppercase font-bold text-white/90">THREATS SMASHED</span>
+                        <span>🥊</span>
                     </div>
                     <div class="my-2">
-                        <div id="stat-smashed" class="font-display font-black text-3xl sm:text-4xl leading-none">
+                        <div id="stat-smashed" class="font-comic text-3xl sm:text-4xl leading-none tracking-wide">
                             0
                         </div>
                     </div>
-                    <span class="text-[10px] font-bold text-white/80 uppercase">Sessions Done</span>
+                    <span class="text-[9px] font-bold text-white/80 uppercase">Sessions Done</span>
                 </div>
 
-                <!-- Zone Focus Hours Metric -->
-                <div class="neo-card bg-sun text-black p-3.5 flex flex-col justify-between">
+                <!-- Arc Energy Zone Time -->
+                <div class="neo-card bg-stark-gold text-black p-3.5 flex flex-col justify-between">
                     <div class="flex items-center justify-between text-xs">
-                        <span class="font-arcade text-[10px] uppercase font-bold text-black/80">ZONE TIME</span>
-                        <span>⚡</span>
+                        <span class="font-arcade text-[9px] uppercase font-bold text-black/80">ARC ENERGY</span>
+                        <span>⚛️</span>
                     </div>
                     <div class="my-2">
-                        <div class="font-display font-black text-3xl sm:text-4xl leading-none flex items-baseline">
+                        <div class="font-comic text-3xl sm:text-4xl leading-none flex items-baseline tracking-wide">
                             <span id="stat-focus-hours">0.0</span>
                             <span class="text-xs font-normal ml-0.5">h</span>
                         </div>
                     </div>
-                    <span class="text-[10px] font-bold text-black/75 uppercase">Deep Focus</span>
+                    <span class="text-[9px] font-bold text-black/75 uppercase">Focus Output</span>
                 </div>
 
-                <!-- Rest & Chill Metric -->
-                <div class="neo-card bg-mint text-black p-3.5 flex flex-col justify-between">
+                <!-- Rest & Serum Recharge -->
+                <div class="neo-card bg-cyan-400 text-black p-3.5 flex flex-col justify-between">
                     <div class="flex items-center justify-between text-xs">
-                        <span class="font-arcade text-[10px] uppercase font-bold text-black/80">CHILLED</span>
-                        <span>🧃</span>
+                        <span class="font-arcade text-[9px] uppercase font-bold text-black/80">SERUM REST</span>
+                        <span>🧪</span>
                     </div>
                     <div class="my-2">
-                        <div id="stat-break-count" class="font-display font-black text-3xl sm:text-4xl leading-none">
+                        <div id="stat-break-count" class="font-comic text-3xl sm:text-4xl leading-none tracking-wide">
                             0
                         </div>
                     </div>
-                    <span class="text-[10px] font-bold text-black/75 uppercase">Breaks Taken</span>
+                    <span class="text-[9px] font-bold text-black/75 uppercase">Breaks Taken</span>
                 </div>
 
             </div>
 
-            <!-- Playful Session History & Breakdown Chart -->
+            <!-- S.H.I.E.L.D. Mission Debriefs & Breakdown -->
             <div class="neo-card bg-white p-5 flex flex-col flex-grow">
                 
                 <div class="flex items-center justify-between mb-4 border-b-2 border-black pb-3">
                     <div class="flex items-center gap-2">
                         <span class="text-lg">📜</span>
-                        <h3 class="font-display font-black text-base text-black">
-                            HARVEST LOGS & BREAKDOWN
+                        <h3 class="font-comic text-lg text-black tracking-wide">
+                            S.H.I.E.L.D. MISSION LOGS
                         </h3>
                     </div>
                     <span class="text-[10px] font-arcade bg-paper border border-black px-2 py-0.5 rounded">
@@ -497,35 +527,35 @@
                     </span>
                 </div>
 
-                <!-- Custom Tactile Focus vs Rest Visualizer -->
+                <!-- Combat vs Rest Ratio Gauge -->
                 <div class="mb-4 bg-paper border-2 border-black p-3 rounded-xl">
                     <div class="flex justify-between items-center text-xs font-bold mb-1.5 font-arcade">
-                        <span class="text-tomato flex items-center gap-1">
-                            <span class="w-2.5 h-2.5 bg-tomato border border-black inline-block"></span>
-                            WORK (<span id="ratio-work-pct">100%</span>)
+                        <span class="text-stark-red flex items-center gap-1">
+                            <span class="w-2.5 h-2.5 bg-stark-red border border-black inline-block"></span>
+                            COMBAT (<span id="ratio-work-pct">100%</span>)
                         </span>
-                        <span class="text-mint-dark flex items-center gap-1">
-                            <span class="w-2.5 h-2.5 bg-mint border border-black inline-block"></span>
-                            BREAK (<span id="ratio-break-pct">0%</span>)
+                        <span class="text-cyan-600 flex items-center gap-1">
+                            <span class="w-2.5 h-2.5 bg-cyan-400 border border-black inline-block"></span>
+                            RECHARGE (<span id="ratio-break-pct">0%</span>)
                         </span>
                     </div>
                     <div class="h-4 w-full bg-zinc-200 rounded-md border border-black flex overflow-hidden">
-                        <div id="ratio-work-bar" class="h-full bg-tomato border-r border-black transition-all duration-500" style="width: 100%"></div>
-                        <div id="ratio-break-bar" class="h-full bg-mint transition-all duration-500" style="width: 0%"></div>
+                        <div id="ratio-work-bar" class="h-full bg-stark-red border-r border-black transition-all duration-500" style="width: 100%"></div>
+                        <div id="ratio-break-bar" class="h-full bg-cyan-400 transition-all duration-500" style="width: 0%"></div>
                     </div>
                 </div>
 
                 <!-- Recent Smashed Sessions List Feed -->
                 <div class="flex-grow">
                     <div class="flex justify-between items-center text-xs font-arcade font-bold text-zinc-500 mb-2">
-                        <span>RECENT COMPLETED SESSIONS</span>
+                        <span>RECENT MISSION DEBRIEFS</span>
                         <span id="log-count-tag">0 LOGS</span>
                     </div>
                     
                     <div id="session-log-list" class="space-y-2 max-h-56 overflow-y-auto pr-1">
                         <!-- Loaded dynamically from session_logs table -->
                         <div class="p-4 border-2 border-dashed border-zinc-400 rounded-xl text-center text-zinc-500 text-xs font-bold">
-                            🍅 Press physical ESP32 button to complete your first session!
+                            ⚡ Smash your first focus session using the physical ESP32 button!
                         </div>
                     </div>
                 </div>
@@ -536,37 +566,37 @@
 
     </main>
 
-    <!-- Bottom Retro Operational Bar -->
+    <!-- Bottom Avengers Operational Banner -->
     <footer class="max-w-6xl mx-auto w-full mt-6">
         <div class="neo-card bg-black text-white p-3.5 sm:p-4 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-                <span class="font-arcade text-[10px] sm:text-xs text-emerald-400">
-                    STATUS: ESP32-S3 REALTIME PROTOCOL READY
+                <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
+                <span class="font-arcade text-[10px] sm:text-xs text-cyan-400">
+                    AVENGERS SATELLITE LINK: ESP32-S3 CORE ONLINE
                 </span>
             </div>
             <div class="flex items-center gap-4 text-zinc-400 font-mono text-[11px]">
-                <span>FIRMWARE: v2.4-IOT</span>
+                <span>FIRMWARE: AVENGERS-OS</span>
                 <span>•</span>
-                <span>SYNC: 1000ms TICK</span>
+                <span>READ-ONLY MIRROR</span>
                 <span>•</span>
-                <span class="text-yellow-400 font-bold">TABLE: device_state [ID=1]</span>
+                <span class="text-stark-gold font-bold">TABLE: device_state [ID=1]</span>
             </div>
         </div>
     </footer>
 
-    <!-- Interactive Toast Notification Element -->
+    <!-- Interactive Toast Notification -->
     <div id="toast-bubble" class="fixed bottom-6 right-6 z-50 transform translate-y-32 transition-transform duration-300 pointer-events-none">
-        <div class="neo-card bg-sun text-black px-4 py-2.5 font-display font-bold text-sm shadow-neo flex items-center gap-2">
-            <span id="toast-icon">🍅</span>
+        <div class="neo-card bg-stark-gold text-black px-4 py-2.5 font-display font-bold text-sm shadow-neo flex items-center gap-2">
+            <span id="toast-icon">⚡</span>
             <span id="toast-text">Toast message</span>
         </div>
     </div>
 
-    <!-- MAIN APPLICATION SCRIPT -->
+    <!-- MAIN JAVASCRIPT LOGIC -->
     <script>
         // =========================================================================
-        // 1. HARD TECHNICAL CREDENTIALS & SUPABASE INIT (DO NOT CHANGE)
+        // 1. HARD TECHNICAL CREDENTIALS & SUPABASE INIT
         // =========================================================================
         const SUPABASE_URL = "https://ykncypzibxorhaatyqah.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlrbmN5cHppYnhvcmhhYXR5cWFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxOTE4MDgsImV4cCI6MjEwNzc2NzgwOH0.cVWlzZOw5et55NiYcp3n1g6ophDvmp-GgCHyo9Vf5sI";
@@ -574,18 +604,16 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // =========================================================================
-        // 2. RETRO WEB AUDIO API SYNTHESIZER (No external mp3 files!)
+        // 2. RETRO WEB AUDIO API SYNTHESIZER (Superhero SFX)
         // =========================================================================
         const AudioEngine = {
             ctx: null,
-            muted: localStorage.getItem('pomoboy_muted') === 'true',
+            muted: localStorage.getItem('avengers_muted') === 'true',
 
             init() {
                 if (!this.ctx) {
                     const AudioContext = window.AudioContext || window.webkitAudioContext;
-                    if (AudioContext) {
-                        this.ctx = new AudioContext();
-                    }
+                    if (AudioContext) this.ctx = new AudioContext();
                 }
             },
 
@@ -593,9 +621,7 @@
                 if (this.muted) return;
                 try {
                     this.init();
-                    if (this.ctx && this.ctx.state === 'suspended') {
-                        this.ctx.resume();
-                    }
+                    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
                     if (!this.ctx) return;
 
                     const osc = this.ctx.createOscillator();
@@ -612,49 +638,68 @@
                     osc.start(this.ctx.currentTime + startTime);
                     osc.stop(this.ctx.currentTime + startTime + duration);
                 } catch (e) {
-                    console.warn('Audio synthesis note error:', e);
+                    console.warn('Audio tone error:', e);
                 }
             },
 
-            click() {
-                this.playTone(850, 'square', 0.04, 0, 0.08);
+            repulsorZap() {
+                // High-tech laser sweep
+                if (this.muted) return;
+                this.init();
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(1200, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.18);
+                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.18);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.18);
+                } catch(e) {}
             },
 
-            blip() {
-                this.playTone(1200, 'sine', 0.03, 0, 0.04);
+            shieldClang() {
+                // Metallic vibranium ricochet
+                this.playTone(800, 'triangle', 0.05, 0, 0.2);
+                this.playTone(1600, 'sine', 0.2, 0.02, 0.15);
             },
 
-            powerUp() {
-                // Arcade 3-note power up
-                this.playTone(523.25, 'triangle', 0.08, 0, 0.15);     // C5
-                this.playTone(659.25, 'triangle', 0.08, 0.08, 0.15); // E5
-                this.playTone(783.99, 'triangle', 0.16, 0.16, 0.18); // G5
+            thunderStrike() {
+                // Deep thunder roll + chirp
+                this.playTone(120, 'sawtooth', 0.35, 0, 0.25);
+                this.playTone(90, 'sine', 0.4, 0.08, 0.2);
             },
 
-            powerDown() {
-                this.playTone(440, 'sawtooth', 0.08, 0, 0.12);
-                this.playTone(329.63, 'sawtooth', 0.14, 0.08, 0.12);
+            webShot() {
+                // Fast zip
+                this.playTone(1800, 'sine', 0.06, 0, 0.15);
+                this.playTone(950, 'triangle', 0.08, 0.03, 0.12);
             },
 
-            celebrate() {
-                // Mario-style victory fanfare
-                const notes = [523.25, 659.25, 783.99, 1046.50];
-                notes.forEach((freq, i) => {
-                    this.playTone(freq, 'square', 0.1, i * 0.09, 0.12);
+            hulkSmash() {
+                // Seismic low boom
+                this.playTone(80, 'sawtooth', 0.3, 0, 0.3);
+                this.playTone(60, 'square', 0.4, 0.05, 0.25);
+            },
+
+            fanfare() {
+                // Avengers Trumpet Theme Arpeggio
+                const notes = [392.00, 523.25, 659.25, 783.99, 1046.50]; // G4, C5, E5, G5, C6
+                notes.forEach((freq, idx) => {
+                    this.playTone(freq, 'triangle', 0.16, idx * 0.1, 0.2);
                 });
-                setTimeout(() => {
-                    this.playTone(1046.50, 'triangle', 0.35, 0, 0.2);
-                    this.playTone(1318.51, 'triangle', 0.45, 0.1, 0.22);
-                }, 380);
             },
 
             toggleMute() {
                 this.muted = !this.muted;
-                localStorage.setItem('pomoboy_muted', this.muted);
+                localStorage.setItem('avengers_muted', this.muted);
                 this.updateUI();
                 if (!this.muted) {
                     this.playTone(880, 'triangle', 0.1, 0, 0.15);
-                    showToast("🔊 SFX ENABLED!", "sound");
+                    showToast("🔊 SFX ONLINE!", "sound");
                 } else {
                     showToast("🔇 SFX MUTED", "mute");
                 }
@@ -673,7 +718,6 @@
             }
         };
 
-        // Unlock Web Audio Context on first interaction
         window.addEventListener('click', () => {
             if (AudioEngine.ctx && AudioEngine.ctx.state === 'suspended') {
                 AudioEngine.ctx.resume();
@@ -681,190 +725,361 @@
         }, { once: true });
 
         // =========================================================================
-        // 3. REACTIVE CHARACTER MASCOT: "TOMMY THE POMODORO"
+        // 3. SUPERHERO ROSTER & DYNAMIC MASCOT ENGINE (Idea B)
         // =========================================================================
-        const Mascot = {
-            quotes: {
-                WORK: [
-                    "LOCK IN! Let's crush this 25 min sprint!",
-                    "Tomatoes don't harvest themselves! Stay focused!",
-                    "Zero distractions. Flow state unlocked!",
-                    "ESP32-S3 sensor is watching your focus streak!",
-                    "Keep grinding! Next level is within reach!"
-                ],
-                BREAK: [
-                    "Hydrate or diedrate! Grab a cool drink! 🧃",
-                    "Rest those eyes! Look 20 feet away for 20 seconds.",
-                    "Stretch those shoulders! You earned this break!",
-                    "Brain recharge in progress... 🔋",
-                    "Deep breath in... deep breath out!"
-                ],
-                PAUSED: [
-                    "Timer is resting! Tap START or push the ESP32 button!",
-                    "Waiting on your command, Captain! 🕹️",
-                    "Ready when you are! Let's get back in the zone!",
-                    "Did someone pause? Let's keep the momentum!"
-                ]
+        const HERO_PROFILES = {
+            ironman: {
+                name: "IRON MAN (TONY STARK)",
+                emblem: "🦾",
+                themeColor: "#E62429",
+                sticker: "I AM IRON MAN!",
+                sound: () => AudioEngine.repulsorZap(),
+                quotes: {
+                    WORK: [
+                        "F.R.I.D.A.Y., divert auxiliary power to focus thrusters!",
+                        "Sometimes you gotta run before you can walk. LOCK IN!",
+                        "I am Iron Man. And you are a productivity powerhouse.",
+                        "Target acquired. Disintegrating all distractions with repulsors."
+                    ],
+                    BREAK: [
+                        "Recharge the Arc Reactor. Grab a coffee, kid.",
+                        "Suit diagnostics complete. Take 5, you've earned it.",
+                        "Even genius billionaire playboys take breathers.",
+                        "Hydrate or your nanotech will overheat!"
+                    ],
+                    PAUSED: [
+                        "I recognize the physical ESP32 button was pressed... but why stop?",
+                        "Suit systems on standby. Waiting on your command, Captain.",
+                        "Jarvis is idling. Press the physical button to resume."
+                    ]
+                },
+                renderSVG: (mode) => `
+                    <!-- Iron Man Helmet & Arc Reactor -->
+                    <circle cx="80" cy="80" r="62" fill="#E62429" stroke="#000" stroke-width="4.5" />
+                    <!-- Gold Faceplate -->
+                    <path d="M42 55 L118 55 L110 115 L80 135 L50 115 Z" fill="#FFD700" stroke="#000" stroke-width="4" />
+                    <path d="M52 45 L108 45 L118 55 L42 55 Z" fill="#9E1A1A" stroke="#000" stroke-width="3" />
+                    <!-- Glowing Eyes -->
+                    <rect x="52" y="78" width="20" height="7" rx="3" fill="#00F0FF" stroke="#000" stroke-width="2" class="${mode === 'WORK' ? 'energy-pulse' : ''}" />
+                    <rect x="88" y="78" width="20" height="7" rx="3" fill="#00F0FF" stroke="#000" stroke-width="2" class="${mode === 'WORK' ? 'energy-pulse' : ''}" />
+                    <!-- Mouth line -->
+                    <line x1="70" y1="112" x2="90" y2="112" stroke="#000" stroke-width="3" stroke-linecap="round" />
+                    ${mode === 'WORK' ? `
+                        <!-- Repulsor Sparks -->
+                        <circle cx="28" cy="40" r="4" fill="#00F0FF" class="energy-pulse" />
+                        <circle cx="132" cy="40" r="5" fill="#FFD700" class="energy-pulse" />
+                    ` : ''}
+                    ${mode === 'BREAK' ? `
+                        <!-- Cool Shades Overlay -->
+                        <rect x="46" y="72" width="68" height="18" rx="4" fill="#000" stroke="#000" stroke-width="2" />
+                        <line x1="50" y1="76" x2="62" y2="86" stroke="#FFF" stroke-width="2" stroke-linecap="round" />
+                        <line x1="84" y1="76" x2="96" y2="86" stroke="#FFF" stroke-width="2" stroke-linecap="round" />
+                    ` : ''}
+                `
             },
-
-            render(phase, isRunning) {
-                const svg = document.getElementById('mascot-svg');
-                const speech = document.getElementById('mascot-speech');
-                const statusTag = document.getElementById('mascot-status-tag');
-                const stage = document.getElementById('mascot-stage');
-
-                let mode = !isRunning ? 'PAUSED' : (phase === 'WORK' ? 'WORK' : 'BREAK');
-
-                // Render dynamic SVG face according to mode
-                if (mode === 'WORK') {
-                    statusTag.innerText = "FOCUSED";
-                    statusTag.className = "text-[9px] bg-tomato text-white px-1.5 py-0.2 rounded font-arcade font-bold";
-                    stage.className = "w-36 h-36 sm:w-40 sm:h-40 flex items-center justify-center mascot-bounce transition-transform group-hover:scale-105 group-active:scale-95";
-
-                    svg.innerHTML = `
-                        <!-- Steam Puffs -->
-                        <circle cx="50" cy="20" r="5" fill="#FFE144" class="steam-puff-1" opacity="0.8" />
-                        <circle cx="110" cy="18" r="6" fill="#FFE144" class="steam-puff-2" opacity="0.8" />
-
-                        <!-- Stem Leaves -->
-                        <path d="M72 35 C70 15, 85 8, 88 5 C91 18, 88 35, 88 35" fill="#00F0A8" stroke="#000" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
-                        <path d="M65 36 C45 30, 35 15, 30 20 C42 35, 62 40, 65 36" fill="#00F0A8" stroke="#000" stroke-width="3" stroke-linejoin="round" />
-                        <path d="M95 36 C115 30, 125 15, 130 20 C118 35, 98 40, 95 36" fill="#00F0A8" stroke="#000" stroke-width="3" stroke-linejoin="round" />
-
-                        <!-- Tomato Main Body -->
-                        <ellipse cx="80" cy="90" rx="60" ry="54" fill="#FF4343" stroke="#000" stroke-width="4.5" />
-                        <ellipse cx="60" cy="62" rx="14" ry="7" fill="#FFA3A3" opacity="0.6" transform="rotate(-20 60 62)" />
-
-                        <!-- Karate Headband -->
-                        <path d="M22 75 Q80 82 138 75 L140 88 Q80 95 20 88 Z" fill="#FFFFFF" stroke="#000" stroke-width="3.5" />
-                        <!-- Red Sun Badge in Center -->
-                        <circle cx="80" cy="83" r="6" fill="#FF4343" stroke="#000" stroke-width="2" />
-                        <!-- Headband Tails blowing -->
-                        <path d="M136 78 C155 70, 150 95, 158 92" fill="none" stroke="#000" stroke-width="3.5" stroke-linecap="round" />
-
-                        <!-- Intense Focus Eyes -->
-                        <ellipse cx="58" cy="100" rx="7" ry="9" fill="#000" />
-                        <ellipse cx="102" cy="100" rx="7" ry="9" fill="#000" />
-                        <!-- Eye Highlights -->
-                        <circle cx="56" cy="97" r="2.5" fill="#FFF" />
-                        <circle cx="100" cy="97" r="2.5" fill="#FFF" />
-                        <!-- Fierce Eyebrows -->
-                        <line x1="48" y1="88" x2="68" y2="95" stroke="#000" stroke-width="4" stroke-linecap="round" />
-                        <line x1="112" y1="88" x2="92" y2="95" stroke="#000" stroke-width="4" stroke-linecap="round" />
-
-                        <!-- Determined Smile / Mouth -->
-                        <path d="M72 115 Q80 122 88 115" stroke="#000" stroke-width="3.5" stroke-linecap="round" fill="none" />
-
-                        <!-- Sweat Drop -->
-                        <ellipse cx="130" cy="98" rx="3" ry="5" fill="#38E1FF" class="sweat-drop" />
-                    `;
-                } else if (mode === 'BREAK') {
-                    statusTag.innerText = "CHILLING";
-                    statusTag.className = "text-[9px] bg-mint text-black px-1.5 py-0.2 rounded font-arcade font-bold";
-                    stage.className = "w-36 h-36 sm:w-40 sm:h-40 flex items-center justify-center transition-transform group-hover:scale-105 group-active:scale-95";
-
-                    svg.innerHTML = `
-                        <!-- Floating Music Notes / Zzz -->
-                        <text x="110" y="25" font-family="Silkscreen" font-size="14" font-weight="bold" fill="#38E1FF" class="steam-puff-1">♪</text>
-                        <text x="125" y="15" font-family="Silkscreen" font-size="12" font-weight="bold" fill="#00F0A8" class="steam-puff-2">♫</text>
-
-                        <!-- Stem Leaves -->
-                        <path d="M72 35 C70 15, 85 8, 88 5 C91 18, 88 35, 88 35" fill="#00F0A8" stroke="#000" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
-                        <path d="M65 36 C45 30, 35 15, 30 20 C42 35, 62 40, 65 36" fill="#00F0A8" stroke="#000" stroke-width="3" stroke-linejoin="round" />
-                        <path d="M95 36 C115 30, 125 15, 130 20 C118 35, 98 40, 95 36" fill="#00F0A8" stroke="#000" stroke-width="3" stroke-linejoin="round" />
-
-                        <!-- Tomato Main Body -->
-                        <ellipse cx="80" cy="90" rx="60" ry="54" fill="#FF4343" stroke="#000" stroke-width="4.5" />
-                        <ellipse cx="60" cy="62" rx="14" ry="7" fill="#FFA3A3" opacity="0.6" transform="rotate(-20 60 62)" />
-
-                        <!-- Cool Pixel Sunglasses -->
-                        <rect x="42" y="80" width="32" height="20" rx="4" fill="#000" stroke="#000" stroke-width="3" />
-                        <rect x="86" y="80" width="32" height="20" rx="4" fill="#000" stroke="#000" stroke-width="3" />
-                        <line x1="74" y1="88" x2="86" y2="88" stroke="#000" stroke-width="4" stroke-linecap="round" />
-                        <!-- White Glare Lines on Shades -->
-                        <line x1="46" y1="84" x2="56" y2="94" stroke="#FFF" stroke-width="2.5" stroke-linecap="round" />
-                        <line x1="90" y1="84" x2="100" y2="94" stroke="#FFF" stroke-width="2.5" stroke-linecap="round" />
-
-                        <!-- Rosy Cheeks -->
-                        <circle cx="38" cy="108" r="7" fill="#FF8585" />
-                        <circle cx="122" cy="108" r="7" fill="#FF8585" />
-
-                        <!-- Big Relaxed Smile -->
-                        <path d="M68 112 Q80 126 92 112" stroke="#000" stroke-width="4" stroke-linecap="round" fill="#FFF" />
-
-                        <!-- Juice Box in Hand -->
-                        <rect x="120" y="105" width="22" height="30" rx="3" fill="#38E1FF" stroke="#000" stroke-width="2.5" />
-                        <line x1="127" y1="105" x2="124" y2="92" stroke="#FFE144" stroke-width="3" stroke-linecap="round" />
-                    `;
-                } else {
-                    // PAUSED / WAITING
-                    statusTag.innerText = "WAITING";
-                    statusTag.className = "text-[9px] bg-sun text-black px-1.5 py-0.2 rounded font-arcade font-bold";
-                    stage.className = "w-36 h-36 sm:w-40 sm:h-40 flex items-center justify-center transition-transform group-hover:scale-105 group-active:scale-95";
-
-                    svg.innerHTML = `
-                        <!-- Bouncing Question Mark -->
-                        <g class="steam-puff-1">
-                            <text x="110" y="30" font-family="Silkscreen" font-size="24" font-weight="bold" fill="#FFE144" stroke="#000" stroke-width="1.5">?</text>
-                        </g>
-
-                        <!-- Stem Leaves -->
-                        <path d="M72 35 C70 15, 85 8, 88 5 C91 18, 88 35, 88 35" fill="#00F0A8" stroke="#000" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
-                        <path d="M65 36 C45 30, 35 15, 30 20 C42 35, 62 40, 65 36" fill="#00F0A8" stroke="#000" stroke-width="3" stroke-linejoin="round" />
-                        <path d="M95 36 C115 30, 125 15, 130 20 C118 35, 98 40, 95 36" fill="#00F0A8" stroke="#000" stroke-width="3" stroke-linejoin="round" />
-
-                        <!-- Tomato Main Body (Tilted Head) -->
-                        <ellipse cx="80" cy="90" rx="60" ry="54" fill="#FF4343" stroke="#000" stroke-width="4.5" transform="rotate(-4 80 90)" />
-
-                        <!-- Wondering Big Eyes -->
-                        <circle cx="58" cy="92" r="10" fill="#000" />
-                        <circle cx="102" cy="92" r="10" fill="#000" />
-                        <circle cx="61" cy="89" r="4" fill="#FFF" />
-                        <circle cx="105" cy="89" r="4" fill="#FFF" />
-
-                        <!-- Raised Eyebrows -->
-                        <path d="M50 78 Q58 72 66 78" stroke="#000" stroke-width="3.5" stroke-linecap="round" fill="none" />
-                        <path d="M94 74 Q102 68 110 74" stroke="#000" stroke-width="3.5" stroke-linecap="round" fill="none" />
-
-                        <!-- Curious / Wavy Mouth -->
-                        <path d="M74 115 Q80 110 86 116" stroke="#000" stroke-width="3.5" stroke-linecap="round" fill="none" />
-                    `;
-                }
-
-                // Random quote pick if speech box wasn't poked recently
-                if (!this.pokedRecently) {
-                    const pool = this.quotes[mode] || this.quotes.WORK;
-                    speech.innerText = `"${pool[Math.floor(Math.random() * pool.length)]}"`;
-                }
+            cap: {
+                name: "CAPTAIN AMERICA (STEVE ROGERS)",
+                emblem: "🛡️",
+                themeColor: "#0D47A1",
+                sticker: "I CAN DO THIS ALL DAY!",
+                sound: () => AudioEngine.shieldClang(),
+                quotes: {
+                    WORK: [
+                        "I can do this all day. Stand your ground, soldier!",
+                        "Together. We crush this sprint together.",
+                        "Eyes on the target! Discipline wins the war.",
+                        "No surrender! Push through the final minutes!"
+                    ],
+                    BREAK: [
+                        "At ease, soldier! Catch your breath and hydrate.",
+                        "So... you completed a focus block. Good work, son.",
+                        "Even super-soldiers need a tactical breather.",
+                        "Stretch those legs! That's an order!"
+                    ],
+                    PAUSED: [
+                        "I can do this all day... once you hit the physical button!",
+                        "Holding position. Awaiting your physical command.",
+                        "Regroup and press the ESP32 switch when ready."
+                    ]
+                },
+                renderSVG: (mode) => `
+                    <!-- Cap Vibranium Shield Body -->
+                    <circle cx="80" cy="80" r="64" fill="#E62429" stroke="#000" stroke-width="4.5" />
+                    <circle cx="80" cy="80" r="50" fill="#FFFFFF" stroke="#000" stroke-width="3.5" />
+                    <circle cx="80" cy="80" r="36" fill="#E62429" stroke="#000" stroke-width="3.5" />
+                    <circle cx="80" cy="80" r="22" fill="#0D47A1" stroke="#000" stroke-width="3.5" />
+                    <!-- White Star in Center -->
+                    <polygon points="80,63 84,74 96,74 86,81 90,92 80,85 70,92 74,81 64,74 76,74" fill="#FFFFFF" stroke="#000" stroke-width="2" />
+                    ${mode === 'BREAK' ? `
+                        <circle cx="50" cy="35" r="7" fill="#00F0FF" opacity="0.8" />
+                        <text x="120" y="45" font-family="Bangers" font-size="18" fill="#FFD700">ZZZ</text>
+                    ` : ''}
+                `
             },
-
-            poke() {
-                AudioEngine.playTone(987.77, 'triangle', 0.08, 0, 0.2); // B5 Squeak
-                this.pokedRecently = true;
-                const stage = document.getElementById('mascot-stage');
-                stage.classList.add('rotate-12', 'scale-110');
-                setTimeout(() => {
-                    stage.classList.remove('rotate-12', 'scale-110');
-                }, 180);
-
-                const funPokes = [
-                    "BEEP BOOP! Hey, that tickles! 🍅",
-                    "Ready to crush your goals! Let's go!",
-                    "Did you press the physical button yet?",
-                    "100% Organic, High-Productivity Tomato!",
-                    "ESP32-S3 and I are synced in harmony!"
-                ];
-                const speech = document.getElementById('mascot-speech');
-                speech.innerText = `"${funPokes[Math.floor(Math.random() * funPokes.length)]}"`;
-
-                setTimeout(() => {
-                    this.pokedRecently = false;
-                }, 4000);
+            thor: {
+                name: "THOR (GOD OF THUNDER)",
+                emblem: "⚡",
+                themeColor: "#6B21A8",
+                sticker: "BRING ME MORE TASKS!",
+                sound: () => AudioEngine.thunderStrike(),
+                quotes: {
+                    WORK: [
+                        "BRING ME MORE TASKS! FOR ASGARD!",
+                        "Feel the thunder crackle! Focus with the might of gods!",
+                        "Whosoever holds this timer, if worthy, shall conquer this code!",
+                        "By Odin's beard, we shall crush procrastination!"
+                    ],
+                    BREAK: [
+                        "ANOTHER! ...Cup of water! Drink up, warrior!",
+                        "Feast and rest! Even gods must replenish their mana.",
+                        "Mjolnir rests, and so shall you. 5 minutes of peace!",
+                        "A warrior who rests strikes with double the thunder!"
+                    ],
+                    PAUSED: [
+                        "Why does the timer halt? Strike the physical ESP32 rune!",
+                        "Awaiting the spark of battle! Press the button!",
+                        "Odin frowns upon hesitation! Resume the battle!"
+                    ]
+                },
+                renderSVG: (mode) => `
+                    <!-- Thor Winged Helmet & Mjolnir -->
+                    <circle cx="80" cy="85" r="54" fill="#FDE047" stroke="#000" stroke-width="4" />
+                    <!-- Helmet Dome -->
+                    <path d="M42 75 C42 45, 118 45, 118 75 Z" fill="#94A3B8" stroke="#000" stroke-width="4" />
+                    <!-- Helmet Wings -->
+                    <path d="M38 65 L18 40 L36 48 Z" fill="#FFFFFF" stroke="#000" stroke-width="3" />
+                    <path d="M122 65 L142 40 L124 48 Z" fill="#FFFFFF" stroke="#000" stroke-width="3" />
+                    <!-- Eyes & Beard -->
+                    <ellipse cx="62" cy="85" rx="6" ry="8" fill="#000" />
+                    <ellipse cx="98" cy="85" rx="6" ry="8" fill="#000" />
+                    <circle cx="60" cy="83" r="2" fill="#FFF" />
+                    <circle cx="96" cy="83" r="2" fill="#FFF" />
+                    <!-- Golden Beard -->
+                    <path d="M52 98 Q80 128 108 98 Q80 115 52 98 Z" fill="#EAB308" stroke="#000" stroke-width="3" />
+                    ${mode === 'WORK' ? `
+                        <!-- Lightning Bolts -->
+                        <polygon points="20,15 35,28 26,30 40,48 22,34 30,32" fill="#00F0FF" stroke="#000" stroke-width="1.5" />
+                        <polygon points="140,15 125,28 134,30 120,48 138,34 130,32" fill="#FFD700" stroke="#000" stroke-width="1.5" />
+                    ` : ''}
+                `
+            },
+            spidey: {
+                name: "SPIDER-MAN (PETER PARKER)",
+                emblem: "🕷️",
+                themeColor: "#EF4444",
+                sticker: "THWIP!",
+                sound: () => AudioEngine.webShot(),
+                quotes: {
+                    WORK: [
+                        "My Spider-Sense is tingling... it's DEADLINE TIME!",
+                        "With great power comes great focus responsibility!",
+                        "Web-slinging through your todo list! Keep moving!",
+                        "Just your friendly neighborhood focus companion!"
+                    ],
+                    BREAK: [
+                        "Break time! Time to hang upside down and sip some juice! 🧃",
+                        "My web-shooters need a refill, and you need some water!",
+                        "Quick stretch! Let's shake out those spidey wrists.",
+                        "Rest those eyes, web-head! Looking away for 20 seconds!"
+                    ],
+                    PAUSED: [
+                        "Hey Mr. Stark... I think someone paused the desk gadget?",
+                        "Tapping my spidey boots! Hit the physical switch when ready!",
+                        "Don't leave me hanging from a web strand! Let's resume!"
+                    ]
+                },
+                renderSVG: (mode) => `
+                    <!-- Spider-Man Mask -->
+                    <ellipse cx="80" cy="85" rx="54" ry="58" fill="#EF4444" stroke="#000" stroke-width="4.5" />
+                    <!-- Web pattern on mask -->
+                    <line x1="80" y1="30" x2="80" y2="140" stroke="#000" stroke-width="2" />
+                    <line x1="30" y1="85" x2="130" y2="85" stroke="#000" stroke-width="2" />
+                    <ellipse cx="80" cy="85" rx="35" ry="38" fill="none" stroke="#000" stroke-width="2" />
+                    <!-- Large Comic Eyes -->
+                    <path d="M42 68 Q65 65 72 88 Q50 92 42 68 Z" fill="#FFFFFF" stroke="#000" stroke-width="4" />
+                    <path d="M118 68 Q95 65 88 88 Q110 92 118 68 Z" fill="#FFFFFF" stroke="#000" stroke-width="4" />
+                    ${mode === 'WORK' ? `
+                        <!-- Spider-Sense Tingles -->
+                        <path d="M30 45 Q20 30 35 25" fill="none" stroke="#FFD700" stroke-width="3" stroke-linecap="round" />
+                        <path d="M130 45 Q140 30 125 25" fill="none" stroke="#FFD700" stroke-width="3" stroke-linecap="round" />
+                    ` : ''}
+                    ${mode === 'BREAK' ? `
+                        <!-- Juice box in corner -->
+                        <rect x="120" y="105" width="22" height="30" rx="3" fill="#00F0FF" stroke="#000" stroke-width="2" />
+                        <line x1="128" y1="105" x2="124" y2="92" stroke="#FFD700" stroke-width="3" stroke-linecap="round" />
+                    ` : ''}
+                `
+            },
+            hulk: {
+                name: "HULK (BRUCE BANNER)",
+                emblem: "🟢",
+                themeColor: "#10B981",
+                sticker: "HULK SMASH!",
+                sound: () => AudioEngine.hulkSmash(),
+                quotes: {
+                    WORK: [
+                        "HULK SMASH PROCRASTINATION! RAAARGH!",
+                        "PUNY TASKS NO MATCH FOR HULK!",
+                        "FOCUS LEVEL OVER 9000! GAMMA CORE ENGAGED!",
+                        "HULK CRUSH DEADLINE! NO DISTRACTIONS!"
+                    ],
+                    BREAK: [
+                        "Hulk calm now. Hulk drink chamomile tea. 🫖",
+                        "Banner taking control for 5 minutes of deep breathing.",
+                        "Hydrate or Hulk get angry again!",
+                        "Rest giant brain cells. Good job, friend."
+                    ],
+                    PAUSED: [
+                        "WHY TIMER STOP? HULK READY TO SMASH!",
+                        "Press little physical button on desk or Hulk get impatient!",
+                        "Banner says waiting... Hulk says PUSH THE BUTTON!"
+                    ]
+                },
+                renderSVG: (mode) => `
+                    <!-- Hulk Face -->
+                    <circle cx="80" cy="85" r="60" fill="#10B981" stroke="#000" stroke-width="4.5" />
+                    <!-- Dark Hair -->
+                    <path d="M32 60 Q80 20 128 60 Q110 40 80 42 Q50 40 32 60 Z" fill="#1E293B" stroke="#000" stroke-width="4" />
+                    <!-- Fierce Eyebrows -->
+                    <line x1="45" y1="72" x2="72" y2="82" stroke="#000" stroke-width="5" stroke-linecap="round" />
+                    <line x1="115" y1="72" x2="88" y2="82" stroke="#000" stroke-width="5" stroke-linecap="round" />
+                    <!-- Eyes -->
+                    <circle cx="62" cy="88" r="7" fill="#000" />
+                    <circle cx="98" cy="88" r="7" fill="#000" />
+                    <circle cx="64" cy="86" r="2.5" fill="#FFF" />
+                    <circle cx="100" cy="86" r="2.5" fill="#FFF" />
+                    <!-- Huge Grin or Fierce Mouth -->
+                    ${mode === 'BREAK' ? `
+                        <!-- Friendly Smile -->
+                        <path d="M60 115 Q80 132 100 115" stroke="#000" stroke-width="4.5" stroke-linecap="round" fill="#FFF" />
+                    ` : `
+                        <!-- Roaring Gritted Teeth -->
+                        <rect x="55" y="110" width="50" height="18" rx="6" fill="#FFF" stroke="#000" stroke-width="3.5" />
+                        <line x1="68" y1="110" x2="68" y2="128" stroke="#000" stroke-width="2" />
+                        <line x1="80" y1="110" x2="80" y2="128" stroke="#000" stroke-width="2" />
+                        <line x1="92" y1="110" x2="92" y2="128" stroke="#000" stroke-width="2" />
+                    `}
+                `
             }
         };
 
+        let currentHeroKey = localStorage.getItem('avengers_selected_hero') || 'ironman';
+
+        function selectHero(heroKey) {
+            currentHeroKey = heroKey;
+            localStorage.setItem('avengers_selected_hero', heroKey);
+
+            // Update tab styles
+            document.querySelectorAll('.hero-tab').forEach(btn => {
+                btn.className = "hero-tab neo-btn bg-white hover:bg-zinc-100 text-black px-3 py-1.5 text-xs flex items-center gap-1.5";
+            });
+            event.currentTarget.className = "hero-tab neo-btn bg-stark-gold text-black px-3 py-1.5 text-xs flex items-center gap-1.5 shadow-neo-sm font-black";
+
+            // Trigger sound & cheer
+            const hero = HERO_PROFILES[heroKey];
+            if (hero.sound) hero.sound();
+
+            document.getElementById('hero-name-label').innerText = hero.name;
+            document.getElementById('hero-emblem-icon').innerText = hero.emblem;
+            document.getElementById('hero-action-sticker').innerText = hero.sticker;
+
+            // Trigger animation on stage
+            const stage = document.getElementById('hero-avatar-stage');
+            stage.classList.add('comic-shake');
+            setTimeout(() => stage.classList.remove('comic-shake'), 450);
+
+            // Re-render hero
+            renderHero(currentPhase, isRunning);
+            showToast(`⚡ OPERATOR: ${hero.name}!`, "hero");
+        }
+
+        function renderHero(phase, isRunning) {
+            const hero = HERO_PROFILES[currentHeroKey] || HERO_PROFILES.ironman;
+            const svg = document.getElementById('hero-svg');
+            const speech = document.getElementById('hero-speech');
+            const statusTag = document.getElementById('hero-status-tag');
+
+            let mode = !isRunning ? 'PAUSED' : (phase === 'WORK' ? 'WORK' : 'BREAK');
+
+            if (mode === 'WORK') {
+                statusTag.innerText = "COMBAT LOCK";
+                statusTag.className = "text-[9px] bg-stark-red text-white px-1.5 py-0.2 rounded font-arcade font-bold";
+            } else if (mode === 'BREAK') {
+                statusTag.innerText = "RECHARGE";
+                statusTag.className = "text-[9px] bg-cyan-400 text-black px-1.5 py-0.2 rounded font-arcade font-bold";
+            } else {
+                statusTag.innerText = "AWAITING SWITCH";
+                statusTag.className = "text-[9px] bg-stark-gold text-black px-1.5 py-0.2 rounded font-arcade font-bold";
+            }
+
+            svg.innerHTML = hero.renderSVG(mode);
+
+            // Pick dialogue quote if not poked recently
+            if (!hero.pokedRecently) {
+                const pool = hero.quotes[mode] || hero.quotes.WORK;
+                speech.innerText = `"${pool[Math.floor(Math.random() * pool.length)]}"`;
+            }
+        }
+
+        function triggerHeroCheer() {
+            const hero = HERO_PROFILES[currentHeroKey];
+            if (hero.sound) hero.sound();
+            hero.pokedRecently = true;
+
+            const stage = document.getElementById('hero-avatar-stage');
+            stage.classList.add('rotate-12', 'scale-110');
+            setTimeout(() => stage.classList.remove('rotate-12', 'scale-110'), 200);
+
+            const cheerQuotes = [
+                "AVENGERS ASSEMBLE! Smash that focus sprint!",
+                "100% Core Power! ESP32-S3 and Avengers united!",
+                "Procrastination has been marked for termination!",
+                "Mission parameters locked! Let's do this!"
+            ];
+            document.getElementById('hero-speech').innerText = `"${cheerQuotes[Math.floor(Math.random() * cheerQuotes.length)]}"`;
+            triggerConfettiParty();
+
+            setTimeout(() => { hero.pokedRecently = false; }, 4000);
+        }
+
         // =========================================================================
-        // 4. CORE STATE VARIABLES & DOM ELEMENTS
+        // 4. INFINITY GAUNTLET 4-CYCLE ENGINE
+        // =========================================================================
+        const INFINITY_STONES = [
+            { name: "POWER STONE", color: "#A855F7", border: "#7E22CE", emoji: "🟣", glow: "rgba(168,85,247,0.7)" },
+            { name: "SPACE STONE", color: "#3B82F6", border: "#1D4ED8", emoji: "🔵", glow: "rgba(59,130,246,0.7)" },
+            { name: "REALITY STONE", color: "#EF4444", border: "#B91C1C", emoji: "🔴", glow: "rgba(239,68,68,0.7)" },
+            { name: "SOUL STONE", color: "#F97316", border: "#C2410C", emoji: "🟠", glow: "rgba(249,115,22,0.7)" }
+        ];
+
+        function renderInfinityGauntlet(count, phase) {
+            const container = document.getElementById('infinity-slots');
+            let html = "";
+            for (let i = 0; i < 4; i++) {
+                const stone = INFINITY_STONES[i];
+                if (i < count) {
+                    html += `
+                        <div class="w-6 h-6 rounded-full border-2 border-black flex items-center justify-center text-xs font-bold text-white shadow-neo-sm" style="background-color: ${stone.color}; box-shadow: 0 0 8px ${stone.glow};" title="${stone.name} Activated!">
+                            ★
+                        </div>
+                    `;
+                } else if (i === count && phase === 'WORK') {
+                    html += `
+                        <div class="w-6 h-6 rounded-full border-2 border-black flex items-center justify-center text-[10px] animate-pulse" style="border-color: ${stone.border}; background-color: ${stone.color}40;" title="Acquiring ${stone.name}...">
+                            ⏳
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="w-5 h-5 rounded-full border border-black bg-zinc-300" title="Locked Stone"></div>
+                    `;
+                }
+            }
+            container.innerHTML = html;
+        }
+
+        // =========================================================================
+        // 5. CORE REALTIME STATE & TIMER TICKER
         // =========================================================================
         let localSeconds = 1500;
         let totalSeconds = 1500;
@@ -882,25 +1097,18 @@
         const connDot = document.getElementById("conn-dot");
         const connLabel = document.getElementById("conn-label");
         const connPill = document.getElementById("conn-pill");
-        const btnRunIcon = document.getElementById("btn-run-icon");
-        const btnRunText = document.getElementById("btn-run-text");
-        const mainContainer = document.getElementById("main-timer-container");
-        const lcdModeText = document.getElementById("lcd-mode-text");
+        const hudModeText = document.getElementById("hud-mode-text");
+        const hardwareInstructionText = document.getElementById("hardware-instruction-text");
 
-        // Format Seconds into MM:SS
         function formatTime(secs) {
             const m = Math.floor(secs / 60).toString().padStart(2, '0');
             const s = (secs % 60).toString().padStart(2, '0');
             return `${m}:${s}`;
         }
 
-        // =========================================================================
-        // 5. UI STATE APPLIER (Local & Realtime)
-        // =========================================================================
         function applyState(data) {
             const prevRunning = isRunning;
             const prevPhase = currentPhase;
-            const prevSecs = localSeconds;
 
             localSeconds = Number.isInteger(data.remaining_seconds) ? data.remaining_seconds : 1500;
             totalSeconds = data.total_phase_seconds || 1500;
@@ -908,88 +1116,69 @@
             isRunning = !!data.is_running;
             pomodoroCount = data.pomodoro_count || 0;
 
-            // Audio cues on state transitions
+            // Audio cues & celebrations on state transitions
             if (!isFirstLoad) {
                 if (!prevRunning && isRunning) {
-                    AudioEngine.powerUp();
-                    showToast("▶ TIMER STARTED", "start");
+                    AudioEngine.repulsorZap();
+                    showToast("⚡ HARDWARE TRIGGER: MISSION STARTED!", "start");
                 } else if (prevRunning && !isRunning) {
-                    AudioEngine.powerDown();
-                    showToast("⏸ TIMER PAUSED", "pause");
+                    AudioEngine.shieldClang();
+                    showToast("⏸ HARDWARE TRIGGER: PAUSED", "pause");
                 }
 
                 if (prevPhase !== currentPhase) {
-                    AudioEngine.celebrate();
+                    AudioEngine.fanfare();
                     triggerConfettiParty();
-                    showToast(`✨ SWITCHED TO ${currentPhase}!`, "phase");
-                    loadAnalytics(); // Reload logs
+                    showToast(`✨ PHASE SHIFTED TO ${currentPhase}!`, "phase");
+                    loadAnalytics();
                 }
             }
             isFirstLoad = false;
 
-            // Display Digital Time
+            // Clock Display
             timerDisplay.innerText = formatTime(localSeconds);
 
-            // Phase Badge & Theme Styling
+            // Phase Styling
             if (currentPhase === "WORK") {
-                phaseBadge.innerText = "🔥 WORK PROTOCOL";
-                phaseBadge.className = "font-arcade text-xs sm:text-sm font-bold px-3 py-1 rounded-md border-2 border-black bg-tomato text-white shadow-neo-sm uppercase";
-                progressBar.className = "h-full bg-tomato border border-black rounded transition-all duration-500 ease-out striped-bar";
-                lcdModeText.innerText = "TARGET: DEEP FOCUS";
-                document.body.style.backgroundColor = "#FAF7EE";
+                phaseBadge.innerText = "💥 COMBAT PROTOCOL";
+                phaseBadge.className = "font-comic text-base sm:text-lg tracking-wider px-3.5 py-1 rounded-md border-2 border-black bg-stark-red text-white shadow-neo-sm uppercase";
+                progressBar.className = "h-full bg-stark-red border border-black rounded transition-all duration-500 ease-out striped-bar";
+                hudModeText.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500 animate-ping inline-block"></span> PROTOCOL: COMBAT FOCUS SPRINT`;
+                hardwareInstructionText.innerText = "Focus in progress! Press the physical ESP32 button on your desk to pause.";
             } else if (currentPhase === "SHORT_BREAK") {
-                phaseBadge.innerText = "🌴 SHORT BREAK";
-                phaseBadge.className = "font-arcade text-xs sm:text-sm font-bold px-3 py-1 rounded-md border-2 border-black bg-mint text-black shadow-neo-sm uppercase";
-                progressBar.className = "h-full bg-mint border border-black rounded transition-all duration-500 ease-out striped-bar";
-                lcdModeText.innerText = "TARGET: 5 MIN RECHARGE";
-                document.body.style.backgroundColor = "#F0FAF5";
+                phaseBadge.innerText = "🛡️ TACTICAL RECHARGE";
+                phaseBadge.className = "font-comic text-base sm:text-lg tracking-wider px-3.5 py-1 rounded-md border-2 border-black bg-cyan-400 text-black shadow-neo-sm uppercase";
+                progressBar.className = "h-full bg-cyan-400 border border-black rounded transition-all duration-500 ease-out striped-bar";
+                hudModeText.innerHTML = `<span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping inline-block"></span> PROTOCOL: 5 MIN SERUM RECOVERY`;
+                hardwareInstructionText.innerText = "Take a breather! Drink water or stretch. Physical ESP32 tracks recovery.";
             } else {
-                phaseBadge.innerText = "🏆 LONG BREAK";
-                phaseBadge.className = "font-arcade text-xs sm:text-sm font-bold px-3 py-1 rounded-md border-2 border-black bg-purple-400 text-black shadow-neo-sm uppercase";
-                progressBar.className = "h-full bg-purple-400 border border-black rounded transition-all duration-500 ease-out striped-bar";
-                lcdModeText.innerText = "TARGET: EXTENDED CHILL";
-                document.body.style.backgroundColor = "#F8F0FA";
+                phaseBadge.innerText = "🏆 SHAWARMA LONG BREAK";
+                phaseBadge.className = "font-comic text-base sm:text-lg tracking-wider px-3.5 py-1 rounded-md border-2 border-black bg-stark-gold text-black shadow-neo-sm uppercase";
+                progressBar.className = "h-full bg-stark-gold border border-black rounded transition-all duration-500 ease-out striped-bar";
+                hudModeText.innerHTML = `<span class="w-2 h-2 rounded-full bg-yellow-400 animate-ping inline-block"></span> PROTOCOL: SHAWARMA PARTY (EXTENDED REST)`;
+                hardwareInstructionText.innerText = "Infinity cycle achieved! Enjoy your extended rest before assembling again.";
             }
 
-            // Running / Paused Badges & Action Button
+            // Running / Paused Status
             if (isRunning) {
-                statusBadge.innerText = "RUNNING";
-                statusBadge.className = "font-arcade text-[11px] font-bold px-2.5 py-1 rounded-md border-2 border-black bg-mint text-black shadow-neo-sm uppercase animate-pulse";
-                btnRunIcon.innerText = "⏸";
-                btnRunText.innerText = "PAUSE";
+                statusBadge.innerText = "MISSION ACTIVE";
+                statusBadge.className = "font-arcade text-[11px] font-bold px-2.5 py-1 rounded-md border-2 border-black bg-emerald-400 text-black shadow-neo-sm uppercase animate-pulse";
             } else {
-                statusBadge.innerText = "PAUSED";
-                statusBadge.className = "font-arcade text-[11px] font-bold px-2.5 py-1 rounded-md border-2 border-black bg-sun text-black shadow-neo-sm uppercase";
-                btnRunIcon.innerText = "▶";
-                btnRunText.innerText = "RESUME";
+                statusBadge.innerText = "STANDBY PAUSED";
+                statusBadge.className = "font-arcade text-[11px] font-bold px-2.5 py-1 rounded-md border-2 border-black bg-stark-gold text-black shadow-neo-sm uppercase";
             }
 
-            // Render 4 Cycle Slots
-            renderCycleSlots(pomodoroCount);
+            // Render Infinity Gauntlet Stones
+            renderInfinityGauntlet(pomodoroCount, currentPhase);
 
             // Progress bar update
             updateProgress();
 
-            // Mascot character update
-            Mascot.render(currentPhase, isRunning);
+            // Render Superhero
+            renderHero(currentPhase, isRunning);
 
-            // Start or stop smooth local 1s timer
+            // Local smooth ticker
             startLocalTicker();
-        }
-
-        function renderCycleSlots(count) {
-            const container = document.getElementById("cycle-slots");
-            let html = "";
-            for (let i = 0; i < 4; i++) {
-                if (i < count) {
-                    html += `<span class="w-4 h-4 rounded-full border-2 border-black bg-tomato flex items-center justify-center text-[10px] text-white font-bold" title="Completed">✓</span>`;
-                } else if (i === count && currentPhase === 'WORK') {
-                    html += `<span class="w-4 h-4 rounded-full border-2 border-black bg-sun animate-pulse" title="In Progress"></span>`;
-                } else {
-                    html += `<span class="w-4 h-4 rounded-full border border-black bg-zinc-300" title="Pending"></span>`;
-                }
-            }
-            container.innerHTML = html;
         }
 
         function updateProgress() {
@@ -999,9 +1188,6 @@
             progressPercent.innerText = `${pct}%`;
         }
 
-        // =========================================================================
-        // 6. SMOOTH LOCAL 1-SECOND TICKER
-        // =========================================================================
         function startLocalTicker() {
             if (localTimerInterval) clearInterval(localTimerInterval);
 
@@ -1012,17 +1198,14 @@
                         timerDisplay.innerText = formatTime(localSeconds);
                         updateProgress();
 
-                        // Gentle tick sound on the last 5 seconds
                         if (localSeconds <= 5 && localSeconds > 0) {
-                            AudioEngine.blip();
+                            AudioEngine.repulsorZap();
                         }
                     } else {
-                        // Timer naturally completed!
                         clearInterval(localTimerInterval);
-                        AudioEngine.celebrate();
+                        AudioEngine.fanfare();
                         triggerConfettiParty();
-                        showToast("🎉 SESSION COMPLETE!", "done");
-                        // Refresh analytics
+                        showToast("🎉 MISSION COMPLETE!", "done");
                         loadAnalytics();
                     }
                 }, 1000);
@@ -1030,7 +1213,7 @@
         }
 
         // =========================================================================
-        // 7. SUPABASE FETCH & REALTIME SUBSCRIPTION
+        // 6. SUPABASE REALTIME SUBSCRIPTION
         // =========================================================================
         async function fetchInitialState() {
             try {
@@ -1042,13 +1225,12 @@
                     .single();
 
                 if (error) throw error;
-
                 if (data) {
                     applyState(data);
                     setConnectionStatus('ONLINE');
                 }
             } catch (err) {
-                console.error("Initial fetch error:", err);
+                console.error("Supabase fetch error:", err);
                 setConnectionStatus('ERROR');
             }
         }
@@ -1060,13 +1242,12 @@
                     'postgres_changes',
                     { event: 'UPDATE', schema: 'public', table: 'device_state', filter: 'id=eq.1' },
                     (payload) => {
-                        console.log("ESP32 Realtime Packet:", payload.new);
+                        console.log("ESP32 Hardware Event:", payload.new);
                         applyState(payload.new);
                         setConnectionStatus('ONLINE');
                     }
                 )
                 .subscribe((status) => {
-                    console.log("Realtime Channel Status:", status);
                     if (status === 'SUBSCRIBED') {
                         setConnectionStatus('ONLINE');
                     } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
@@ -1094,61 +1275,10 @@
             }
         }
 
-        // =========================================================================
-        // 8. TACTILE WEB REMOTE CONTROLS (Syncs to DB -> Physical ESP32)
-        // =========================================================================
-        async function updateDeviceState(updates) {
-            AudioEngine.click();
-            try {
-                const { error } = await supabaseClient
-                    .from('device_state')
-                    .update({
-                        ...updates,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', 1);
-
-                if (error) throw error;
-            } catch (err) {
-                console.error("Failed to update device_state:", err);
-                showToast("⚠️ Could not reach ESP32", "error");
-            }
-        }
-
-        function toggleTimer() {
-            updateDeviceState({ is_running: !isRunning });
-        }
-
-        function skipPhase() {
-            let nextPhase = currentPhase === 'WORK' ? 'SHORT_BREAK' : 'WORK';
-            let nextTotal = nextPhase === 'WORK' ? 1500 : 300;
-            let nextCount = currentPhase === 'WORK' ? (pomodoroCount + 1) % 5 : pomodoroCount;
-
-            if (nextCount === 4 && nextPhase === 'SHORT_BREAK') {
-                nextPhase = 'LONG_BREAK';
-                nextTotal = 900;
-            }
-
-            updateDeviceState({
-                phase: nextPhase,
-                remaining_seconds: nextTotal,
-                total_phase_seconds: nextTotal,
-                pomodoro_count: nextCount,
-                is_running: false
-            });
-        }
-
-        function resetCurrentPhase() {
-            updateDeviceState({
-                remaining_seconds: totalSeconds,
-                is_running: false
-            });
-        }
-
         async function manualSync() {
             const spinner = document.getElementById('sync-spinner');
             spinner.classList.add('rotate-180');
-            AudioEngine.blip();
+            AudioEngine.repulsorZap();
             await fetchInitialState();
             await loadAnalytics();
             setTimeout(() => {
@@ -1158,7 +1288,7 @@
         }
 
         // =========================================================================
-        // 9. ANALYTICS, GAMIFICATION & SESSION LOGS
+        // 7. S.H.I.E.L.D. ANALYTICS & GAMIFICATION
         // =========================================================================
         async function loadAnalytics() {
             try {
@@ -1182,12 +1312,11 @@
                     }
                 });
 
-                // Update Metric Blocks
                 document.getElementById('stat-focus-hours').innerText = (totalFocusMinutes / 60).toFixed(1);
                 document.getElementById('stat-smashed').innerText = workCount;
                 document.getElementById('stat-break-count').innerText = breakCount;
 
-                // Update Focus vs Rest Ratio Bar
+                // Focus vs Rest Ratio
                 const totalSessions = workCount + breakCount;
                 if (totalSessions > 0) {
                     const workPct = Math.round((workCount / totalSessions) * 100);
@@ -1198,38 +1327,31 @@
                     document.getElementById('ratio-break-bar').style.width = `${breakPct}%`;
                 }
 
-                // Update Gamification / XP Engine
-                updateGamification(totalFocusMinutes, workCount);
-
-                // Render Recent Smashed Sessions List Feed
-                renderSessionLogs(data.slice(0, 8));
+                updateShieldClearance(totalFocusMinutes);
+                renderMissionDebriefs(data.slice(0, 8));
 
             } catch (err) {
-                console.warn("Analytics load warning:", err);
+                console.warn("Analytics load error:", err);
             }
         }
 
-        function updateGamification(totalMinutes, workCount) {
-            // 10 XP per completed focus minute
+        function updateShieldClearance(totalMinutes) {
             const totalXP = totalMinutes * 10;
-
             const ranks = [
-                { name: "SPROUT CADET", level: 1, minXP: 0, maxXP: 250, badge: "🌱" },
-                { name: "CHERRY POPPER", level: 2, minXP: 250, maxXP: 750, badge: "🍅" },
-                { name: "JUICE BOXER", level: 3, minXP: 750, maxXP: 1500, badge: "🥊" },
-                { name: "TOMATO TITAN", level: 4, minXP: 1500, maxXP: 3000, badge: "⚡" },
-                { name: "SALSA SOVEREIGN", level: 5, minXP: 3000, maxXP: 6000, badge: "👑" },
+                { name: "LEVEL 1 RECRUIT", level: 1, minXP: 0, maxXP: 250, badge: "🪪" },
+                { name: "RESERVE AVENGER", level: 2, minXP: 250, maxXP: 750, badge: "🕷️" },
+                { name: "SUPER SOLDIER", level: 3, minXP: 750, maxXP: 1500, badge: "🛡️" },
+                { name: "GOD OF THUNDER", level: 4, minXP: 1500, maxXP: 3000, badge: "⚡" },
+                { name: "STARK MASTERMIND", level: 5, minXP: 3000, maxXP: 6000, badge: "🦾" }
             ];
 
             let currentRank = ranks[0];
             for (let r of ranks) {
-                if (totalXP >= r.minXP) {
-                    currentRank = r;
-                }
+                if (totalXP >= r.minXP) currentRank = r;
             }
 
             document.getElementById('xp-rank-title').innerText = `${currentRank.badge} ${currentRank.name}`;
-            document.getElementById('xp-level-badge').innerText = `LVL ${currentRank.level}`;
+            document.getElementById('xp-level-badge').innerText = `RANK ${currentRank.level}`;
 
             const xpInLevel = totalXP - currentRank.minXP;
             const xpSpan = currentRank.maxXP - currentRank.minXP;
@@ -1239,7 +1361,7 @@
             document.getElementById('xp-counter-text').innerText = `${totalXP} / ${currentRank.maxXP} XP`;
         }
 
-        function renderSessionLogs(logs) {
+        function renderMissionDebriefs(logs) {
             const list = document.getElementById('session-log-list');
             const countTag = document.getElementById('log-count-tag');
 
@@ -1248,7 +1370,7 @@
             if (logs.length === 0) {
                 list.innerHTML = `
                     <div class="p-4 border-2 border-dashed border-zinc-400 rounded-xl text-center text-zinc-500 text-xs font-bold">
-                        🍅 Press physical ESP32 button to smash your first session!
+                        ⚡ Press your physical ESP32 button to record your first mission!
                     </div>
                 `;
                 return;
@@ -1257,8 +1379,8 @@
             list.innerHTML = logs.map(session => {
                 const isWork = session.phase === 'WORK';
                 const timeStr = session.completed_at ? new Date(session.completed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent';
-                const icon = isWork ? '🍅' : '🧃';
-                const badgeBg = isWork ? 'bg-tomato text-white' : 'bg-mint text-black';
+                const icon = isWork ? '💥' : '🧪';
+                const badgeBg = isWork ? 'bg-stark-red text-white' : 'bg-cyan-400 text-black';
                 const xpGain = isWork ? `+${(session.duration_minutes || 25) * 10} XP` : '+25 XP';
 
                 return `
@@ -1270,7 +1392,7 @@
                                     <span class="font-arcade text-[10px] font-bold px-1.5 py-0.5 rounded border border-black ${badgeBg}">
                                         ${session.phase}
                                     </span>
-                                    <span class="text-xs font-bold text-zinc-800">
+                                    <span class="text-xs font-bold text-zinc-800 font-display">
                                         ${session.duration_minutes || 25} MINS
                                     </span>
                                 </div>
@@ -1286,16 +1408,15 @@
         }
 
         // =========================================================================
-        // 10. CELEBRATION EFFECTS & TOASTS
+        // 8. CELEBRATIONS & TOASTS
         // =========================================================================
         function triggerConfettiParty() {
-            AudioEngine.celebrate();
             if (typeof confetti === 'function') {
                 confetti({
-                    particleCount: 75,
-                    spread: 80,
+                    particleCount: 85,
+                    spread: 85,
                     origin: { y: 0.65 },
-                    colors: ['#FF4343', '#FFE144', '#00F0A8', '#38E1FF', '#C084FC']
+                    colors: ['#E62429', '#FFD700', '#00F0FF', '#3B82F6', '#10B981']
                 });
             }
         }
@@ -1306,25 +1427,28 @@
             const toastIcon = document.getElementById('toast-icon');
 
             toastText.innerText = text;
-            if (type === 'start') toastIcon.innerText = '▶';
+            if (type === 'start') toastIcon.innerText = '⚡';
             else if (type === 'pause') toastIcon.innerText = '⏸';
             else if (type === 'phase') toastIcon.innerText = '✨';
             else if (type === 'done') toastIcon.innerText = '🏆';
             else if (type === 'sound') toastIcon.innerText = '🔊';
             else if (type === 'mute') toastIcon.innerText = '🔇';
-            else toastIcon.innerText = '🍅';
+            else toastIcon.innerText = '💥';
 
             toast.classList.remove('translate-y-32');
-            setTimeout(() => {
-                toast.classList.add('translate-y-32');
-            }, 2500);
+            setTimeout(() => { toast.classList.add('translate-y-32'); }, 2500);
         }
 
         // =========================================================================
-        // 11. BOOTSTRAP DASHBOARD
+        // 9. BOOTSTRAP
         // =========================================================================
         AudioEngine.updateUI();
-        Mascot.render('WORK', false);
+        // Initialize default active hero button
+        const initialHeroBtn = document.querySelector(`button[onclick*="${currentHeroKey}"]`);
+        if (initialHeroBtn) {
+            initialHeroBtn.className = "hero-tab neo-btn bg-stark-gold text-black px-3 py-1.5 text-xs flex items-center gap-1.5 shadow-neo-sm font-black";
+        }
+        renderHero('WORK', false);
         fetchInitialState();
         subscribeToRealtime();
         loadAnalytics();
