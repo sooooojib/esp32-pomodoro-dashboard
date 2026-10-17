@@ -130,6 +130,71 @@
             animation: comicShake 0.4s ease-in-out;
         }
 
+        /* SUPERPOWER ENERGY ANIMATIONS (Web, Smash, Shield Throw, Thunder, Unibeam) */
+        @keyframes shieldRicochet {
+            0% { transform: scale(1) rotate(0deg); }
+            20% { transform: scale(1.25) rotate(360deg) translate(30px, -20px); }
+            45% { transform: scale(1.1) rotate(720deg) translate(-25px, 15px); }
+            70% { transform: scale(1.2) rotate(1080deg) translate(20px, -10px); }
+            100% { transform: scale(1) rotate(1440deg) translate(0, 0); }
+        }
+        .shield-ricochet {
+            animation: shieldRicochet 0.75s cubic-bezier(0.25, 1, 0.5, 1) !important;
+        }
+
+        @keyframes laserUnibeam {
+            0% { transform: scale(0.2); opacity: 0; }
+            30% { transform: scale(1.15); opacity: 1; }
+            75% { transform: scale(1.35); opacity: 0.9; }
+            100% { transform: scale(1.6); opacity: 0; }
+        }
+        .unibeam-blast {
+            animation: laserUnibeam 0.7s ease-out forwards;
+        }
+
+        @keyframes lightningStrike {
+            0% { opacity: 0; transform: scaleY(0.2); }
+            25% { opacity: 1; transform: scaleY(1.1); }
+            45% { opacity: 0.3; }
+            65% { opacity: 1; transform: scaleY(1); }
+            100% { opacity: 0; }
+        }
+        .lightning-flash {
+            animation: lightningStrike 0.65s ease-out forwards;
+        }
+
+        @keyframes webBurst {
+            0% { transform: scale(0.1) rotate(-25deg); opacity: 0; }
+            40% { transform: scale(1.15) rotate(5deg); opacity: 1; }
+            75% { transform: scale(1.25); opacity: 0.95; }
+            100% { transform: scale(1.4); opacity: 0; }
+        }
+        .web-burst {
+            animation: webBurst 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes gammaCrater {
+            0% { transform: scale(0.3); opacity: 0; }
+            35% { transform: scale(1.2); opacity: 1; }
+            70% { transform: scale(1.4); opacity: 0.85; }
+            100% { transform: scale(1.8); opacity: 0; }
+        }
+        .gamma-crater {
+            animation: gammaCrater 0.75s ease-out forwards;
+        }
+
+        @keyframes intenseEarthquake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            15% { transform: translate(-6px, 4px) rotate(-1.5deg); }
+            30% { transform: translate(6px, -4px) rotate(1.5deg); }
+            45% { transform: translate(-4px, -3px) rotate(-1deg); }
+            60% { transform: translate(4px, 3px) rotate(1deg); }
+            75% { transform: translate(-2px, 1px) rotate(0deg); }
+        }
+        .earthquake {
+            animation: intenseEarthquake 0.65s ease-in-out;
+        }
+
         /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
@@ -223,61 +288,72 @@
             <div class="flex items-center gap-2">
                 <i data-lucide="shield" class="w-4 h-4 text-black"></i>
                 <span class="font-comic text-lg text-black tracking-wide">ASSEMBLE OPERATOR:</span>
-                <span class="text-xs font-bold text-zinc-500 font-body hidden md:inline">Select your active superhero companion</span>
+                <span class="text-xs font-bold text-zinc-500 font-body hidden md:inline">Click hero to unleash their superpower!</span>
             </div>
 
             <div class="flex flex-wrap items-center gap-2" id="hero-roster">
                 <!-- Iron Man Button -->
-                <button class="hero-tab neo-btn bg-stark-gold text-black px-3 py-1.5 text-xs flex items-center gap-1.5 shadow-neo-sm font-black" onclick="selectHero('ironman', event)">
+                <button class="hero-tab neo-btn bg-stark-gold text-black px-3 py-1.5 text-xs flex items-center gap-1.5 shadow-neo-sm font-black" onclick="selectHero('ironman', event)" title="Click to trigger Unibeam!">
                     <!-- Arc Reactor Vector Icon -->
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"/>
-                        <polygon points="12 6 18 16 6 16" fill="currentColor"/>
+                    <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10.5" fill="#E62429" stroke="#000" stroke-width="1.5"/>
+                        <circle cx="12" cy="12" r="7.5" fill="#FFD700" stroke="#000" stroke-width="1"/>
+                        <circle cx="12" cy="12" r="4.8" fill="#00F0FF" stroke="#000" stroke-width="1"/>
+                        <polygon points="12,8 15.5,14 8.5,14" fill="#FFFFFF" stroke="#000" stroke-width="0.7"/>
+                        <circle cx="12" cy="12" r="1.5" fill="#00F0FF"/>
                     </svg>
                     <span class="font-display font-bold">IRON MAN</span>
                 </button>
 
                 <!-- Cap Button -->
-                <button class="hero-tab neo-btn bg-white hover:bg-blue-50 text-black px-3 py-1.5 text-xs flex items-center gap-1.5" onclick="selectHero('cap', event)">
+                <button class="hero-tab neo-btn bg-white hover:bg-blue-50 text-black px-3 py-1.5 text-xs flex items-center gap-1.5" onclick="selectHero('cap', event)" title="Click to throw Shield!">
                     <!-- Cap Shield Vector Icon -->
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"/>
-                        <circle cx="12" cy="12" r="5"/>
-                        <polygon points="12 8 13 10.5 15.5 10.5 13.5 12 14.2 14.5 12 13 9.8 14.5 10.5 12 8.5 10.5 11 10.5" fill="currentColor"/>
+                    <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10.5" fill="#E62429" stroke="#000" stroke-width="1.5"/>
+                        <circle cx="12" cy="12" r="8" fill="#FFFFFF" stroke="#000" stroke-width="1"/>
+                        <circle cx="12" cy="12" r="5.5" fill="#E62429" stroke="#000" stroke-width="1"/>
+                        <circle cx="12" cy="12" r="3.2" fill="#0D47A1" stroke="#000" stroke-width="0.8"/>
+                        <polygon points="12,9.2 12.8,11 14.8,11 13.2,12.2 13.8,14 12,12.8 10.2,14 10.8,12.2 9.2,11 11.2,11" fill="#FFFFFF" stroke="#000" stroke-width="0.5"/>
                     </svg>
                     <span class="font-display font-bold">CAPTAIN AMERICA</span>
                 </button>
 
                 <!-- Thor Button -->
-                <button class="hero-tab neo-btn bg-white hover:bg-purple-50 text-black px-3 py-1.5 text-xs flex items-center gap-1.5" onclick="selectHero('thor', event)">
+                <button class="hero-tab neo-btn bg-white hover:bg-purple-50 text-black px-3 py-1.5 text-xs flex items-center gap-1.5" onclick="selectHero('thor', event)" title="Click to summon Thunder!">
                     <!-- Mjolnir Hammer Vector Icon -->
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="5" y="4" width="14" height="7" rx="1.5" fill="currentColor"/>
-                        <line x1="12" y1="11" x2="12" y2="20"/>
-                        <line x1="10" y1="20" x2="14" y2="20"/>
+                    <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none">
+                        <rect x="4" y="5" width="16" height="8" rx="2" fill="#94A3B8" stroke="#000" stroke-width="1.5"/>
+                        <rect x="7" y="7" width="10" height="4" fill="#CBD5E1"/>
+                        <line x1="12" y1="13" x2="12" y2="21" stroke="#78350F" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="9" y1="21" x2="15" y2="21" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+                        <polygon points="19,3 15.5,7.5 18.5,8 14.5,13" fill="#00F0FF" stroke="#000" stroke-width="0.8"/>
                     </svg>
                     <span class="font-display font-bold">THOR</span>
                 </button>
 
                 <!-- Spider-Man Button -->
-                <button class="hero-tab neo-btn bg-white hover:bg-red-50 text-black px-3 py-1.5 text-xs flex items-center gap-1.5" onclick="selectHero('spidey', event)">
+                <button class="hero-tab neo-btn bg-white hover:bg-red-50 text-black px-3 py-1.5 text-xs flex items-center gap-1.5" onclick="selectHero('spidey', event)" title="Click to shoot Web!">
                     <!-- Spider-Man Vector Glyph -->
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <ellipse cx="12" cy="12" rx="4" ry="5.5" fill="currentColor"/>
-                        <path d="M12 6.5 C8 3, 4 5, 4 9 M12 6.5 C16 3, 20 5, 20 9"/>
-                        <path d="M12 17.5 C8 21, 4 19, 4 15 M12 17.5 C16 21, 20 19, 20 15"/>
+                    <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none">
+                        <ellipse cx="12" cy="12" rx="9.5" ry="10.5" fill="#EF4444" stroke="#000" stroke-width="1.5"/>
+                        <line x1="12" y1="1.5" x2="12" y2="22.5" stroke="#000" stroke-width="1"/>
+                        <line x1="2.5" y1="12" x2="21.5" y2="12" stroke="#000" stroke-width="1"/>
+                        <ellipse cx="12" cy="12" rx="5.5" ry="6.5" fill="none" stroke="#000" stroke-width="1"/>
+                        <path d="M5.5 8.5 Q10 8 11 11.5 Q8 12 5.5 8.5 Z" fill="#FFFFFF" stroke="#000" stroke-width="1.2"/>
+                        <path d="M18.5 8.5 Q14 8 13 11.5 Q16 12 18.5 8.5 Z" fill="#FFFFFF" stroke="#000" stroke-width="1.2"/>
                     </svg>
                     <span class="font-display font-bold">SPIDER-MAN</span>
                 </button>
 
                 <!-- Hulk Button -->
-                <button class="hero-tab neo-btn bg-white hover:bg-emerald-50 text-black px-3 py-1.5 text-xs flex items-center gap-1.5" onclick="selectHero('hulk', event)">
+                <button class="hero-tab neo-btn bg-white hover:bg-emerald-50 text-black px-3 py-1.5 text-xs flex items-center gap-1.5" onclick="selectHero('hulk', event)" title="Click for Hulk Smash!">
                     <!-- Hulk Fist Vector Icon -->
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M18 11V6a2 2 0 0 0-4 0v4"/>
-                        <path d="M14 8V4a2 2 0 0 0-4 0v6"/>
-                        <path d="M10 9V5a2 2 0 0 0-4 0v7"/>
-                        <path d="M18 9a2 2 0 1 1 4 0v5a7 7 0 0 1-7 7h-3a7 7 0 0 1-7-7v-2"/>
+                    <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10.5" fill="#10B981" stroke="#000" stroke-width="1.5"/>
+                        <path d="M7 13 C7 9, 10 7, 14 7 C17 7, 18 9, 18 12 C18 16, 15 18, 12 18 C9 18, 7 16, 7 13 Z" fill="#047857" stroke="#000" stroke-width="1.2"/>
+                        <rect x="8" y="9" width="2.8" height="4.5" rx="1" fill="#10B981" stroke="#000" stroke-width="0.8"/>
+                        <rect x="11.2" y="8" width="2.8" height="5.5" rx="1" fill="#10B981" stroke="#000" stroke-width="0.8"/>
+                        <rect x="14.4" y="9" width="2.5" height="4.5" rx="1" fill="#10B981" stroke="#000" stroke-width="0.8"/>
                     </svg>
                     <span class="font-display font-bold">HULK</span>
                 </button>
@@ -286,20 +362,20 @@
 
     </header>
 
-    <!-- Main Superhero Mission Center Matrix (Redesigned Cohesive Layout) -->
+    <!-- Main Superhero Mission Center Matrix -->
     <main class="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         <!-- LEFT COLUMN (Column 1-6): Hero Operator & S.H.I.E.L.D. Mission Debriefs -->
         <section class="lg:col-span-6 flex flex-col gap-6">
 
             <!-- Active Superhero Operator Dossier Card -->
-            <div class="neo-card bg-white p-5 sm:p-6 flex flex-col justify-between">
+            <div class="neo-card bg-white p-5 sm:p-6 flex flex-col justify-between relative overflow-hidden" id="hero-operator-card">
                 
                 <!-- Operator Card Top Header -->
                 <div class="flex items-center justify-between border-b-2 border-black pb-3 mb-4">
                     <div class="flex items-center gap-2">
                         <div class="w-7 h-7 rounded-lg bg-stark-gold border-2 border-black flex items-center justify-center text-black" id="hero-emblem-icon">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="12 6 18 16 6 16" fill="currentColor"/></svg>
+                            <!-- Injected dynamically in JS -->
                         </div>
                         <div>
                             <span class="text-[10px] font-mono text-zinc-500 font-bold block uppercase tracking-wider">ACTIVE OPERATOR</span>
@@ -314,17 +390,22 @@
                     </span>
                 </div>
 
-                <!-- Hero Mascot Stage & Comic Speech Balloon -->
+                <!-- Hero Mascot Stage with Interactive Superpower Effects -->
                 <div class="flex flex-col sm:flex-row items-center gap-4 my-2">
-                    <!-- Dynamic Hero Avatar (SVG) -->
-                    <div class="relative cursor-pointer group flex-shrink-0" onclick="triggerHeroCheer()" title="Click to trigger Superhero battle cry!">
-                        <div id="hero-avatar-stage" class="w-32 h-32 sm:w-36 sm:h-36 flex items-center justify-center energy-pulse transition-transform group-hover:scale-105 group-active:scale-95">
+                    
+                    <!-- Dynamic Hero Avatar (Click to trigger Superpower: Web, Smash, Shield, Thunder, Laser!) -->
+                    <div class="relative cursor-pointer group flex-shrink-0" onclick="triggerHeroCheer()" title="Click to trigger Superpower energy!">
+                        
+                        <div id="hero-avatar-stage" class="w-32 h-32 sm:w-36 sm:h-36 flex items-center justify-center energy-pulse transition-transform group-hover:scale-105 group-active:scale-95 relative">
                             <svg id="hero-svg" viewBox="0 0 160 160" class="w-full h-full drop-shadow-[4px_4px_0px_#000]">
                                 <!-- Dynamically drawn based on selected hero and state -->
                             </svg>
+
+                            <!-- Dynamic Superpower Visual Effect Overlay Container -->
+                            <div id="hero-energy-fx" class="absolute inset-0 pointer-events-none flex items-center justify-center overflow-visible z-20"></div>
                         </div>
 
-                        <!-- Comic Action Sticker -->
+                        <!-- Comic Action Sticker (Updates with power attack) -->
                         <span id="hero-action-sticker" class="absolute -bottom-1 -right-1 bg-stark-gold border-2 border-black text-[9px] font-comic px-1.5 py-0.5 rounded shadow-neo-sm font-bold rotate-6 group-hover:rotate-12 transition-transform">
                             BAM!
                         </span>
@@ -367,9 +448,9 @@
                             </p>
                         </div>
                     </div>
-                    <button class="neo-btn bg-stark-gold hover:bg-yellow-300 text-black px-3 py-1.5 font-comic text-xs tracking-wider flex items-center gap-1 flex-shrink-0" onclick="triggerHeroCheer()">
+                    <button class="neo-btn bg-stark-gold hover:bg-yellow-300 text-black px-3 py-1.5 font-comic text-xs tracking-wider flex items-center gap-1 flex-shrink-0" onclick="triggerHeroCheer()" title="Click to unleash signature Superpower energy!">
                         <i data-lucide="zap" class="w-3.5 h-3.5"></i>
-                        <span>ASSEMBLE!</span>
+                        <span>UNLEASH POWER!</span>
                     </button>
                 </div>
 
@@ -637,8 +718,8 @@
     <!-- Interactive Toast Notification -->
     <div id="toast-bubble" class="fixed bottom-6 right-6 z-50 transform translate-y-32 transition-transform duration-300 pointer-events-none">
         <div class="neo-card bg-stark-gold text-black px-4 py-2.5 font-display font-bold text-sm shadow-neo flex items-center gap-2">
-            <span id="toast-icon" class="flex items-center">
-                <i data-lucide="zap" class="w-4 h-4"></i>
+            <span id="toast-icon" class="w-5 h-5 flex items-center justify-center">
+                <!-- Injected dynamically in JS -->
             </span>
             <span id="toast-text">Toast message</span>
         </div>
@@ -700,35 +781,35 @@
                     const osc = this.ctx.createOscillator();
                     const gain = this.ctx.createGain();
                     osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(1200, this.ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.18);
-                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.18);
+                    osc.frequency.setValueAtTime(1400, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(280, this.ctx.currentTime + 0.22);
+                    gain.gain.setValueAtTime(0.22, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.22);
                     osc.connect(gain);
                     gain.connect(this.ctx.destination);
                     osc.start();
-                    osc.stop(this.ctx.currentTime + 0.18);
+                    osc.stop(this.ctx.currentTime + 0.22);
                 } catch(e) {}
             },
 
             shieldClang() {
-                this.playTone(800, 'triangle', 0.05, 0, 0.2);
-                this.playTone(1600, 'sine', 0.2, 0.02, 0.15);
+                this.playTone(900, 'triangle', 0.05, 0, 0.25);
+                this.playTone(1800, 'sine', 0.25, 0.02, 0.2);
             },
 
             thunderStrike() {
-                this.playTone(120, 'sawtooth', 0.35, 0, 0.25);
-                this.playTone(90, 'sine', 0.4, 0.08, 0.2);
+                this.playTone(140, 'sawtooth', 0.4, 0, 0.3);
+                this.playTone(85, 'sine', 0.45, 0.08, 0.25);
             },
 
             webShot() {
-                this.playTone(1800, 'sine', 0.06, 0, 0.15);
-                this.playTone(950, 'triangle', 0.08, 0.03, 0.12);
+                this.playTone(2000, 'sine', 0.06, 0, 0.18);
+                this.playTone(950, 'triangle', 0.1, 0.03, 0.15);
             },
 
             hulkSmash() {
-                this.playTone(80, 'sawtooth', 0.3, 0, 0.3);
-                this.playTone(60, 'square', 0.4, 0.05, 0.25);
+                this.playTone(85, 'sawtooth', 0.35, 0, 0.35);
+                this.playTone(55, 'square', 0.45, 0.05, 0.3);
             },
 
             fanfare() {
@@ -771,12 +852,12 @@
         }, { once: true });
 
         // =========================================================================
-        // 3. SUPERHERO ROSTER & VECTOR MASCOT ENGINE (Idea B)
+        // 3. SUPERHERO ROSTER & SIGNATURE SUPERPOWER ENGINE
         // =========================================================================
         const HERO_PROFILES = {
             ironman: {
                 name: "IRON MAN (TONY STARK)",
-                emblemIcon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="12 6 18 16 6 16" fill="currentColor"/></svg>`,
+                emblemIcon: `<svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10.5" fill="#E62429" stroke="#000" stroke-width="1.5"/><circle cx="12" cy="12" r="7.5" fill="#FFD700" stroke="#000" stroke-width="1"/><circle cx="12" cy="12" r="4.8" fill="#00F0FF" stroke="#000" stroke-width="1"/><polygon points="12,8 15.5,14 8.5,14" fill="#FFFFFF" stroke="#000" stroke-width="0.7"/><circle cx="12" cy="12" r="1.5" fill="#00F0FF"/></svg>`,
                 themeColor: "#E62429",
                 sticker: "I AM IRON MAN!",
                 sound: () => AudioEngine.repulsorZap(),
@@ -819,7 +900,7 @@
             },
             cap: {
                 name: "CAPTAIN AMERICA (STEVE ROGERS)",
-                emblemIcon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="5"/><polygon points="12 8 13 10.5 15.5 10.5 13.5 12 14.2 14.5 12 13 9.8 14.5 10.5 12 8.5 10.5 11 10.5" fill="currentColor"/></svg>`,
+                emblemIcon: `<svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10.5" fill="#E62429" stroke="#000" stroke-width="1.5"/><circle cx="12" cy="12" r="8" fill="#FFFFFF" stroke="#000" stroke-width="1"/><circle cx="12" cy="12" r="5.5" fill="#E62429" stroke="#000" stroke-width="1"/><circle cx="12" cy="12" r="3.2" fill="#0D47A1" stroke="#000" stroke-width="0.8"/><polygon points="12,9.2 12.8,11 14.8,11 13.2,12.2 13.8,14 12,12.8 10.2,14 10.8,12.2 9.2,11 11.2,11" fill="#FFFFFF" stroke="#000" stroke-width="0.5"/></svg>`,
                 themeColor: "#0D47A1",
                 sticker: "I CAN DO THIS ALL DAY!",
                 sound: () => AudioEngine.shieldClang(),
@@ -856,7 +937,7 @@
             },
             thor: {
                 name: "THOR (GOD OF THUNDER)",
-                emblemIcon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="4" width="14" height="7" rx="1.5" fill="currentColor"/><line x1="12" y1="11" x2="12" y2="20"/><line x1="10" y1="20" x2="14" y2="20"/></svg>`,
+                emblemIcon: `<svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="8" rx="2" fill="#94A3B8" stroke="#000" stroke-width="1.5"/><rect x="7" y="7" width="10" height="4" fill="#CBD5E1"/><line x1="12" y1="13" x2="12" y2="21" stroke="#78350F" stroke-width="2.5" stroke-linecap="round"/><line x1="9" y1="21" x2="15" y2="21" stroke="#000" stroke-width="2" stroke-linecap="round"/><polygon points="19,3 15.5,7.5 18.5,8 14.5,13" fill="#00F0FF" stroke="#000" stroke-width="0.8"/></svg>`,
                 themeColor: "#6B21A8",
                 sticker: "BRING ME MORE TASKS!",
                 sound: () => AudioEngine.thunderStrike(),
@@ -897,7 +978,7 @@
             },
             spidey: {
                 name: "SPIDER-MAN (PETER PARKER)",
-                emblemIcon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><ellipse cx="12" cy="12" rx="4" ry="5.5" fill="currentColor"/><path d="M12 6.5 C8 3, 4 5, 4 9 M12 6.5 C16 3, 20 5, 20 9"/><path d="M12 17.5 C8 21, 4 19, 4 15 M12 17.5 C16 21, 20 19, 20 15"/></svg>`,
+                emblemIcon: `<svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="12" rx="9.5" ry="10.5" fill="#EF4444" stroke="#000" stroke-width="1.5"/><line x1="12" y1="1.5" x2="12" y2="22.5" stroke="#000" stroke-width="1"/><line x1="2.5" y1="12" x2="21.5" y2="12" stroke="#000" stroke-width="1"/><ellipse cx="12" cy="12" rx="5.5" ry="6.5" fill="none" stroke="#000" stroke-width="1"/><path d="M5.5 8.5 Q10 8 11 11.5 Q8 12 5.5 8.5 Z" fill="#FFFFFF" stroke="#000" stroke-width="1.2"/><path d="M18.5 8.5 Q14 8 13 11.5 Q16 12 18.5 8.5 Z" fill="#FFFFFF" stroke="#000" stroke-width="1.2"/></svg>`,
                 themeColor: "#EF4444",
                 sticker: "THWIP!",
                 sound: () => AudioEngine.webShot(),
@@ -939,7 +1020,7 @@
             },
             hulk: {
                 name: "HULK (BRUCE BANNER)",
-                emblemIcon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 11V6a2 2 0 0 0-4 0v4"/><path d="M14 8V4a2 2 0 0 0-4 0v6"/><path d="M10 9V5a2 2 0 0 0-4 0v7"/><path d="M18 9a2 2 0 1 1 4 0v5a7 7 0 0 1-7 7h-3a7 7 0 0 1-7-7v-2"/></svg>`,
+                emblemIcon: `<svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10.5" fill="#10B981" stroke="#000" stroke-width="1.5"/><path d="M7 13 C7 9, 10 7, 14 7 C17 7, 18 9, 18 12 C18 16, 15 18, 12 18 C9 18, 7 16, 7 13 Z" fill="#047857" stroke="#000" stroke-width="1.2"/><rect x="8" y="9" width="2.8" height="4.5" rx="1" fill="#10B981" stroke="#000" stroke-width="0.8"/><rect x="11.2" y="8" width="2.8" height="5.5" rx="1" fill="#10B981" stroke="#000" stroke-width="0.8"/><rect x="14.4" y="9" width="2.5" height="4.5" rx="1" fill="#10B981" stroke="#000" stroke-width="0.8"/></svg>`,
                 themeColor: "#10B981",
                 sticker: "HULK SMASH!",
                 sound: () => AudioEngine.hulkSmash(),
@@ -997,18 +1078,171 @@
             }
 
             const hero = HERO_PROFILES[heroKey];
-            if (hero.sound) hero.sound();
 
             document.getElementById('hero-name-label').innerText = hero.name;
             document.getElementById('hero-emblem-icon').innerHTML = hero.emblemIcon;
             document.getElementById('hero-action-sticker').innerText = hero.sticker;
 
-            const stage = document.getElementById('hero-avatar-stage');
-            stage.classList.add('comic-shake');
-            setTimeout(() => stage.classList.remove('comic-shake'), 450);
-
             renderHero(currentPhase, isRunning);
-            showToast(`OPERATOR: ${hero.name}!`, "hero");
+
+            // Unleash signature superpower effect
+            triggerSuperpower(heroKey);
+
+            // Show Toast with the exact matching superhero emblem
+            showToast(`OPERATOR: ${hero.name}!`, "hero", heroKey);
+        }
+
+        // =========================================================================
+        // SIGNATURE SUPERPOWER ENERGY EFFECT TRIGGER (Web, Smash, Shield Throw, Thunder, Unibeam)
+        // =========================================================================
+        function triggerSuperpower(heroKey) {
+            const activeKey = heroKey || currentHeroKey;
+            const hero = HERO_PROFILES[activeKey];
+            if (!hero) return;
+
+            if (hero.sound) hero.sound();
+
+            const stage = document.getElementById('hero-avatar-stage');
+            const fx = document.getElementById('hero-energy-fx');
+            const sticker = document.getElementById('hero-action-sticker');
+            const parentCard = document.getElementById('hero-operator-card');
+
+            // Reset animation classes
+            fx.innerHTML = '';
+            stage.classList.remove('comic-shake', 'shield-ricochet', 'earthquake');
+            if (parentCard) parentCard.classList.remove('earthquake');
+
+            let fxHtml = '';
+            let powerStickerText = hero.sticker;
+
+            if (activeKey === 'cap') {
+                // CAPTAIN AMERICA: Vibranium Shield Ricochet Throw
+                stage.classList.add('shield-ricochet');
+                powerStickerText = "*CLANG!* SHIELD THROW!";
+                fxHtml = `
+                    <div class="relative w-full h-full flex items-center justify-center">
+                        <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-stark-gold text-black border-2 border-black font-comic text-xs px-2.5 py-0.5 rounded shadow-neo font-bold whitespace-nowrap animate-bounce z-30">
+                            💥 SHIELD RICOCHET! 💥
+                        </div>
+                        <svg class="w-48 h-48 absolute -m-6 animate-ping opacity-75" viewBox="0 0 100 100">
+                            <polygon points="50,10 55,35 80,30 62,50 85,68 58,65 50,90 42,65 15,68 38,50 20,30 45,35" fill="#FFD700" stroke="#000" stroke-width="2"/>
+                        </svg>
+                        <svg class="w-52 h-52 absolute -m-8 pointer-events-none" viewBox="0 0 160 160">
+                            <circle cx="80" cy="80" r="52" fill="none" stroke="#E62429" stroke-width="4.5" stroke-dasharray="8 6" opacity="0.9"/>
+                            <circle cx="80" cy="80" r="72" fill="none" stroke="#0D47A1" stroke-width="3.5" stroke-dasharray="12 6" opacity="0.85"/>
+                            <path d="M20 30 Q80 10 140 30" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+                            <path d="M20 130 Q80 150 140 130" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                `;
+            } else if (activeKey === 'spidey') {
+                // SPIDER-MAN: Web Shoot & Net Burst
+                powerStickerText = "*THWIP!* WEB SLING!";
+                fxHtml = `
+                    <div class="web-burst relative w-full h-full flex items-center justify-center">
+                        <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-stark-gold text-black border-2 border-black font-comic text-xs px-2.5 py-0.5 rounded shadow-neo font-bold whitespace-nowrap animate-bounce z-30">
+                            🕸️ *THWIP!* WEB SLING! 🕸️
+                        </div>
+                        <svg class="w-52 h-52 absolute -m-8 pointer-events-none" viewBox="0 0 180 180">
+                            <line x1="90" y1="90" x2="10" y2="10" stroke="#000" stroke-width="3.5" stroke-linecap="round"/>
+                            <line x1="90" y1="90" x2="170" y2="10" stroke="#000" stroke-width="3.5" stroke-linecap="round"/>
+                            <line x1="90" y1="90" x2="175" y2="90" stroke="#000" stroke-width="3.5" stroke-linecap="round"/>
+                            <line x1="90" y1="90" x2="170" y2="170" stroke="#000" stroke-width="3.5" stroke-linecap="round"/>
+                            <line x1="90" y1="90" x2="90" y2="175" stroke="#000" stroke-width="3.5" stroke-linecap="round"/>
+                            <line x1="90" y1="90" x2="10" y2="170" stroke="#000" stroke-width="3.5" stroke-linecap="round"/>
+                            <line x1="90" y1="90" x2="5" y2="90" stroke="#000" stroke-width="3.5" stroke-linecap="round"/>
+                            <circle cx="90" cy="90" r="26" fill="#FFF" stroke="#000" stroke-width="3" opacity="0.95"/>
+                            <circle cx="90" cy="90" r="52" fill="none" stroke="#FFF" stroke-width="5"/>
+                            <circle cx="90" cy="90" r="52" fill="none" stroke="#000" stroke-width="2.5"/>
+                            <circle cx="90" cy="90" r="76" fill="none" stroke="#FFF" stroke-width="4.5"/>
+                            <circle cx="90" cy="90" r="76" fill="none" stroke="#000" stroke-width="2"/>
+                            <circle cx="90" cy="90" r="8" fill="#EF4444" stroke="#000" stroke-width="1.5"/>
+                        </svg>
+                    </div>
+                `;
+            } else if (activeKey === 'hulk') {
+                // HULK: Seismic Ground Smash & Gamma Crater Shockwave
+                if (parentCard) parentCard.classList.add('earthquake');
+                powerStickerText = "*KRAAAK!* HULK SMASH!";
+                fxHtml = `
+                    <div class="gamma-crater relative w-full h-full flex items-center justify-center">
+                        <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-stark-gold text-black border-2 border-black font-comic text-xs px-2.5 py-0.5 rounded shadow-neo font-bold whitespace-nowrap animate-bounce z-30">
+                            ⚡ *KRAAAK!* HULK SMASH! ⚡
+                        </div>
+                        <svg class="w-52 h-52 absolute -m-8 pointer-events-none" viewBox="0 0 180 180">
+                            <circle cx="90" cy="95" r="32" fill="#10B981" opacity="0.7" stroke="#000" stroke-width="3"/>
+                            <circle cx="90" cy="95" r="58" fill="none" stroke="#10B981" stroke-width="7" opacity="0.85"/>
+                            <circle cx="90" cy="95" r="82" fill="none" stroke="#7C3AED" stroke-width="5" stroke-dasharray="12 6"/>
+                            <path d="M90 95 L60 160 L35 175" fill="none" stroke="#000" stroke-width="4.5" stroke-linecap="round"/>
+                            <path d="M90 95 L120 160 L145 178" fill="none" stroke="#000" stroke-width="4.5" stroke-linecap="round"/>
+                            <path d="M90 95 L90 178" fill="none" stroke="#000" stroke-width="5" stroke-linecap="round"/>
+                            <path d="M90 95 L25 105" fill="none" stroke="#000" stroke-width="4" stroke-linecap="round"/>
+                            <path d="M90 95 L155 105" fill="none" stroke="#000" stroke-width="4" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                `;
+            } else if (activeKey === 'thor') {
+                // THOR: Lightning Call & Asgardian Thunder
+                powerStickerText = "*KRA-BOOM!* THUNDER!";
+                fxHtml = `
+                    <div class="lightning-flash relative w-full h-full flex items-center justify-center">
+                        <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-stark-gold text-black border-2 border-black font-comic text-xs px-2.5 py-0.5 rounded shadow-neo font-bold whitespace-nowrap animate-bounce z-30">
+                            ⚡ *KRA-BOOM!* THUNDER! ⚡
+                        </div>
+                        <svg class="w-52 h-52 absolute -m-8 pointer-events-none" viewBox="0 0 180 180">
+                            <polygon points="85,0 110,0 92,65 125,65 80,165 96,95 68,95" fill="#00F0FF" stroke="#000" stroke-width="3"/>
+                            <polygon points="130,5 148,5 132,55 160,55 118,135 135,80 112,80" fill="#FFD700" stroke="#000" stroke-width="2.5" opacity="0.95"/>
+                            <polygon points="45,10 62,10 48,58 75,58 38,140 56,85 32,85" fill="#FFD700" stroke="#000" stroke-width="2.5" opacity="0.95"/>
+                        </svg>
+                    </div>
+                `;
+            } else {
+                // IRON MAN: Unibeam & Arc Repulsor Cannon
+                powerStickerText = "*PEW-PEW!* UNIBEAM!";
+                fxHtml = `
+                    <div class="unibeam-blast relative w-full h-full flex items-center justify-center">
+                        <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-stark-gold text-black border-2 border-black font-comic text-xs px-2.5 py-0.5 rounded shadow-neo font-bold whitespace-nowrap animate-bounce z-30">
+                            ✨ *PEW-PEW!* UNIBEAM! ✨
+                        </div>
+                        <svg class="w-52 h-52 absolute -m-8 pointer-events-none" viewBox="0 0 180 180">
+                            <circle cx="90" cy="90" r="28" fill="#00F0FF" opacity="0.95" stroke="#000" stroke-width="2"/>
+                            <circle cx="90" cy="90" r="52" fill="none" stroke="#00F0FF" stroke-width="6" opacity="0.85"/>
+                            <circle cx="90" cy="90" r="76" fill="none" stroke="#FFD700" stroke-width="4" opacity="0.8" stroke-dasharray="10 5"/>
+                            <line x1="90" y1="90" x2="175" y2="25" stroke="#00F0FF" stroke-width="5" stroke-linecap="round"/>
+                            <line x1="90" y1="90" x2="175" y2="155" stroke="#00F0FF" stroke-width="5" stroke-linecap="round"/>
+                            <line x1="90" y1="90" x2="5" y2="25" stroke="#00F0FF" stroke-width="5" stroke-linecap="round"/>
+                            <line x1="90" y1="90" x2="5" y2="155" stroke="#00F0FF" stroke-width="5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                `;
+            }
+
+            fx.innerHTML = fxHtml;
+            sticker.innerText = powerStickerText;
+
+            // Trigger signature superhero confetti colors
+            if (typeof confetti === 'function') {
+                const colorMap = {
+                    ironman: ['#E62429', '#FFD700', '#00F0FF'],
+                    cap: ['#0D47A1', '#E62429', '#FFFFFF'],
+                    thor: ['#6B21A8', '#FACC15', '#38BDF8'],
+                    spidey: ['#EF4444', '#2563EB', '#06B6D4'],
+                    hulk: ['#10B981', '#7C3AED', '#047857']
+                };
+                confetti({
+                    particleCount: 50,
+                    spread: 60,
+                    origin: { y: 0.65 },
+                    colors: colorMap[activeKey] || ['#FFD700', '#E62429']
+                });
+            }
+
+            setTimeout(() => {
+                fx.innerHTML = '';
+                sticker.innerText = hero.sticker;
+                stage.classList.remove('shield-ricochet');
+                if (parentCard) parentCard.classList.remove('earthquake');
+            }, 1000);
         }
 
         function renderHero(phase, isRunning) {
@@ -1041,13 +1275,9 @@
         }
 
         function triggerHeroCheer() {
+            triggerSuperpower(currentHeroKey);
             const hero = HERO_PROFILES[currentHeroKey];
-            if (hero.sound) hero.sound();
             hero.pokedRecently = true;
-
-            const stage = document.getElementById('hero-avatar-stage');
-            stage.classList.add('rotate-12', 'scale-110');
-            setTimeout(() => stage.classList.remove('rotate-12', 'scale-110'), 200);
 
             const cheerQuotes = [
                 "AVENGERS ASSEMBLE! Smash that focus sprint!",
@@ -1056,7 +1286,6 @@
                 "Mission parameters locked! Let's do this!"
             ];
             document.getElementById('hero-speech').innerText = `"${cheerQuotes[Math.floor(Math.random() * cheerQuotes.length)]}"`;
-            triggerConfettiParty();
 
             setTimeout(() => { hero.pokedRecently = false; }, 4000);
         }
@@ -1447,7 +1676,7 @@
         }
 
         // =========================================================================
-        // 8. CELEBRATIONS & TOASTS
+        // 8. CELEBRATIONS & TOASTS WITH HERO EMBLEMS (Fixes Image 1)
         // =========================================================================
         function triggerConfettiParty() {
             if (typeof confetti === 'function') {
@@ -1460,19 +1689,32 @@
             }
         }
 
-        function showToast(text, type = 'info') {
+        function showToast(text, type = 'info', heroKey = null) {
             const toast = document.getElementById('toast-bubble');
             const toastText = document.getElementById('toast-text');
             const toastIcon = document.getElementById('toast-icon');
 
             toastText.innerText = text;
-            if (type === 'start') toastIcon.innerHTML = '<i data-lucide="zap" class="w-4 h-4"></i>';
-            else if (type === 'pause') toastIcon.innerHTML = '<i data-lucide="pause" class="w-4 h-4"></i>';
-            else if (type === 'phase') toastIcon.innerHTML = '<i data-lucide="sparkles" class="w-4 h-4"></i>';
-            else if (type === 'done') toastIcon.innerHTML = '<i data-lucide="award" class="w-4 h-4"></i>';
-            else if (type === 'sound') toastIcon.innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i>';
-            else if (type === 'mute') toastIcon.innerHTML = '<i data-lucide="volume-x" class="w-4 h-4"></i>';
-            else toastIcon.innerHTML = '<i data-lucide="shield" class="w-4 h-4"></i>';
+
+            if (type === 'hero' || heroKey) {
+                // Exact matching Superhero Emblem SVG for the toast
+                const activeHero = HERO_PROFILES[heroKey || currentHeroKey];
+                toastIcon.innerHTML = activeHero ? activeHero.emblemIcon : '<i data-lucide="shield" class="w-4 h-4"></i>';
+            } else if (type === 'start') {
+                toastIcon.innerHTML = '<i data-lucide="zap" class="w-4 h-4"></i>';
+            } else if (type === 'pause') {
+                toastIcon.innerHTML = '<i data-lucide="pause" class="w-4 h-4"></i>';
+            } else if (type === 'phase') {
+                toastIcon.innerHTML = '<i data-lucide="sparkles" class="w-4 h-4"></i>';
+            } else if (type === 'done') {
+                toastIcon.innerHTML = '<i data-lucide="award" class="w-4 h-4"></i>';
+            } else if (type === 'sound') {
+                toastIcon.innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i>';
+            } else if (type === 'mute') {
+                toastIcon.innerHTML = '<i data-lucide="volume-x" class="w-4 h-4"></i>';
+            } else {
+                toastIcon.innerHTML = '<i data-lucide="shield" class="w-4 h-4"></i>';
+            }
 
             if (window.lucide) lucide.createIcons();
 
@@ -1484,6 +1726,17 @@
         // 9. BOOTSTRAP
         // =========================================================================
         AudioEngine.updateUI();
+        // Set initial hero tab and emblem
+        const initialHero = HERO_PROFILES[currentHeroKey] || HERO_PROFILES.ironman;
+        document.getElementById('hero-name-label').innerText = initialHero.name;
+        document.getElementById('hero-emblem-icon').innerHTML = initialHero.emblemIcon;
+        document.getElementById('hero-action-sticker').innerText = initialHero.sticker;
+
+        const initialHeroBtn = document.querySelector(`button[onclick*="${currentHeroKey}"]`);
+        if (initialHeroBtn) {
+            initialHeroBtn.className = "hero-tab neo-btn bg-stark-gold text-black px-3 py-1.5 text-xs flex items-center gap-1.5 shadow-neo-sm font-black";
+        }
+
         renderHero('WORK', false);
         fetchInitialState();
         subscribeToRealtime();
