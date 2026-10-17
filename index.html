@@ -72,14 +72,201 @@
     </script>
 
     <style>
-        /* Comic Pop-Art Halftone & Ben-Day Dots Background */
+        /* =========================================================================
+           CSS VARIABLE THEME ENGINE & DYNAMIC BACKGROUND LAYERS
+           (data-hero="ironman|cap|thor|spidey|hulk")
+           ========================================================================= */
         body {
-            background-color: #FFFDF5;
-            background-image: radial-gradient(#1A1A1A 1.3px, transparent 1.3px);
-            background-size: 20px 20px;
             color: #111111;
             font-family: 'Plus Jakarta Sans', Inter, sans-serif;
             -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            position: relative;
+            transition: background-color 0.45s cubic-bezier(0.22, 1, 0.36, 1), background-image 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* Ambient Energy Vignette Layer (Fixed full-screen backdrop) */
+        #ambient-glow-layer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            transition: background 0.45s cubic-bezier(0.22, 1, 0.36, 1), transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), filter 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* Content layers placed above ambient glow */
+        header, main, footer, #toast-bubble {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Power Surge Pulse (Triggered on Hero Select or ASSEMBLE!) */
+        body.power-surge #ambient-glow-layer {
+            transform: scale(1.08);
+            filter: brightness(1.4) saturate(1.45);
+        }
+
+        /* 1. IRON MAN (Stark Tech & Arc Reactor) */
+        body[data-hero="ironman"], body:not([data-hero]) {
+            --theme-base-tint: #FEF9EB;
+            --theme-banner-bg: #E11D48;
+            --theme-banner-text: #FFFFFF;
+            --theme-btn-bg: #FACC15;
+            --theme-btn-text: #000000;
+            --theme-accent: #FACC15;
+            background-color: var(--theme-base-tint);
+            background-image: 
+                radial-gradient(rgba(0, 0, 0, 0.13) 1.5px, transparent 1.5px),
+                radial-gradient(rgba(202, 138, 4, 0.12) 1.5px, transparent 1.5px),
+                linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+            background-size: 24px 24px, 24px 24px, 24px 24px, 24px 24px;
+            background-position: 0 0, 12px 12px, 0 0, 0 0;
+        }
+
+        body[data-hero="ironman"] #ambient-glow-layer,
+        body:not([data-hero]) #ambient-glow-layer {
+            background: 
+                radial-gradient(circle at 50% 30%, rgba(0, 240, 255, 0.18) 0%, rgba(250, 204, 21, 0.22) 40%, transparent 72%),
+                radial-gradient(circle at 50% 50%, rgba(225, 29, 72, 0.08) 0%, transparent 60%);
+        }
+
+        /* Faint Arc Reactor Watermark for Iron Man */
+        body[data-hero="ironman"] #ambient-glow-layer::before,
+        body:not([data-hero]) #ambient-glow-layer::before {
+            content: '';
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            width: 580px;
+            height: 580px;
+            transform: translate(-50%, -50%);
+            background-image: 
+                radial-gradient(circle, transparent 65px, rgba(0, 240, 255, 0.09) 66px, transparent 68px, transparent 125px, rgba(250, 204, 21, 0.09) 126px, transparent 128px, transparent 195px, rgba(0, 240, 255, 0.07) 196px, transparent 198px, transparent 260px, rgba(225, 29, 72, 0.06) 261px, transparent 263px);
+            pointer-events: none;
+            opacity: 0.9;
+        }
+
+        /* 2. CAPTAIN AMERICA (Vibranium Tactical Shield) */
+        body[data-hero="cap"] {
+            --theme-base-tint: #EFF6FF;
+            --theme-banner-bg: #1D4ED8;
+            --theme-banner-text: #FFFFFF;
+            --theme-btn-bg: #EF4444;
+            --theme-btn-text: #FFFFFF;
+            --theme-accent: #EF4444;
+            background-color: var(--theme-base-tint);
+            background-image: radial-gradient(rgba(30, 58, 138, 0.16) 2px, transparent 2px);
+            background-size: 20px 20px;
+        }
+
+        body[data-hero="cap"] #ambient-glow-layer {
+            background: 
+                radial-gradient(circle at 45% 35%, rgba(37, 99, 235, 0.18) 0%, rgba(225, 29, 72, 0.14) 48%, transparent 75%),
+                radial-gradient(circle at 75% 75%, rgba(29, 78, 216, 0.12) 0%, transparent 65%);
+        }
+
+        /* 3. THOR (Asgardian Storm & Mjolnir) */
+        body[data-hero="thor"] {
+            --theme-base-tint: #ECFEFF;
+            --theme-banner-bg: #1E293B;
+            --theme-banner-text: #FFFFFF;
+            --theme-btn-bg: #38BDF8;
+            --theme-btn-text: #000000;
+            --theme-accent: #38BDF8;
+            background-color: var(--theme-base-tint);
+            background-image: 
+                repeating-linear-gradient(45deg, rgba(14, 116, 144, 0.09) 0, rgba(14, 116, 144, 0.09) 1.2px, transparent 0, transparent 22px),
+                repeating-linear-gradient(-45deg, rgba(14, 116, 144, 0.09) 0, rgba(14, 116, 144, 0.09) 1.2px, transparent 0, transparent 22px),
+                radial-gradient(rgba(14, 116, 144, 0.15) 1.5px, transparent 1.5px);
+            background-size: auto, auto, 22px 22px;
+        }
+
+        body[data-hero="thor"] #ambient-glow-layer {
+            background: 
+                radial-gradient(ellipse at 50% 0%, rgba(56, 189, 248, 0.28) 0%, rgba(99, 102, 241, 0.15) 50%, transparent 80%),
+                radial-gradient(circle at 80% 60%, rgba(14, 165, 233, 0.14) 0%, transparent 60%);
+        }
+
+        /* 4. SPIDER-MAN (Comic Web-Verse) */
+        body[data-hero="spidey"],
+        body[data-hero="spiderman"] {
+            --theme-base-tint: #FFF1F2;
+            --theme-banner-bg: #E11D48;
+            --theme-banner-text: #FFFFFF;
+            --theme-btn-bg: #2563EB;
+            --theme-btn-text: #FFFFFF;
+            --theme-accent: #2563EB;
+            background-color: var(--theme-base-tint);
+            background-image: 
+                repeating-linear-gradient(45deg, rgba(136, 19, 55, 0.08) 0, rgba(136, 19, 55, 0.08) 1.2px, transparent 0, transparent 28px),
+                repeating-linear-gradient(-45deg, rgba(136, 19, 55, 0.08) 0, rgba(136, 19, 55, 0.08) 1.2px, transparent 0, transparent 28px),
+                radial-gradient(rgba(136, 19, 55, 0.12) 1.5px, transparent 1.5px);
+            background-size: auto, auto, 28px 28px;
+        }
+
+        body[data-hero="spidey"] #ambient-glow-layer,
+        body[data-hero="spiderman"] #ambient-glow-layer {
+            background: 
+                radial-gradient(circle at 25% 25%, rgba(225, 29, 72, 0.20) 0%, transparent 58%),
+                radial-gradient(circle at 75% 70%, rgba(37, 99, 235, 0.20) 0%, transparent 58%);
+        }
+
+        /* 5. HULK (Gamma Radiation Lab) */
+        body[data-hero="hulk"] {
+            --theme-base-tint: #F0FDF4;
+            --theme-banner-bg: #16A34A;
+            --theme-banner-text: #FFFFFF;
+            --theme-btn-bg: #A3E635;
+            --theme-btn-text: #000000;
+            --theme-accent: #A3E635;
+            background-color: var(--theme-base-tint);
+            background-image: 
+                linear-gradient(to right, rgba(20, 83, 45, 0.14) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(20, 83, 45, 0.14) 1px, transparent 1px),
+                radial-gradient(rgba(20, 83, 45, 0.18) 1.8px, transparent 1.8px);
+            background-size: 24px 24px, 24px 24px, 24px 24px;
+        }
+
+        body[data-hero="hulk"] #ambient-glow-layer {
+            background: 
+                radial-gradient(ellipse at 50% 100%, rgba(34, 197, 94, 0.25) 0%, rgba(147, 51, 234, 0.15) 55%, transparent 80%),
+                radial-gradient(circle at 20% 60%, rgba(22, 163, 74, 0.16) 0%, transparent 60%);
+        }
+
+        /* Top HUD Banner Theme Sync */
+        #top-hud-banner {
+            background-color: var(--theme-banner-bg, #E11D48);
+            color: var(--theme-banner-text, #FFFFFF);
+            transition: background-color 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* Active Hero Pill Theme Sync */
+        .hero-tab.active-hero {
+            background-color: var(--theme-btn-bg, #FACC15) !important;
+            color: var(--theme-btn-text, #000000) !important;
+        }
+
+        /* Hardware Sub-Well ASSEMBLE! Button Sync */
+        #assemble-btn {
+            background-color: var(--theme-btn-bg, #FACC15);
+            color: var(--theme-btn-text, #000000);
+            transition: background-color 0.45s cubic-bezier(0.22, 1, 0.36, 1), color 0.45s ease;
+        }
+
+        /* Smooth Pop-up Animation Utilities */
+        @keyframes popIn {
+            0% { transform: scale(0.85); opacity: 0; }
+            70% { transform: scale(1.04); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .smooth-pop {
+            animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        #toast-bubble {
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
         }
 
         /* Strict Neo-Brutalist Component Rules */
@@ -239,13 +426,16 @@
     </style>
 </head>
 
-<body class="min-h-screen px-3 py-4 sm:px-6 sm:py-8 lg:p-8 flex flex-col justify-between selection:bg-red-500 selection:text-white">
+<body class="min-h-screen px-3 py-4 sm:px-6 sm:py-8 lg:p-8 flex flex-col justify-between selection:bg-red-500 selection:text-white" data-hero="ironman">
+
+    <!-- Ambient Energy Vignette Layer -->
+    <div id="ambient-glow-layer"></div>
 
     <!-- Top Comic Navigation & Operator Selector Header -->
     <header class="max-w-6xl mx-auto w-full mb-5">
         
         <!-- Main Top Banner -->
-        <div class="neo-card bg-stark-red text-white p-6 mb-5 flex flex-wrap items-center justify-between gap-4">
+        <div id="top-hud-banner" class="neo-card text-white p-6 mb-5 flex flex-wrap items-center justify-between gap-4">
             
             <!-- Logo & Avengers Compound Identity -->
             <div class="flex items-center gap-3.5">
@@ -321,7 +511,7 @@
 
             <div class="flex flex-wrap items-center gap-2" id="hero-roster">
                 <!-- Iron Man Button -->
-                <button class="hero-tab neo-btn bg-stark-gold text-black px-3.5 py-1.5 text-xs flex items-center gap-1.5 font-mono font-bold" onclick="selectHero('ironman', event)" title="Click to trigger Unibeam!">
+                <button class="hero-tab neo-btn active-hero px-3.5 py-1.5 text-xs flex items-center gap-1.5 font-mono font-bold" data-hero-key="ironman" onclick="selectHero('ironman', event)" title="Click to trigger Unibeam!">
                     <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none">
                         <circle cx="12" cy="12" r="10.5" fill="#E62429" stroke="#000" stroke-width="1.5"/>
                         <circle cx="12" cy="12" r="7.5" fill="#FFD700" stroke="#000" stroke-width="1"/>
@@ -333,7 +523,7 @@
                 </button>
 
                 <!-- Cap Button -->
-                <button class="hero-tab neo-btn bg-white hover:bg-blue-50 text-black px-3.5 py-1.5 text-xs flex items-center gap-1.5 font-mono font-bold" onclick="selectHero('cap', event)" title="Click to throw Shield!">
+                <button class="hero-tab neo-btn bg-white hover:bg-blue-50 text-black px-3.5 py-1.5 text-xs flex items-center gap-1.5 font-mono font-bold" data-hero-key="cap" onclick="selectHero('cap', event)" title="Click to throw Shield!">
                     <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none">
                         <circle cx="12" cy="12" r="10.5" fill="#E62429" stroke="#000" stroke-width="1.5"/>
                         <circle cx="12" cy="12" r="8" fill="#FFFFFF" stroke="#000" stroke-width="1"/>
@@ -345,7 +535,7 @@
                 </button>
 
                 <!-- Thor Button -->
-                <button class="hero-tab neo-btn bg-white hover:bg-purple-50 text-black px-3.5 py-1.5 text-xs flex items-center gap-1.5 font-mono font-bold" onclick="selectHero('thor', event)" title="Click to summon Thunder!">
+                <button class="hero-tab neo-btn bg-white hover:bg-purple-50 text-black px-3.5 py-1.5 text-xs flex items-center gap-1.5 font-mono font-bold" data-hero-key="thor" onclick="selectHero('thor', event)" title="Click to summon Thunder!">
                     <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none">
                         <rect x="4" y="5" width="16" height="8" rx="2" fill="#94A3B8" stroke="#000" stroke-width="1.5"/>
                         <rect x="7" y="7" width="10" height="4" fill="#CBD5E1"/>
@@ -357,7 +547,7 @@
                 </button>
 
                 <!-- Spider-Man Button -->
-                <button class="hero-tab neo-btn bg-white hover:bg-red-50 text-black px-3.5 py-1.5 text-xs flex items-center gap-1.5 font-mono font-bold" onclick="selectHero('spidey', event)" title="Click to shoot Web!">
+                <button class="hero-tab neo-btn bg-white hover:bg-red-50 text-black px-3.5 py-1.5 text-xs flex items-center gap-1.5 font-mono font-bold" data-hero-key="spidey" onclick="selectHero('spidey', event)" title="Click to shoot Web!">
                     <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none">
                         <ellipse cx="12" cy="12" rx="9.5" ry="10.5" fill="#EF4444" stroke="#000" stroke-width="1.5"/>
                         <line x1="12" y1="1.5" x2="12" y2="22.5" stroke="#000" stroke-width="1"/>
@@ -370,7 +560,7 @@
                 </button>
 
                 <!-- Hulk Button -->
-                <button class="hero-tab neo-btn bg-white hover:bg-emerald-50 text-black px-3.5 py-1.5 text-xs flex items-center gap-1.5 font-mono font-bold" onclick="selectHero('hulk', event)" title="Click for Hulk Smash!">
+                <button class="hero-tab neo-btn bg-white hover:bg-emerald-50 text-black px-3.5 py-1.5 text-xs flex items-center gap-1.5 font-mono font-bold" data-hero-key="hulk" onclick="selectHero('hulk', event)" title="Click for Hulk Smash!">
                     <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none">
                         <circle cx="12" cy="12" r="10.5" fill="#10B981" stroke="#000" stroke-width="1.5"/>
                         <path d="M7 13 C7 9, 10 7, 14 7 C17 7, 18 9, 18 12 C18 16, 15 18, 12 18 C9 18, 7 16, 7 13 Z" fill="#047857" stroke="#000" stroke-width="1.2"/>
@@ -438,9 +628,9 @@
                     </div>
 
                     <!-- Unified Sub-Well: Comic Dialogue Speech Balloon -->
-                    <div class="sub-well flex-1 w-full relative">
-                        <p id="hero-speech" class="font-body font-medium text-sm text-zinc-900 leading-snug">
-                            "F.R.I.D.A.Y. is online. Press the button on your physical ESP32 to engage focus thrusters!"
+                    <div id="hero-speech-balloon" class="sub-well flex-1 w-full relative smooth-pop">
+                        <p id="hero-speech" class="font-comic font-bold text-lg sm:text-2xl text-zinc-950 uppercase tracking-wider leading-snug drop-shadow-sm">
+                            "F.R.I.D.A.Y. IS ONLINE. PRESS THE PHYSICAL ESP32 BUTTON TO ENGAGE FOCUS THRUSTERS!"
                         </p>
                     </div>
                 </div>
@@ -469,7 +659,7 @@
                             </p>
                         </div>
                     </div>
-                    <button class="neo-btn bg-[#FACC15] hover:bg-yellow-300 text-black px-3.5 py-1.5 font-comic text-sm tracking-wider flex items-center gap-1.5 flex-shrink-0" onclick="triggerHeroCheer()" title="Click to trigger Avengers Assemble!">
+                    <button id="assemble-btn" class="neo-btn px-3.5 py-1.5 font-comic text-sm tracking-wider flex items-center gap-1.5 flex-shrink-0" onclick="triggerHeroCheer()" title="Click to trigger Avengers Assemble!">
                         <i data-lucide="zap" class="w-3.5 h-3.5"></i>
                         <span>ASSEMBLE!</span>
                     </button>
@@ -521,7 +711,7 @@
                 </div>
 
                 <!-- Unified Sub-Well: Daily Target Milestones Checklist -->
-                <div class="sub-well mb-4">
+                <div class="sub-well">
                     <div class="flex justify-between items-center text-[11px] font-mono font-bold uppercase tracking-wider text-black mb-3">
                         <span class="flex items-center gap-1.5">
                             <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-[#E11D48]"></i>
@@ -547,21 +737,6 @@
                             <span class="milestone-check w-4 h-4 rounded border border-black flex items-center justify-center text-[10px] bg-zinc-100 text-zinc-700 font-bold">4</span>
                             <span>Mission Delta</span>
                         </button>
-                    </div>
-                </div>
-
-                <!-- Unified Sub-Well: Recent Smashed Sessions List Feed -->
-                <div class="sub-well">
-                    <div class="flex justify-between items-center text-[11px] font-mono font-bold uppercase tracking-wider text-black mb-3">
-                        <span>RECENT MISSION DEBRIEFS</span>
-                        <span id="log-count-tag" class="text-slate-500">0 RECORDED</span>
-                    </div>
-                    
-                    <div id="session-log-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
-                        <div class="text-center text-zinc-600 text-xs font-medium font-body flex flex-col items-center gap-1.5 py-3">
-                            <i data-lucide="zap" class="w-5 h-5 text-[#FACC15]"></i>
-                            <span>Push the physical button on your ESP32-S3 to complete your first session!</span>
-                        </div>
                     </div>
                 </div>
 
@@ -643,51 +818,6 @@
             <!-- Card 4 & Stat Cards Container -->
             <div class="flex-1 flex flex-col gap-5 justify-between">
                 
-                <!-- S.H.I.E.L.D. Clearance & XP Card -->
-                <div class="neo-card bg-white p-6" id="clearance-card">
-                    
-                    <!-- Standardized Card Header -->
-                    <div class="flex items-center justify-between pb-0">
-                        <div class="flex items-center gap-3">
-                            <div class="w-[36px] h-[36px] min-w-[36px] min-h-[36px] rounded-lg bg-[#EF4444] border-2 border-black flex items-center justify-center text-white shadow-none">
-                                <i data-lucide="shield-check" class="w-5 h-5"></i>
-                            </div>
-                            <div>
-                                <span class="text-[10px] font-mono text-[#64748B] font-bold block uppercase tracking-wider leading-none mb-1">OPERATIONAL STATUS</span>
-                                <h3 id="xp-rank-title" class="font-comic text-[18px] text-black font-bold leading-tight tracking-wide">
-                                    LEVEL 1 RECRUIT
-                                </h3>
-                            </div>
-                        </div>
-
-                        <span id="xp-level-badge" class="hud-badge bg-black text-[#FACC15]">
-                            RANK 1
-                        </span>
-                    </div>
-
-                    <!-- Divider Line -->
-                    <div class="border-t-2 border-black mt-4 mb-5 w-full"></div>
-
-                    <!-- Standardized Progress Bar: Mission Combat XP -->
-                    <div class="space-y-1.5">
-                        <div class="flex justify-between items-center text-[11px] font-mono font-bold uppercase tracking-wider text-black">
-                            <span>MISSION COMBAT XP</span>
-                            <span id="xp-counter-text" class="text-[#E11D48] font-bold">0 / 250 XP</span>
-                        </div>
-                        <div class="w-full h-[14px] bg-white rounded-full border-2 border-black p-0 overflow-hidden relative shadow-none">
-                            <div id="xp-fill-bar" class="h-full bg-[#E11D48] rounded-full transition-all duration-700 ease-out" style="width: 5%"></div>
-                        </div>
-                        <div class="flex justify-between items-center text-[11px] text-slate-500 font-mono font-bold uppercase tracking-wider pt-0.5">
-                            <span id="xp-next-milestone" class="flex items-center gap-1 text-[#E11D48]">
-                                <i data-lucide="zap" class="w-3 h-3"></i>
-                                <span>+10 XP PER FOCUS MINUTE</span>
-                            </span>
-                            <span class="text-slate-500">NEXT: SUPER SOLDIER</span>
-                        </div>
-                    </div>
-
-                </div>
-
                 <!-- 3 Superhero Comic Metrics Blocks (Uniform Outer Card Style) -->
                 <div class="grid grid-cols-3 gap-3">
                     
@@ -732,6 +862,51 @@
                             </div>
                         </div>
                         <span class="font-mono text-[10px] font-bold text-black/75 uppercase tracking-wider">BREAKS TAKEN</span>
+                    </div>
+
+                </div>
+
+                <!-- S.H.I.E.L.D. Clearance & XP Card (Positioned below stats) -->
+                <div class="neo-card bg-white p-6" id="clearance-card">
+                    
+                    <!-- Standardized Card Header -->
+                    <div class="flex items-center justify-between pb-0">
+                        <div class="flex items-center gap-3">
+                            <div class="w-[36px] h-[36px] min-w-[36px] min-h-[36px] rounded-lg bg-[#EF4444] border-2 border-black flex items-center justify-center text-white shadow-none">
+                                <i data-lucide="shield-check" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-mono text-[#64748B] font-bold block uppercase tracking-wider leading-none mb-1">OPERATIONAL STATUS</span>
+                                <h3 id="xp-rank-title" class="font-comic text-[18px] text-black font-bold leading-tight tracking-wide">
+                                    LEVEL 1 RECRUIT
+                                </h3>
+                            </div>
+                        </div>
+
+                        <span id="xp-level-badge" class="hud-badge bg-black text-[#FACC15]">
+                            RANK 1
+                        </span>
+                    </div>
+
+                    <!-- Divider Line -->
+                    <div class="border-t-2 border-black mt-4 mb-5 w-full"></div>
+
+                    <!-- Standardized Progress Bar: Mission Combat XP -->
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between items-center text-[11px] font-mono font-bold uppercase tracking-wider text-black">
+                            <span>MISSION COMBAT XP</span>
+                            <span id="xp-counter-text" class="text-[#E11D48] font-bold">0 / 250 XP</span>
+                        </div>
+                        <div class="w-full h-[14px] bg-white rounded-full border-2 border-black p-0 overflow-hidden relative shadow-none">
+                            <div id="xp-fill-bar" class="h-full bg-[#E11D48] rounded-full transition-all duration-700 ease-out" style="width: 5%"></div>
+                        </div>
+                        <div class="flex justify-between items-center text-[11px] text-slate-500 font-mono font-bold uppercase tracking-wider pt-0.5">
+                            <span id="xp-next-milestone" class="flex items-center gap-1 text-[#E11D48]">
+                                <i data-lucide="zap" class="w-3 h-3"></i>
+                                <span>+10 XP PER FOCUS MINUTE</span>
+                            </span>
+                            <span class="text-slate-500">NEXT: SUPER SOLDIER</span>
+                        </div>
                     </div>
 
                 </div>
@@ -1109,22 +1284,56 @@
 
         let currentHeroKey = localStorage.getItem('avengers_selected_hero') || 'ironman';
 
+        function triggerPowerSurge() {
+            document.body.classList.remove('power-surge');
+            void document.body.offsetWidth; // Force CSS reflow to re-trigger transition
+            document.body.classList.add('power-surge');
+            setTimeout(() => {
+                document.body.classList.remove('power-surge');
+            }, 550);
+        }
+
         function selectHero(heroKey, e) {
+            if (heroKey === 'spiderman') heroKey = 'spidey';
             currentHeroKey = heroKey;
             localStorage.setItem('avengers_selected_hero', heroKey);
 
+            // Update CSS Variable Theme Engine on body
+            document.body.setAttribute('data-hero', heroKey);
+
+            // Trigger Power-Surge Pulse on the ambient radial energy glow
+            triggerPowerSurge();
+
+            // Sync active styling across all hero buttons
             document.querySelectorAll('.hero-tab').forEach(btn => {
-                btn.className = "hero-tab neo-btn bg-white hover:bg-zinc-100 text-black px-3.5 py-1.5 text-xs flex items-center gap-1.5 font-mono font-bold";
+                btn.classList.remove('active-hero');
+                btn.classList.add('bg-white', 'text-black');
             });
-            if (e && e.currentTarget) {
-                e.currentTarget.className = "hero-tab neo-btn bg-stark-gold text-black px-3.5 py-1.5 text-xs flex items-center gap-1.5 font-mono font-bold";
+            const activeBtn = (e && e.currentTarget) || document.querySelector(`button[data-hero-key="${heroKey}"]`);
+            if (activeBtn) {
+                activeBtn.classList.remove('bg-white', 'text-black');
+                activeBtn.classList.add('active-hero');
             }
 
-            const hero = HERO_PROFILES[heroKey];
+            const hero = HERO_PROFILES[heroKey] || HERO_PROFILES.ironman;
 
             document.getElementById('hero-name-label').innerText = hero.name;
             document.getElementById('hero-emblem-icon').innerHTML = hero.emblemIcon;
             document.getElementById('hero-action-sticker').innerText = hero.sticker;
+
+            // Trigger smooth pop on avatar stage and dialogue bubble
+            const stage = document.getElementById('hero-avatar-stage');
+            if (stage) {
+                stage.classList.remove('smooth-pop');
+                void stage.offsetWidth;
+                stage.classList.add('smooth-pop');
+            }
+            const balloon = document.getElementById('hero-speech-balloon');
+            if (balloon) {
+                balloon.classList.remove('smooth-pop');
+                void balloon.offsetWidth;
+                balloon.classList.add('smooth-pop');
+            }
 
             renderHero(currentPhase, isRunning);
 
@@ -1318,6 +1527,7 @@
         }
 
         function triggerHeroCheer() {
+            triggerPowerSurge();
             triggerSuperpower(currentHeroKey);
             const hero = HERO_PROFILES[currentHeroKey];
             hero.pokedRecently = true;
@@ -1328,7 +1538,16 @@
                 "Procrastination has been marked for termination!",
                 "Mission parameters locked! Let's do this!"
             ];
-            document.getElementById('hero-speech').innerText = `"${cheerQuotes[Math.floor(Math.random() * cheerQuotes.length)]}"`;
+            const speechEl = document.getElementById('hero-speech');
+            if (speechEl) {
+                speechEl.innerText = `"${cheerQuotes[Math.floor(Math.random() * cheerQuotes.length)]}"`;
+            }
+            const balloon = document.getElementById('hero-speech-balloon');
+            if (balloon) {
+                balloon.classList.remove('smooth-pop');
+                void balloon.offsetWidth;
+                balloon.classList.add('smooth-pop');
+            }
 
             setTimeout(() => { hero.pokedRecently = false; }, 4000);
         }
@@ -1728,8 +1947,9 @@
         function renderMissionDebriefs(logs) {
             const list = document.getElementById('session-log-list');
             const countTag = document.getElementById('log-count-tag');
+            if (!list) return;
 
-            countTag.innerText = `${logs.length} RECORDED`;
+            if (countTag) countTag.innerText = `${logs.length} RECORDED`;
 
             if (logs.length === 0) {
                 list.innerHTML = `
@@ -1828,16 +2048,23 @@
         // 9. BOOTSTRAP
         // =========================================================================
         AudioEngine.updateUI();
+        document.body.setAttribute('data-hero', currentHeroKey);
+
         // Set initial hero tab and emblem
         const initialHero = HERO_PROFILES[currentHeroKey] || HERO_PROFILES.ironman;
         document.getElementById('hero-name-label').innerText = initialHero.name;
         document.getElementById('hero-emblem-icon').innerHTML = initialHero.emblemIcon;
         document.getElementById('hero-action-sticker').innerText = initialHero.sticker;
 
-        const initialHeroBtn = document.querySelector(`button[onclick*="${currentHeroKey}"]`);
-        if (initialHeroBtn) {
-            initialHeroBtn.className = "hero-tab neo-btn bg-stark-gold text-black px-3.5 py-1.5 text-xs flex items-center gap-1.5 font-mono font-bold";
-        }
+        document.querySelectorAll('.hero-tab').forEach(btn => {
+            btn.classList.remove('active-hero');
+            if (btn.getAttribute('data-hero-key') === currentHeroKey) {
+                btn.classList.add('active-hero');
+                btn.classList.remove('bg-white', 'text-black');
+            } else {
+                btn.classList.add('bg-white', 'text-black');
+            }
+        });
 
         renderHero('WORK', false);
         renderMissionButtons();
