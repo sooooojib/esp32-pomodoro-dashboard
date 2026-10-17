@@ -2668,8 +2668,7 @@
                     ` : (mode === 'PAUSED' ? `
                         <line x1="72" y1="108" x2="88" y2="108" stroke="#000" stroke-width="3" stroke-linecap="round" />
                     ` : `
-                        <path d="M68 108 Q80 114 92 108" fill="#78350F" stroke="#000" stroke-width="2.5" />
-                        <polygon points="74,108 86,108 80,111" fill="#FFF" />
+                        <path d="M68 108 Q80 114 92 108" fill="none" stroke="#000" stroke-width="3.5" stroke-linecap="round" />
                     `)}
 
                     <!-- 6. Piercing Eyes & Furrowed Warrior Eyebrows -->
@@ -2848,12 +2847,10 @@
                             <line x1="35" y1="43" x2="35" y2="51" stroke="#1E293B" stroke-width="0.8" />
                         ` : (mode === 'BREAK' ? `
                             <!-- Zen Smile -->
-                            <path d="M26 46 Q32 52 38 46" fill="none" stroke="#1E293B" stroke-width="2.5" stroke-linecap="round" />
-                            <path d="M28 46 Q32 49 36 46" fill="#FFF" stroke="#1E293B" stroke-width="1" />
+                            <path d="M26 46 Q32 52 38 46" fill="none" stroke="#1E293B" stroke-width="2.6" stroke-linecap="round" />
                         ` : `
                             <!-- Puzzled Grimace -->
-                            <path d="M26 48 Q29 45 32 48 Q35 50 38 47" fill="none" stroke="#1E293B" stroke-width="2.5" stroke-linecap="round" />
-                            <polygon points="29,48 30.5,45 32,48" fill="#FFF" stroke="#1E293B" stroke-width="0.8" />
+                            <path d="M25 48 Q28.5 45 32 48 Q35.5 50.5 39 47" fill="none" stroke="#1E293B" stroke-width="2.6" stroke-linecap="round" />
                         `)}
                     </g>
                     ${mode === 'BREAK' ? `
