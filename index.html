@@ -313,6 +313,15 @@
             pointer-events: none !important;
         }
 
+        /* Snap Ash / Dust / Glowing Ember Fleck Particle Styles */
+        .snap-ash-fleck {
+            position: fixed !important;
+            pointer-events: none !important;
+            z-index: 100001 !important;
+            border-radius: 1px;
+            will-change: transform, opacity;
+        }
+
         #toast-bubble {
             position: fixed !important;
             bottom: 24px !important;
@@ -986,9 +995,6 @@
 
     <!-- Full-Screen Hero Energy Beam & Shockwave Canvas Effect (Replaces Confetti) -->
     <canvas id="hero-energy-beam-canvas" class="fixed inset-0 pointer-events-none w-full h-full" style="z-index: 9999;"></canvas>
-
-    <!-- Movie-Accurate Infinity War Snap Dust & Ash Particle Canvas -->
-    <canvas id="snap-fx-canvas" class="fixed inset-0 pointer-events-none w-full h-full" style="z-index: 100000; display: none;"></canvas>
 
     <!-- Interactive Toast Notification (Image 3 fix: contained max-w, bold comic typography) -->
     <div id="toast-bubble" class="fixed bottom-6 right-6 z-50 transform translate-y-32 opacity-0 transition-transform duration-300 pointer-events-none max-w-sm sm:max-w-md w-auto">
@@ -2567,165 +2573,97 @@
 
         let toastHideTimeout = null;
         let toastSnapTimeout = null;
-        let snapCanvasRafId = null;
 
-        function stopSnapParticleCanvas() {
-            if (snapCanvasRafId) {
-                cancelAnimationFrame(snapCanvasRafId);
-                snapCanvasRafId = null;
-            }
-            const canvas = document.getElementById('snap-fx-canvas');
-            if (canvas) {
-                const ctx = canvas.getContext('2d');
-                if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-                canvas.style.display = 'none';
-            }
+        function removeSnapParticles() {
+            document.querySelectorAll('.snap-ash-fleck').forEach(el => el.remove());
         }
 
         function spawnInfinitySnapDust(rect) {
-            stopSnapParticleCanvas();
+            removeSnapParticles();
             if (!rect || rect.width === 0 || rect.height === 0) return;
 
-            const canvas = document.getElementById('snap-fx-canvas');
-            if (!canvas) return;
-
-            const ctx = canvas.getContext('2d');
-            const dpr = window.devicePixelRatio || 1;
-            const W = window.innerWidth;
-            const H = window.innerHeight;
-
-            canvas.width = W * dpr;
-            canvas.height = H * dpr;
-            canvas.style.display = 'block';
-            ctx.scale(dpr, dpr);
-
-            const numParticles = 260; // Dense cinematic dust storm
+            const numParticles = 110; // Rich, highly visible movie dust & ember cloud
+            const fragment = document.createDocumentFragment();
             const particles = [];
 
             for (let i = 0; i < numParticles; i++) {
-                const isEmber = i < 75;      // Glowing hot orange/gold cinders
-                const isMote = i >= 200;     // High-altitude ambient smoke motes
-                // isAsh = 75..199: Jagged tumbling carbon ash flakes
+                const p = document.createElement('div');
+                p.className = 'snap-ash-fleck';
 
-                // Wave sweeps from right to left across the card
-                const xRatio = 0.12 + 0.88 * Math.random();
+                // Distribute across the toast card with slight right-side concentration
+                const xRatio = Math.pow(Math.random(), 0.85); // 1 = right, 0 = left
                 const startX = rect.left + rect.width * xRatio;
                 const startY = rect.top + rect.height * Math.random();
 
-                // Staggered departure synchronized with polygon erosion wavefront
-                const spawnDelay = (1 - xRatio) * 0.48 + Math.random() * 0.12;
+                // Particle types: Embers (32%), Charcoal Ash (46%), Fine Dust Motes (22%)
+                const typeRand = Math.random();
+                let width, height, bgColor, boxShadow = 'none';
 
-                let size, color, maxLife;
-                if (isEmber) {
-                    size = 2.2 + Math.random() * 2.8;
-                    color = Math.random() < 0.5 ? '#F59E0B' : (Math.random() < 0.8 ? '#FACC15' : '#EF4444');
-                    maxLife = 0.8 + Math.random() * 0.4;
-                } else if (isMote) {
-                    size = 1.0 + Math.random() * 1.5;
-                    color = Math.random() < 0.5 ? '#78716C' : '#A8A29E';
-                    maxLife = 0.95 + Math.random() * 0.45;
+                if (typeRand < 0.32) {
+                    // Glowing Hot Ember
+                    const size = 3 + Math.random() * 3.5;
+                    width = size;
+                    height = size;
+                    bgColor = Math.random() < 0.5 ? '#F59E0B' : (Math.random() < 0.8 ? '#FACC15' : '#EF4444');
+                    boxShadow = `0 0 6px 1px ${bgColor}`;
+                } else if (typeRand < 0.78) {
+                    // Jagged Burnt Charcoal Ash Flake
+                    width = 3.5 + Math.random() * 4.5;
+                    height = 2 + Math.random() * 3;
+                    const c = Math.random();
+                    bgColor = c < 0.5 ? '#1C1917' : (c < 0.8 ? '#292524' : '#44403C');
                 } else {
-                    size = 2.8 + Math.random() * 3.6;
-                    const r = Math.random();
-                    color = r < 0.45 ? '#1C1917' : (r < 0.75 ? '#292524' : '#44403C');
-                    maxLife = 0.85 + Math.random() * 0.4;
+                    // Fine Cosmic Dust Mote
+                    const size = 1.8 + Math.random() * 2;
+                    width = size;
+                    height = size;
+                    bgColor = Math.random() < 0.5 ? '#78716C' : '#A8A29E';
                 }
 
+                p.style.left = `${startX}px`;
+                p.style.top = `${startY}px`;
+                p.style.width = `${width}px`;
+                p.style.height = `${height}px`;
+                p.style.backgroundColor = bgColor;
+                p.style.boxShadow = boxShadow;
+                p.style.opacity = '1';
+                p.style.transform = 'translate3d(0, 0, 0) scale(1) rotate(0deg)';
+
+                fragment.appendChild(p);
+
+                // Progressive right-to-left dusting wavefront
+                const delay = (1 - xRatio) * 0.44 + Math.random() * 0.12;
+                const duration = 0.8 + Math.random() * 0.45;
+                const dx = 40 + Math.random() * 130;        // Wind carries particles to the right
+                const dy = -(30 + Math.random() * 95);      // Updraft carries them into the atmosphere
+                const rot = (Math.random() - 0.5) * 600;    // 3D tumbling rotation
+                const endScale = 0.15;
+
                 particles.push({
-                    x: startX,
-                    y: startY,
-                    vx: 38 + Math.random() * 115,          // Wind speed to the right
-                    vy: -(32 + Math.random() * 88),         // Updraft lift into atmosphere
-                    ax: 22 + Math.random() * 28,           // Atmospheric drag / wind acceleration
-                    ay: -(6 + Math.random() * 14),          // Progressive thermal rise
-                    size: size,
-                    aspectRatio: 0.35 + Math.random() * 0.85,
-                    angle: Math.random() * Math.PI * 2,
-                    spin: (Math.random() - 0.5) * 8.5,     // 3D tumbling rotation
-                    color: color,
-                    isEmber: isEmber,
-                    isMote: isMote,
-                    spawnDelay: spawnDelay,
-                    maxLife: maxLife,
-                    turbFreq: 4.5 + Math.random() * 4.5,
-                    turbPhase: Math.random() * Math.PI * 2
+                    el: p,
+                    delay: delay,
+                    duration: duration,
+                    dx: dx,
+                    dy: dy,
+                    rot: rot,
+                    endScale: endScale
                 });
             }
 
-            const startTime = performance.now();
-            const totalDuration = 1350; // Exact 1.35s movie sequence
+            document.body.appendChild(fragment);
 
-            function renderSnapFrame(now) {
-                const elapsed = (now - startTime) / 1000;
-                ctx.clearRect(0, 0, W, H);
+            // Trigger smooth CSS animation on next animation frame
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    particles.forEach(pt => {
+                        pt.el.style.transition = `transform ${pt.duration.toFixed(2)}s cubic-bezier(0.16, 1, 0.3, 1) ${pt.delay.toFixed(3)}s, opacity ${pt.duration.toFixed(2)}s ease-out ${pt.delay.toFixed(3)}s`;
+                        pt.el.style.transform = `translate3d(${pt.dx.toFixed(1)}px, ${pt.dy.toFixed(1)}px, 0) rotate(${pt.rot.toFixed(1)}deg) scale(${pt.endScale})`;
+                        pt.el.style.opacity = '0';
+                    });
+                });
+            });
 
-                let anyAlive = false;
-                const dt = 0.016;
-
-                for (let i = 0; i < particles.length; i++) {
-                    const p = particles[i];
-                    if (elapsed < p.spawnDelay) continue;
-
-                    const age = elapsed - p.spawnDelay;
-                    if (age > p.maxLife) continue;
-
-                    anyAlive = true;
-                    const lifeRatio = age / p.maxLife;
-                    const fade = Math.max(0, 1 - Math.pow(lifeRatio, 1.75));
-
-                    // Wind current physics with atmospheric turbulent curling
-                    p.vx += p.ax * dt;
-                    p.vy += p.ay * dt;
-
-                    const windCurlX = Math.sin(age * p.turbFreq + p.turbPhase) * 1.8;
-                    const windCurlY = Math.cos(age * (p.turbFreq * 0.75) + p.turbPhase) * 1.0;
-
-                    p.x += (p.vx + windCurlX) * dt * 42;
-                    p.y += (p.vy + windCurlY) * dt * 42;
-                    p.angle += p.spin * dt;
-
-                    ctx.save();
-                    ctx.globalAlpha = fade;
-                    ctx.translate(p.x, p.y);
-                    ctx.rotate(p.angle);
-
-                    if (p.isEmber) {
-                        // Glowing ember cooling into burnt charcoal
-                        const emberGlow = Math.max(0, 1 - lifeRatio * 1.4);
-                        if (emberGlow > 0) {
-                            ctx.shadowBlur = 6 * emberGlow;
-                            ctx.shadowColor = '#F97316';
-                        }
-                        ctx.fillStyle = lifeRatio > 0.55 ? '#78716C' : p.color;
-                        ctx.fillRect(-p.size / 2, -(p.size * p.aspectRatio) / 2, p.size, p.size * p.aspectRatio);
-                    } else if (p.isMote) {
-                        // High atmosphere circular dust motes
-                        ctx.fillStyle = p.color;
-                        ctx.beginPath();
-                        ctx.arc(0, 0, Math.max(0.4, p.size * (1 - lifeRatio * 0.45)), 0, Math.PI * 2);
-                        ctx.fill();
-                    } else {
-                        // Flaking burnt carbon ash
-                        ctx.fillStyle = p.color;
-                        ctx.fillRect(-p.size / 2, -(p.size * p.aspectRatio) / 2, p.size, p.size * p.aspectRatio);
-                        if (p.size > 3.6) {
-                            ctx.strokeStyle = '#000000';
-                            ctx.lineWidth = 0.8;
-                            ctx.strokeRect(-p.size / 2, -(p.size * p.aspectRatio) / 2, p.size, p.size * p.aspectRatio);
-                        }
-                    }
-
-                    ctx.restore();
-                }
-
-                if (elapsed < (totalDuration / 1000) && anyAlive) {
-                    snapCanvasRafId = requestAnimationFrame(renderSnapFrame);
-                } else {
-                    stopSnapParticleCanvas();
-                }
-            }
-
-            snapCanvasRafId = requestAnimationFrame(renderSnapFrame);
+            setTimeout(removeSnapParticles, 1500);
         }
 
         function showToast(text, type = 'info', heroKey = null) {
@@ -2734,7 +2672,7 @@
             const toastIcon = document.getElementById('toast-icon');
             if (!toast || !toastText) return;
 
-            // Clear any active dismiss / snap timers and active canvas
+            // Clear any active dismiss / snap timers and lingering particles
             if (toastHideTimeout) {
                 clearTimeout(toastHideTimeout);
                 toastHideTimeout = null;
@@ -2743,7 +2681,7 @@
                 clearTimeout(toastSnapTimeout);
                 toastSnapTimeout = null;
             }
-            stopSnapParticleCanvas();
+            removeSnapParticles();
 
             // Clear snap animations and reset toast transform/opacity
             toast.classList.remove('snap-dissolve', 'smooth-pop');
@@ -2780,25 +2718,25 @@
             // Smooth entrance pop
             toast.classList.add('smooth-pop');
 
-            // Stay visible for 2.2s, then trigger cinema-grade Infinity War Snap disintegration
+            // Stay visible for 2.2s, then trigger cinematic Infinity War Snap disintegration
             toastSnapTimeout = setTimeout(() => {
                 toast.classList.remove('smooth-pop');
                 const rect = toast.getBoundingClientRect();
-                
+
                 // Play movie crumbling audio effect
                 AudioEngine.infinitySnap();
 
                 // Trigger movie-accurate burning ember clip erosion
                 toast.classList.add('snap-dissolve');
 
-                // Trigger 260-particle canvas dust storm
+                // Trigger rich 110-particle dust & ember cloud
                 spawnInfinitySnapDust(rect);
 
                 toastHideTimeout = setTimeout(() => {
                     toast.classList.remove('snap-dissolve');
                     toast.classList.add('translate-y-32', 'opacity-0');
                     toast.style.opacity = '0';
-                    stopSnapParticleCanvas();
+                    removeSnapParticles();
                 }, 1300);
             }, 2200);
         }
