@@ -1745,9 +1745,8 @@
 
         function switchView(viewName) {
             currentActiveView = viewName;
-            if (typeof AudioEngine !== 'undefined' && AudioEngine.repulsorZap) {
-                AudioEngine.init();
-                AudioEngine.repulsorZap();
+            if (typeof AudioEngine !== 'undefined') {
+                if (AudioEngine.uiTick) AudioEngine.uiTick();
             }
 
             const liveHudView = document.getElementById('live-hud-view');
@@ -1783,111 +1782,354 @@
         }
 
         // =========================================================================
-        // 2. RETRO WEB AUDIO API SYNTHESIZER (Superhero SFX)
+        // 2. STUDIO-GRADE WEB AUDIO API SYNTHESIZER (Superhero SFX Engine)
         // =========================================================================
         const AudioEngine = {
             ctx: null,
+            compressor: null,
+            masterGain: null,
             muted: localStorage.getItem('avengers_muted') === 'true',
 
             init() {
                 if (!this.ctx) {
                     const AudioContext = window.AudioContext || window.webkitAudioContext;
-                    if (AudioContext) this.ctx = new AudioContext();
+                    if (AudioContext) {
+                        this.ctx = new AudioContext();
+
+                        // Master Dynamics Compressor: prevents digital clipping & balances layers
+                        this.compressor = this.ctx.createDynamicsCompressor();
+                        this.compressor.threshold.setValueAtTime(-14, this.ctx.currentTime);
+                        this.compressor.knee.setValueAtTime(12, this.ctx.currentTime);
+                        this.compressor.ratio.setValueAtTime(4.5, this.ctx.currentTime);
+                        this.compressor.attack.setValueAtTime(0.003, this.ctx.currentTime);
+                        this.compressor.release.setValueAtTime(0.2, this.ctx.currentTime);
+
+                        // Master Output Gain
+                        this.masterGain = this.ctx.createGain();
+                        this.masterGain.gain.setValueAtTime(0.85, this.ctx.currentTime);
+
+                        this.compressor.connect(this.masterGain);
+                        this.masterGain.connect(this.ctx.destination);
+                    }
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume().catch(() => {});
                 }
             },
 
-            playTone(freq, type = 'sine', duration = 0.1, startTime = 0, volume = 0.15) {
-                if (this.muted) return;
-                try {
-                    this.init();
-                    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
-                    if (!this.ctx) return;
+            ensureActive() {
+                if (this.muted) return false;
+                this.init();
+                if (!this.ctx) return false;
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume().catch(() => {});
+                }
+                return true;
+            },
 
+            getDest() {
+                return this.compressor || (this.ctx ? this.ctx.destination : null);
+            },
+
+            playTone(freq, type = 'sine', duration = 0.1, startTime = 0, volume = 0.15) {
+                if (!this.ensureActive()) return;
+                try {
+                    const t = this.ctx.currentTime + startTime;
                     const osc = this.ctx.createOscillator();
                     const gain = this.ctx.createGain();
 
                     osc.type = type;
-                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime + startTime);
-                    gain.gain.setValueAtTime(volume, this.ctx.currentTime + startTime);
-                    gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + startTime + duration);
+                    osc.frequency.setValueAtTime(freq, t);
+                    gain.gain.setValueAtTime(Math.max(0.0001, volume), t);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
 
                     osc.connect(gain);
-                    gain.connect(this.ctx.destination);
+                    gain.connect(this.getDest());
 
-                    osc.start(this.ctx.currentTime + startTime);
-                    osc.stop(this.ctx.currentTime + startTime + duration);
+                    osc.start(t);
+                    osc.stop(t + duration + 0.02);
                 } catch (e) {
                     console.warn('Audio tone error:', e);
                 }
             },
 
+            // 1. IRON MAN: Arc Repulsor Cannon Blast (High-energy plasma chirp + punchy body)
             repulsorZap() {
-                if (this.muted) return;
-                this.init();
+                if (!this.ensureActive()) return;
                 try {
+                    const t = this.ctx.currentTime;
+                    const dest = this.getDest();
+
+                    // Plasma laser chirp through resonant lowpass filter
                     const osc = this.ctx.createOscillator();
+                    const filter = this.ctx.createBiquadFilter();
                     const gain = this.ctx.createGain();
+
                     osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(1400, this.ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(280, this.ctx.currentTime + 0.22);
-                    gain.gain.setValueAtTime(0.22, this.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.22);
-                    osc.connect(gain);
-                    gain.connect(this.ctx.destination);
-                    osc.start();
-                    osc.stop(this.ctx.currentTime + 0.22);
-                } catch(e) {}
-            },
+                    osc.frequency.setValueAtTime(1600, t);
+                    osc.frequency.exponentialRampToValueAtTime(260, t + 0.18);
 
-            shieldClang() {
-                this.playTone(900, 'triangle', 0.05, 0, 0.25);
-                this.playTone(1800, 'sine', 0.25, 0.02, 0.2);
-            },
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(3200, t);
+                    filter.frequency.exponentialRampToValueAtTime(450, t + 0.18);
+                    filter.Q.setValueAtTime(4.5, t);
 
-            thunderStrike() {
-                this.playTone(140, 'sawtooth', 0.4, 0, 0.3);
-                this.playTone(85, 'sine', 0.45, 0.08, 0.25);
-            },
+                    gain.gain.setValueAtTime(0.24, t);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
 
-            webShot() {
-                this.playTone(2000, 'sine', 0.06, 0, 0.18);
-                this.playTone(950, 'triangle', 0.1, 0.03, 0.15);
-            },
+                    osc.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(dest);
+                    osc.start(t);
+                    osc.stop(t + 0.19);
 
-            hulkSmash() {
-                if (this.muted) return;
-                this.init();
-                try {
-                    // 1. Explosive seismic impact crack (downward frequency sweep)
-                    if (this.ctx) {
-                        const osc = this.ctx.createOscillator();
-                        const gain = this.ctx.createGain();
-                        osc.type = 'sawtooth';
-                        osc.frequency.setValueAtTime(240, this.ctx.currentTime);
-                        osc.frequency.exponentialRampToValueAtTime(36, this.ctx.currentTime + 0.38);
-                        gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.38);
-                        osc.connect(gain);
-                        gain.connect(this.ctx.destination);
-                        osc.start();
-                        osc.stop(this.ctx.currentTime + 0.38);
-                    }
-                    // 2. Heavy sub-bass earthquake rumbling tones
-                    this.playTone(72, 'square', 0.45, 0.02, 0.35);
-                    this.playTone(38, 'sine', 0.55, 0.05, 0.4);
-                } catch(e) {
-                    this.playTone(85, 'sawtooth', 0.35, 0, 0.35);
-                    this.playTone(55, 'square', 0.45, 0.05, 0.3);
+                    // Sub-charge body weight
+                    const subOsc = this.ctx.createOscillator();
+                    const subGain = this.ctx.createGain();
+                    subOsc.type = 'sine';
+                    subOsc.frequency.setValueAtTime(420, t);
+                    subOsc.frequency.exponentialRampToValueAtTime(90, t + 0.15);
+
+                    subGain.gain.setValueAtTime(0.18, t);
+                    subGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.15);
+
+                    subOsc.connect(subGain);
+                    subGain.connect(dest);
+                    subOsc.start(t);
+                    subOsc.stop(t + 0.16);
+                } catch (e) {
+                    console.warn('repulsorZap error:', e);
                 }
             },
 
-            infinitySnap() {
-                if (this.muted) return;
-                this.init();
-                if (!this.ctx) return;
+            // 2. CAPTAIN AMERICA: Vibranium Shield Ricochet Clang (Sharp strike + ringing harmonics)
+            shieldClang() {
+                if (!this.ensureActive()) return;
                 try {
                     const t = this.ctx.currentTime;
-                    // 1. Soft atmospheric crumbling noise buffer (white noise with bandpass sweep)
+                    const dest = this.getDest();
+
+                    // Sharp metal impact transient
+                    const oscHit = this.ctx.createOscillator();
+                    const gainHit = this.ctx.createGain();
+                    oscHit.type = 'triangle';
+                    oscHit.frequency.setValueAtTime(2600, t);
+                    oscHit.frequency.exponentialRampToValueAtTime(800, t + 0.04);
+                    gainHit.gain.setValueAtTime(0.35, t);
+                    gainHit.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
+                    oscHit.connect(gainHit);
+                    gainHit.connect(dest);
+                    oscHit.start(t);
+                    oscHit.stop(t + 0.045);
+
+                    // Vibranium harmonic ring 1 (1046.5Hz - C6)
+                    const oscRing1 = this.ctx.createOscillator();
+                    const gainRing1 = this.ctx.createGain();
+                    oscRing1.type = 'sine';
+                    oscRing1.frequency.setValueAtTime(1046.5, t);
+                    gainRing1.gain.setValueAtTime(0.24, t);
+                    gainRing1.gain.exponentialRampToValueAtTime(0.0001, t + 0.48);
+                    oscRing1.connect(gainRing1);
+                    gainRing1.connect(dest);
+                    oscRing1.start(t);
+                    oscRing1.stop(t + 0.49);
+
+                    // Vibranium high overtone shimmer (2093Hz - C7)
+                    const oscRing2 = this.ctx.createOscillator();
+                    const gainRing2 = this.ctx.createGain();
+                    oscRing2.type = 'triangle';
+                    oscRing2.frequency.setValueAtTime(2093, t);
+                    gainRing2.gain.setValueAtTime(0.16, t);
+                    gainRing2.gain.exponentialRampToValueAtTime(0.0001, t + 0.36);
+                    oscRing2.connect(gainRing2);
+                    gainRing2.connect(dest);
+                    oscRing2.start(t);
+                    oscRing2.stop(t + 0.37);
+                } catch (e) {
+                    console.warn('shieldClang error:', e);
+                }
+            },
+
+            // 3. THOR: Mjolnir Thunder Strike (Supersonic electrical crack + rolling thunder rumble)
+            thunderStrike() {
+                if (!this.ensureActive()) return;
+                try {
+                    const t = this.ctx.currentTime;
+                    const dest = this.getDest();
+
+                    // Lightning Crack Noise Burst (filtered 120ms)
+                    const bufferSize = Math.floor(this.ctx.sampleRate * 0.12);
+                    const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                    const output = noiseBuffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        output[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+                    }
+                    const noiseSource = this.ctx.createBufferSource();
+                    noiseSource.buffer = noiseBuffer;
+
+                    const noiseFilter = this.ctx.createBiquadFilter();
+                    noiseFilter.type = 'bandpass';
+                    noiseFilter.frequency.setValueAtTime(1400, t);
+                    noiseFilter.frequency.exponentialRampToValueAtTime(300, t + 0.12);
+                    noiseFilter.Q.setValueAtTime(1.8, t);
+
+                    const noiseGain = this.ctx.createGain();
+                    noiseGain.gain.setValueAtTime(0.35, t);
+                    noiseGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+
+                    noiseSource.connect(noiseFilter);
+                    noiseFilter.connect(noiseGain);
+                    noiseGain.connect(dest);
+                    noiseSource.start(t);
+
+                    // High-Voltage Electric Zap
+                    const zapOsc = this.ctx.createOscillator();
+                    const zapGain = this.ctx.createGain();
+                    zapOsc.type = 'sawtooth';
+                    zapOsc.frequency.setValueAtTime(950, t);
+                    zapOsc.frequency.exponentialRampToValueAtTime(80, t + 0.15);
+                    zapGain.gain.setValueAtTime(0.24, t);
+                    zapGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.15);
+                    zapOsc.connect(zapGain);
+                    zapGain.connect(dest);
+                    zapOsc.start(t);
+                    zapOsc.stop(t + 0.16);
+
+                    // Deep Rolling Thunder Tremor
+                    const rumbleOsc = this.ctx.createOscillator();
+                    const rumbleGain = this.ctx.createGain();
+                    rumbleOsc.type = 'triangle';
+                    rumbleOsc.frequency.setValueAtTime(85, t + 0.04);
+                    rumbleOsc.frequency.exponentialRampToValueAtTime(30, t + 0.55);
+                    rumbleGain.gain.setValueAtTime(0.001, t);
+                    rumbleGain.gain.linearRampToValueAtTime(0.38, t + 0.08);
+                    rumbleGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.55);
+                    rumbleOsc.connect(rumbleGain);
+                    rumbleGain.connect(dest);
+                    rumbleOsc.start(t);
+                    rumbleOsc.stop(t + 0.56);
+                } catch (e) {
+                    console.warn('thunderStrike error:', e);
+                }
+            },
+
+            // 4. SPIDER-MAN: Web Shoot & Net Burst (Authentic pneumatic *THWIP!* + elastic pluck)
+            webShot() {
+                if (!this.ensureActive()) return;
+                try {
+                    const t = this.ctx.currentTime;
+                    const dest = this.getDest();
+
+                    // Compressed air fluid hiss (bandpassed noise 80ms)
+                    const bufferSize = Math.floor(this.ctx.sampleRate * 0.09);
+                    const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                    const output = noiseBuffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        output[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.35));
+                    }
+                    const noiseSource = this.ctx.createBufferSource();
+                    noiseSource.buffer = noiseBuffer;
+
+                    const noiseFilter = this.ctx.createBiquadFilter();
+                    noiseFilter.type = 'bandpass';
+                    noiseFilter.frequency.setValueAtTime(3400, t);
+                    noiseFilter.frequency.exponentialRampToValueAtTime(1600, t + 0.08);
+                    noiseFilter.Q.setValueAtTime(3.2, t);
+
+                    const noiseGain = this.ctx.createGain();
+                    noiseGain.gain.setValueAtTime(0.3, t);
+                    noiseGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
+
+                    noiseSource.connect(noiseFilter);
+                    noiseFilter.connect(noiseGain);
+                    noiseGain.connect(dest);
+                    noiseSource.start(t);
+
+                    // Elastic web strand tension pluck (1800Hz -> 380Hz)
+                    const pluckOsc = this.ctx.createOscillator();
+                    const pluckGain = this.ctx.createGain();
+                    pluckOsc.type = 'sine';
+                    pluckOsc.frequency.setValueAtTime(1800, t);
+                    pluckOsc.frequency.exponentialRampToValueAtTime(380, t + 0.07);
+                    pluckGain.gain.setValueAtTime(0.22, t);
+                    pluckGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+                    pluckOsc.connect(pluckGain);
+                    pluckGain.connect(dest);
+                    pluckOsc.start(t);
+                    pluckOsc.stop(t + 0.075);
+                } catch (e) {
+                    console.warn('webShot error:', e);
+                }
+            },
+
+            // 5. HULK: Seismic Ground Smash (Concrete shatter transient + sub-bass earthquake tremor)
+            hulkSmash() {
+                if (!this.ensureActive()) return;
+                try {
+                    const t = this.ctx.currentTime;
+                    const dest = this.getDest();
+
+                    // Concrete shatter impact crunch
+                    const bufferSize = Math.floor(this.ctx.sampleRate * 0.12);
+                    const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                    const output = noiseBuffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        output[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.4));
+                    }
+                    const noiseSource = this.ctx.createBufferSource();
+                    noiseSource.buffer = noiseBuffer;
+
+                    const noiseFilter = this.ctx.createBiquadFilter();
+                    noiseFilter.type = 'lowpass';
+                    noiseFilter.frequency.setValueAtTime(650, t);
+                    noiseFilter.frequency.exponentialRampToValueAtTime(120, t + 0.12);
+
+                    const noiseGain = this.ctx.createGain();
+                    noiseGain.gain.setValueAtTime(0.4, t);
+                    noiseGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+
+                    noiseSource.connect(noiseFilter);
+                    noiseFilter.connect(noiseGain);
+                    noiseGain.connect(dest);
+                    noiseSource.start(t);
+
+                    // Heavy seismic downward pitch sweep
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(260, t);
+                    osc.frequency.exponentialRampToValueAtTime(36, t + 0.35);
+                    gain.gain.setValueAtTime(0.35, t);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+                    osc.connect(gain);
+                    gain.connect(dest);
+                    osc.start(t);
+                    osc.stop(t + 0.36);
+
+                    // Sub-bass earthquake tremor
+                    const subOsc = this.ctx.createOscillator();
+                    const subGain = this.ctx.createGain();
+                    subOsc.type = 'sine';
+                    subOsc.frequency.setValueAtTime(55, t);
+                    subOsc.frequency.exponentialRampToValueAtTime(24, t + 0.45);
+                    subGain.gain.setValueAtTime(0.45, t);
+                    subGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.45);
+                    subOsc.connect(subGain);
+                    subGain.connect(dest);
+                    subOsc.start(t);
+                    subOsc.stop(t + 0.46);
+                } catch(e) {
+                    console.warn('hulkSmash error:', e);
+                }
+            },
+
+            // 6. THANOS: Cosmic Infinity Gauntlet Snap
+            infinitySnap() {
+                if (!this.ensureActive()) return;
+                try {
+                    const t = this.ctx.currentTime;
+                    const dest = this.getDest();
+
                     const bufferSize = Math.floor(this.ctx.sampleRate * 1.15);
                     const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
                     const output = noiseBuffer.getChannelData(0);
@@ -1910,10 +2152,9 @@
 
                     whiteNoise.connect(filter);
                     filter.connect(gain);
-                    gain.connect(this.ctx.destination);
+                    gain.connect(dest);
                     whiteNoise.start(t);
 
-                    // 2. Sub-bass cosmic resonance decay tone
                     const subOsc = this.ctx.createOscillator();
                     const subGain = this.ctx.createGain();
                     subOsc.type = 'sine';
@@ -1922,17 +2163,106 @@
                     subGain.gain.setValueAtTime(0.16, t);
                     subGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.75);
                     subOsc.connect(subGain);
-                    subGain.connect(this.ctx.destination);
+                    subGain.connect(dest);
                     subOsc.start(t);
                     subOsc.stop(t + 0.75);
+                } catch(e) {
+                    console.warn('infinitySnap error:', e);
+                }
+            },
+
+            // 7. VICTORY FANFARE: Heroic Brass Orchestral Chord Progression
+            fanfare() {
+                if (!this.ensureActive()) return;
+                try {
+                    const t = this.ctx.currentTime;
+                    const dest = this.getDest();
+
+                    const sequence = [
+                        { f: 392.00, start: 0, dur: 0.14, vol: 0.22 },     // G4
+                        { f: 523.25, start: 0.12, dur: 0.14, vol: 0.24 },  // C5
+                        { f: 659.25, start: 0.24, dur: 0.16, vol: 0.26 },  // E5
+                        // Triumphant Chord Finale:
+                        { f: 523.25, start: 0.38, dur: 0.75, vol: 0.22 },  // C5
+                        { f: 659.25, start: 0.38, dur: 0.75, vol: 0.22 },  // E5
+                        { f: 783.99, start: 0.38, dur: 0.85, vol: 0.28 },  // G5
+                        { f: 1046.50, start: 0.42, dur: 0.80, vol: 0.18 }  // C6 shimmer
+                    ];
+
+                    sequence.forEach(n => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(n.f, t + n.start);
+
+                        gain.gain.setValueAtTime(0.001, t + n.start);
+                        gain.gain.linearRampToValueAtTime(n.vol, t + n.start + 0.02);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, t + n.start + n.dur);
+
+                        osc.connect(gain);
+                        gain.connect(dest);
+
+                        osc.start(t + n.start);
+                        osc.stop(t + n.start + n.dur + 0.02);
+                    });
+                } catch(e) {
+                    console.warn('fanfare error:', e);
+                }
+            },
+
+            // 8. TACTICAL HUD UI CLICK (Subtle, crisp mechanical feedback)
+            uiTick() {
+                if (!this.ensureActive()) return;
+                try {
+                    const t = this.ctx.currentTime;
+                    const dest = this.getDest();
+
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(1400, t);
+                    osc.frequency.exponentialRampToValueAtTime(450, t + 0.035);
+
+                    gain.gain.setValueAtTime(0.12, t);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
+
+                    osc.connect(gain);
+                    gain.connect(dest);
+                    osc.start(t);
+                    osc.stop(t + 0.04);
                 } catch(e) {}
             },
 
-            fanfare() {
-                const notes = [392.00, 523.25, 659.25, 783.99, 1046.50];
-                notes.forEach((freq, idx) => {
-                    this.playTone(freq, 'triangle', 0.16, idx * 0.1, 0.2);
-                });
+            // 9. COUNTDOWN TICK (Last 5 seconds tactical HUD blip)
+            countdownTick(isFinal = false) {
+                if (!this.ensureActive()) return;
+                try {
+                    const t = this.ctx.currentTime;
+                    const dest = this.getDest();
+
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+
+                    if (isFinal) {
+                        osc.frequency.setValueAtTime(1760, t);
+                        gain.gain.setValueAtTime(0.24, t);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+                        osc.connect(gain);
+                        gain.connect(dest);
+                        osc.start(t);
+                        osc.stop(t + 0.19);
+                    } else {
+                        osc.frequency.setValueAtTime(880, t);
+                        gain.gain.setValueAtTime(0.16, t);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+                        osc.connect(gain);
+                        gain.connect(dest);
+                        osc.start(t);
+                        osc.stop(t + 0.07);
+                    }
+                } catch(e) {}
             },
 
             toggleMute() {
@@ -1950,22 +2280,26 @@
             updateUI() {
                 const iconContainer = document.getElementById('sfx-icon-container');
                 const text = document.getElementById('sfx-text');
-                if (this.muted) {
-                    iconContainer.innerHTML = '<i data-lucide="volume-x" class="w-4 h-4"></i>';
-                    text.innerText = 'MUTED';
-                } else {
-                    iconContainer.innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i>';
-                    text.innerText = 'SFX ON';
+                if (iconContainer) {
+                    iconContainer.innerHTML = this.muted ? '<i data-lucide="volume-x" class="w-4 h-4"></i>' : '<i data-lucide="volume-2" class="w-4 h-4"></i>';
                 }
-                if (window.lucide) lucide.createIcons();
+                if (text) {
+                    text.innerText = this.muted ? 'MUTED' : 'SFX ON';
+                }
+                if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                    window.lucide.createIcons();
+                }
             }
         };
 
-        window.addEventListener('click', () => {
-            if (AudioEngine.ctx && AudioEngine.ctx.state === 'suspended') {
-                AudioEngine.ctx.resume();
-            }
-        }, { once: true });
+        // Continual wake listener to resume AudioContext automatically on any interaction
+        ['click', 'pointerdown', 'touchstart', 'keydown'].forEach(evt => {
+            window.addEventListener(evt, () => {
+                if (AudioEngine.ctx && AudioEngine.ctx.state === 'suspended') {
+                    AudioEngine.ctx.resume().catch(() => {});
+                }
+            }, { passive: true });
+        });
 
         // =========================================================================
         // 3. SUPERHERO ROSTER & SIGNATURE SUPERPOWER ENGINE
@@ -2646,7 +2980,9 @@
                         updateProgress();
 
                         if (localSeconds <= 5 && localSeconds > 0) {
-                            AudioEngine.repulsorZap();
+                            if (AudioEngine.countdownTick) {
+                                AudioEngine.countdownTick(localSeconds === 1);
+                            }
                         }
                     } else {
                         clearInterval(localTimerInterval);
