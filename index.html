@@ -2446,21 +2446,116 @@
                     ]
                 },
                 renderSVG: (mode) => `
-                    <circle cx="80" cy="80" r="62" fill="#E62429" stroke="#000" stroke-width="4.5" />
-                    <path d="M42 55 L118 55 L110 115 L80 135 L50 115 Z" fill="#FFD700" stroke="#000" stroke-width="4" />
-                    <path d="M52 45 L108 45 L118 55 L42 55 Z" fill="#9E1A1A" stroke="#000" stroke-width="3" />
-                    <rect x="52" y="78" width="20" height="7" rx="3" fill="#00F0FF" stroke="#000" stroke-width="2" class="${mode === 'WORK' ? 'energy-pulse' : ''}" />
-                    <rect x="88" y="78" width="20" height="7" rx="3" fill="#00F0FF" stroke="#000" stroke-width="2" class="${mode === 'WORK' ? 'energy-pulse' : ''}" />
-                    <line x1="70" y1="112" x2="90" y2="112" stroke="#000" stroke-width="3" stroke-linecap="round" />
+                    <!-- 1. Upper Torso & Armored Collar (Gorget / Trapezius) -->
+                    <path d="M16 155 C20 125, 46 116, 60 112 L100 112 C114 116, 140 125, 144 155 Z" fill="#991B1B" stroke="#000" stroke-width="4.5" stroke-linejoin="round" />
+                    <!-- Clavicle Gold Accents -->
+                    <path d="M22 155 L38 136 L56 130 L52 145 L32 155 Z" fill="#F59E0B" stroke="#000" stroke-width="2.5" stroke-linejoin="round" />
+                    <path d="M138 155 L122 136 L104 130 L108 145 L128 155 Z" fill="#F59E0B" stroke="#000" stroke-width="2.5" stroke-linejoin="round" />
+                    <!-- Unibeam / Arc Reactor Collar Notch -->
+                    <path d="M70 142 L80 134 L90 142 L86 155 L74 155 Z" fill="#00F0FF" stroke="#000" stroke-width="2" class="${mode === 'WORK' ? 'energy-pulse' : ''}" />
+                    <circle cx="80" cy="144" r="3" fill="#FFFFFF" />
+
+                    <!-- 2. Helmet Outer Shell (Hot-Rod Crimson Cranium) -->
+                    <path d="M34 68 C30 92, 34 110, 42 120 C50 132, 66 139, 80 141 C94 139, 110 132, 118 120 C126 110, 130 92, 126 68 C120 34, 40 34, 34 68 Z" fill="#DC2626" stroke="#000" stroke-width="4.5" stroke-linejoin="round" />
+
+                    <!-- Cranial Armor Plate Insets & Brow Arch -->
+                    <path d="M46 42 C56 34, 104 34, 114 42 L110 52 C102 46, 58 46, 50 52 Z" fill="#EF4444" opacity="0.8" />
+                    <line x1="80" y1="36" x2="80" y2="52" stroke="#7F1D1D" stroke-width="2" />
+
+                    <!-- 3. Ear Pod Assemblies (Concentric Auricle Caps) -->
+                    <g>
+                        <circle cx="32" cy="85" r="9" fill="#F59E0B" stroke="#000" stroke-width="3" />
+                        <circle cx="32" cy="85" r="5" fill="#B45309" stroke="#000" stroke-width="1.8" />
+                        <circle cx="32" cy="85" r="2" fill="#E2E8F0" />
+                        <line x1="23" y1="85" x2="41" y2="85" stroke="#000" stroke-width="1.5" />
+                    </g>
+                    <g>
+                        <circle cx="128" cy="85" r="9" fill="#F59E0B" stroke="#000" stroke-width="3" />
+                        <circle cx="128" cy="85" r="5" fill="#B45309" stroke="#000" stroke-width="1.8" />
+                        <circle cx="128" cy="85" r="2" fill="#E2E8F0" />
+                        <line x1="119" y1="85" x2="137" y2="85" stroke="#000" stroke-width="1.5" />
+                    </g>
+
+                    <!-- 4. The Legendary Titanium-Gold Faceplate -->
+                    <!-- Faceplate Outer Contour -->
+                    <path d="M44 56 L116 56 L118 80 L112 108 L98 126 L80 134 L62 126 L48 108 L42 80 Z" fill="#F59E0B" stroke="#000" stroke-width="4" stroke-linejoin="round" />
+
+                    <!-- Upper Brow Peak (Crimson V-Inlet) -->
+                    <polygon points="56,56 80,68 104,56 94,52 66,52" fill="#B91C1C" stroke="#000" stroke-width="2.5" stroke-linejoin="round" />
+
+                    <!-- Zygomatic (Cheekbone) Bevel Highlight Facets -->
+                    <polygon points="46,62 60,68 56,92 44,80" fill="#FDE047" stroke="#000" stroke-width="1.5" />
+                    <polygon points="114,62 100,68 104,92 116,80" fill="#D97706" stroke="#000" stroke-width="1.5" />
+
+                    <!-- Mandibular Jawline Shadows -->
+                    <polygon points="48,108 62,126 56,128 44,110" fill="#B45309" stroke="#000" stroke-width="1.5" />
+                    <polygon points="112,108 98,126 104,128 116,110" fill="#92400E" stroke="#000" stroke-width="1.5" />
+
+                    <!-- Center Faceplate Highlight Ridge -->
+                    <path d="M68 68 L80 72 L92 68 L88 104 L80 114 L72 104 Z" fill="#FBBF24" opacity="0.6" />
+
+                    <!-- 5. Optical Slits (Piercing Repulsor Eyes) -->
                     ${mode === 'WORK' ? `
-                        <circle cx="28" cy="40" r="4" fill="#00F0FF" class="energy-pulse" />
-                        <circle cx="132" cy="40" r="5" fill="#FFD700" class="energy-pulse" />
-                    ` : ''}
-                    ${mode === 'BREAK' ? `
-                        <rect x="46" y="72" width="68" height="18" rx="4" fill="#000" stroke="#000" stroke-width="2" />
-                        <line x1="50" y1="76" x2="62" y2="86" stroke="#FFF" stroke-width="2" stroke-linecap="round" />
-                        <line x1="84" y1="76" x2="96" y2="86" stroke="#FFF" stroke-width="2" stroke-linecap="round" />
-                    ` : ''}
+                        <!-- Arc Reactor Overdrive Blue Optics -->
+                        <polygon points="50,78 72,83 69,89 53,86" fill="#00F0FF" stroke="#000" stroke-width="2.5" class="energy-pulse" stroke-linejoin="round" />
+                        <polygon points="54,80 68,83 66,87 56,85" fill="#FFFFFF" />
+                        <polygon points="110,78 88,83 91,89 107,86" fill="#00F0FF" stroke="#000" stroke-width="2.5" class="energy-pulse" stroke-linejoin="round" />
+                        <polygon points="106,80 92,83 94,87 104,85" fill="#FFFFFF" />
+
+                        <!-- HUD Optical Crosshair Flares -->
+                        <line x1="42" y1="82" x2="48" y2="82" stroke="#00F0FF" stroke-width="2" stroke-linecap="round" />
+                        <line x1="118" y1="82" x2="112" y2="82" stroke="#00F0FF" stroke-width="2" stroke-linecap="round" />
+                    ` : (mode === 'BREAK' ? `
+                        <!-- Standby Low-Power Cyan Optic -->
+                        <polygon points="50,78 72,83 69,89 53,86" fill="#0284C7" stroke="#000" stroke-width="2.5" stroke-linejoin="round" />
+                        <polygon points="56,81 66,83 64,86 58,85" fill="#38BDF8" />
+                        <polygon points="110,78 88,83 91,89 107,86" fill="#0284C7" stroke="#000" stroke-width="2.5" stroke-linejoin="round" />
+                        <polygon points="104,81 94,83 96,86 102,85" fill="#38BDF8" />
+                    ` : `
+                        <!-- Standby Amber / Caution Optic -->
+                        <polygon points="50,78 72,83 69,89 53,86" fill="#F59E0B" stroke="#000" stroke-width="2.5" stroke-linejoin="round" />
+                        <polygon points="55,80 67,83 65,87 57,85" fill="#FEF08A" />
+                        <polygon points="110,78 88,83 91,89 107,86" fill="#F59E0B" stroke="#000" stroke-width="2.5" stroke-linejoin="round" />
+                        <polygon points="105,80 93,83 95,87 103,85" fill="#FEF08A" />
+                    `)}
+
+                    <!-- 6. Mouth / Vocal Speaker Grille & Chin Vent -->
+                    <rect x="65" y="106" width="30" height="4.5" rx="2" fill="#000" stroke="#78350F" stroke-width="1" />
+                    <line x1="72" y1="108.2" x2="72" y2="108.2" stroke="#00F0FF" stroke-width="1.8" stroke-linecap="round" />
+                    <line x1="80" y1="108.2" x2="80" y2="108.2" stroke="#00F0FF" stroke-width="1.8" stroke-linecap="round" />
+                    <line x1="88" y1="108.2" x2="88" y2="108.2" stroke="#00F0FF" stroke-width="1.8" stroke-linecap="round" />
+
+                    <!-- Chin Plate Wedge & Mandibular Inset -->
+                    <polygon points="72,118 80,124 88,118 80,115" fill="#D97706" stroke="#000" stroke-width="1.5" />
+                    <line x1="80" y1="124" x2="80" y2="133" stroke="#000" stroke-width="2" />
+
+                    <!-- 7. Mode-Specific Atmospheric & HUD Overlays -->
+                    ${mode === 'WORK' ? `
+                        <!-- J.A.R.V.I.S. / F.R.I.D.A.Y. HUD Targeting Reticle & Brackets -->
+                        <circle cx="80" cy="80" r="70" stroke="#00F0FF" stroke-width="1.5" stroke-dasharray="8 6" fill="none" opacity="0.55" class="energy-pulse" />
+                        <!-- Corner HUD Brackets -->
+                        <path d="M22 28 L14 28 L14 36" stroke="#00F0FF" stroke-width="2" fill="none" />
+                        <path d="M138 28 L146 28 L146 36" stroke="#00F0FF" stroke-width="2" fill="none" />
+                        <path d="M22 132 L14 132 L14 124" stroke="#00F0FF" stroke-width="2" fill="none" />
+                        <path d="M138 132 L146 132 L146 124" stroke="#00F0FF" stroke-width="2" fill="none" />
+                        <!-- Repulsor Spark Nodes -->
+                        <circle cx="20" cy="50" r="2.5" fill="#00F0FF" class="energy-pulse" />
+                        <circle cx="140" cy="50" r="2.5" fill="#00F0FF" class="energy-pulse" />
+                        <text x="18" y="24" font-family="Bangers" font-size="12" fill="#00F0FF" letter-spacing="1">HUD: LOCKED</text>
+                    ` : (mode === 'BREAK' ? `
+                        <!-- Stark Industries Coffee Mug & Chill State -->
+                        <rect x="120" y="104" width="22" height="26" rx="4" fill="#DC2626" stroke="#000" stroke-width="2.5" />
+                        <circle cx="131" cy="117" r="5" fill="#00F0FF" stroke="#000" stroke-width="1.5" />
+                        <circle cx="131" cy="117" r="2.5" fill="#FFFFFF" />
+                        <path d="M142 110 Q149 116 142 122" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" />
+                        <path d="M126 98 Q128 92 126 86" fill="none" stroke="#00F0FF" stroke-width="2" stroke-linecap="round" />
+                        <path d="M132 99 Q134 93 132 87" fill="none" stroke="#00F0FF" stroke-width="2" stroke-linecap="round" />
+                        <text x="114" y="38" font-family="Bangers" font-size="20" fill="#F59E0B" stroke="#000" stroke-width="1">COFFEE</text>
+                    ` : `
+                        <!-- Standby Diagnostic Ring & Banner -->
+                        <circle cx="80" cy="80" r="70" stroke="#F59E0B" stroke-width="1.5" stroke-dasharray="4 8" fill="none" opacity="0.6" />
+                        <text x="114" y="38" font-family="Bangers" font-size="18" fill="#FACC15" stroke="#000" stroke-width="1">STANDBY</text>
+                    `)}
                 `
             },
             cap: {
