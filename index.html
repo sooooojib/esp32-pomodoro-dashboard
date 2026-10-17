@@ -94,7 +94,7 @@
         }
 
         /* Content layers placed above ambient glow */
-        header, main, footer, #toast-bubble {
+        header, main, footer {
             position: relative;
             z-index: 10;
         }
@@ -265,7 +265,14 @@
         }
 
         #toast-bubble {
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+            position: fixed !important;
+            bottom: 24px !important;
+            right: 24px !important;
+            left: auto !important;
+            top: auto !important;
+            z-index: 99999 !important;
+            pointer-events: none;
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease;
         }
 
         /* Strict Neo-Brutalist Component Rules */
@@ -752,11 +759,11 @@
                 </div>
 
                 <!-- Divider Line -->
-                <div class="border-t-2 border-black mt-4 mb-5 w-full"></div>
+                <div class="border-t-2 border-black mt-3.5 mb-3.5 w-full"></div>
 
                 <!-- Unified Sub-Well: Clock Core Display -->
-                <div class="sub-well text-center my-1 relative">
-                    <div class="flex justify-between items-center text-[11px] font-mono font-bold uppercase tracking-wider text-slate-600 mb-3 border-b border-black/10 pb-2">
+                <div class="sub-well text-center p-3 sm:p-3.5 my-0 relative flex-1 flex flex-col justify-between">
+                    <div class="flex justify-between items-center text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider text-slate-600 mb-2 border-b border-black/10 pb-1.5">
                         <span id="hud-mode-text" class="flex items-center gap-1.5 text-[#E11D48]">
                             <span class="w-2 h-2 rounded-full bg-red-500 animate-ping inline-block"></span>
                             <span>COMBAT FOCUS SPRINT</span>
@@ -767,42 +774,42 @@
                         </span>
                     </div>
 
-                    <!-- Giant Bold High-Contrast Clock Digits -->
-                    <div class="py-2">
-                        <div id="timer-display" class="font-comic text-7xl sm:text-8xl md:text-9xl text-black select-none leading-none">
+                    <!-- Giant Bold High-Contrast Clock Digits (Sized to fit perfectly without cutting) -->
+                    <div class="py-0.5">
+                        <div id="timer-display" class="font-comic text-6xl sm:text-7xl md:text-8xl text-black select-none leading-none tracking-tight">
                             25:00
                         </div>
                     </div>
 
                     <!-- Standardized Progress Bar: Repulsor Core Charge -->
-                    <div class="mt-5 space-y-1.5 text-left">
-                        <div class="flex justify-between items-center text-[11px] font-mono font-bold uppercase tracking-wider text-black">
+                    <div class="mt-2.5 space-y-1 text-left">
+                        <div class="flex justify-between items-center text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider text-black">
                             <span class="flex items-center gap-1.5">
                                 <i data-lucide="zap" class="w-3.5 h-3.5 text-[#E11D48]"></i>
                                 <span>REPULSOR CORE CHARGE</span>
                             </span>
                             <span id="progress-percent" class="text-[#E11D48] font-bold">0%</span>
                         </div>
-                        <div class="w-full h-[14px] bg-white rounded-full border-2 border-black p-0 overflow-hidden relative shadow-none">
+                        <div class="w-full h-[12px] bg-white rounded-full border-2 border-black p-0 overflow-hidden relative shadow-none">
                             <div id="progress-bar" class="h-full bg-[#E11D48] rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
                         </div>
                     </div>
 
-                    <!-- Transferred Hardware Mirror Command Banner (Image 1 UI transferred into Image 2 location) -->
-                    <div class="sub-well flex items-center justify-between gap-3 mt-5">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 rounded-lg bg-[#FACC15] border-2 border-black flex items-center justify-center text-black flex-shrink-0 shadow-none">
-                                <i data-lucide="cpu" class="w-4 h-4"></i>
+                    <!-- Transferred Hardware Mirror Command Banner (Crisp compact fit inside Clock Card) -->
+                    <div class="bg-white border-2 border-black rounded-xl p-2 sm:p-2.5 flex items-center justify-between gap-2 mt-2.5 shadow-none">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-lg bg-[#FACC15] border-2 border-black flex items-center justify-center text-black flex-shrink-0 shadow-none">
+                                <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
                             </div>
                             <div class="text-left">
-                                <span class="text-[10px] font-mono font-bold text-[#64748B] uppercase tracking-wider block">HARDWARE MIRROR</span>
-                                <p id="hardware-instruction-text" class="text-xs font-bold text-black font-comic tracking-wide leading-tight uppercase">
+                                <span class="text-[9px] font-mono font-bold text-[#64748B] uppercase tracking-wider block leading-none mb-0.5">HARDWARE MIRROR</span>
+                                <p id="hardware-instruction-text" class="text-[11px] sm:text-xs font-bold text-black font-comic tracking-wide leading-tight uppercase">
                                     PRESS THE BUTTON ON YOUR DESK ESP32-S3 TO CONTROL SESSION STATE.
                                 </p>
                             </div>
                         </div>
-                        <button id="assemble-btn" class="neo-btn px-4 py-2 font-comic font-bold text-sm tracking-wider flex items-center gap-1.5 flex-shrink-0" onclick="triggerHeroCheer()" title="Click to trigger Avengers Assemble!">
-                            <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                        <button id="assemble-btn" class="neo-btn px-3 py-1.5 font-comic font-bold text-xs sm:text-sm tracking-wider flex items-center gap-1 flex-shrink-0" onclick="triggerHeroCheer()" title="Click to trigger Avengers Assemble!">
+                            <i data-lucide="zap" class="w-3 h-3"></i>
                             <span>ASSEMBLE!</span>
                         </button>
                     </div>
