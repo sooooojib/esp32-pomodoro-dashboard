@@ -719,27 +719,23 @@
                 
                 <!-- Standardized Card Header -->
                 <div class="flex items-center justify-between pb-0 gap-3">
-                    <div class="flex items-center gap-3 min-w-0">
+                    <div class="flex items-center gap-3">
                         <div class="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl bg-amber-400 border-2 border-black flex items-center justify-center text-black p-2 shadow-none shrink-0">
                             <i data-lucide="clipboard-list" class="w-5 h-5"></i>
                         </div>
-                        <div class="min-w-0">
+                        <div>
                             <span class="text-[10px] font-mono text-[#64748B] font-bold block uppercase tracking-wider leading-none mb-1">TACTICAL DEBRIEF</span>
-                            <h3 class="font-comic italic text-lg sm:text-xl text-black font-black leading-tight tracking-wide uppercase truncate">
+                            <h3 class="font-comic italic text-lg sm:text-xl text-black font-black leading-tight tracking-wide uppercase whitespace-nowrap">
                                 S.H.I.E.L.D. MISSION LOGS
                             </h3>
                         </div>
                     </div>
 
-                    <!-- Right Header Badges (Stacked / Responsive) -->
-                    <div class="flex flex-col sm:flex-row items-end sm:items-center gap-1.5 shrink-0">
-                        <span id="ops-cleared-badge" class="border-2 border-black rounded-lg px-2.5 py-1 font-mono text-xs font-bold bg-[#FEF3C7] text-black shadow-none flex items-center gap-1.5 whitespace-nowrap">
-                            <span>🎖️</span> <span id="ops-cleared-text">0 OPS CLEARED</span>
-                        </span>
-                        <span id="today-sessions-badge" class="border-2 border-black rounded-lg px-2.5 py-1 font-mono text-xs font-bold bg-white text-black shadow-none flex items-center gap-1.5 whitespace-nowrap">
-                            <span id="today-sessions-text">TODAY: 0 SESSIONS</span>
-                        </span>
-                    </div>
+                    <!-- Right Header Badge: Real-time Today's Sessions -->
+                    <span id="today-sessions-badge" class="border-2 border-black rounded-lg px-3 py-1.5 font-mono text-xs font-bold bg-white text-black shadow-none flex items-center gap-1.5 whitespace-nowrap shrink-0">
+                        <i data-lucide="calendar" class="w-3.5 h-3.5 text-black"></i>
+                        <span id="today-sessions-text">TODAY: 0 SESSIONS</span>
+                    </span>
                 </div>
 
                 <!-- Divider Line -->
@@ -756,45 +752,45 @@
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5" id="daily-milestones-grid">
-                        <button class="mission-btn w-full bg-white text-black border-[3px] border-black rounded-xl p-3 font-comic font-black tracking-wider uppercase flex items-center justify-between shadow-[2px_2px_0px_#000] hover:translate-y-[-1px] transition-all cursor-pointer select-none" onclick="toggleMission(1, event)">
+                        <div class="mission-card w-full bg-white text-black border-[3px] border-black rounded-xl px-3 py-2.5 font-comic font-black uppercase flex items-center justify-between shadow-[2px_2px_0px_#000] select-none cursor-default">
                             <div class="flex items-center gap-2 min-w-0">
-                                <span class="w-6 h-6 rounded-md border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-xs shrink-0">[1]</span>
-                                <span class="text-xs sm:text-sm font-bold truncate">MISSION ALPHA</span>
+                                <span class="w-5 h-5 rounded border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-[10px] shrink-0">[1]</span>
+                                <span class="text-xs sm:text-[13px] font-comic italic font-black tracking-wide whitespace-nowrap text-black">MISSION ALPHA</span>
                             </div>
-                            <span class="text-[10px] font-mono text-zinc-500 font-bold hidden sm:inline-block shrink-0">STANDBY</span>
-                        </button>
-                        <button class="mission-btn w-full bg-white text-black border-[3px] border-black rounded-xl p-3 font-comic font-black tracking-wider uppercase flex items-center justify-between shadow-[2px_2px_0px_#000] hover:translate-y-[-1px] transition-all cursor-pointer select-none" onclick="toggleMission(2, event)">
+                            <span class="text-[10px] font-mono text-zinc-500 font-bold tracking-wider shrink-0 ml-1.5 whitespace-nowrap">STANDBY</span>
+                        </div>
+                        <div class="mission-card w-full bg-white text-black border-[3px] border-black rounded-xl px-3 py-2.5 font-comic font-black uppercase flex items-center justify-between shadow-[2px_2px_0px_#000] select-none cursor-default">
                             <div class="flex items-center gap-2 min-w-0">
-                                <span class="w-6 h-6 rounded-md border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-xs shrink-0">[2]</span>
-                                <span class="text-xs sm:text-sm font-bold truncate">MISSION BETA</span>
+                                <span class="w-5 h-5 rounded border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-[10px] shrink-0">[2]</span>
+                                <span class="text-xs sm:text-[13px] font-comic italic font-black tracking-wide whitespace-nowrap text-black">MISSION BETA</span>
                             </div>
-                            <span class="text-[10px] font-mono text-zinc-500 font-bold hidden sm:inline-block shrink-0">STANDBY</span>
-                        </button>
-                        <button class="mission-btn w-full bg-white text-black border-[3px] border-black rounded-xl p-3 font-comic font-black tracking-wider uppercase flex items-center justify-between shadow-[2px_2px_0px_#000] hover:translate-y-[-1px] transition-all cursor-pointer select-none" onclick="toggleMission(3, event)">
+                            <span class="text-[10px] font-mono text-zinc-500 font-bold tracking-wider shrink-0 ml-1.5 whitespace-nowrap">STANDBY</span>
+                        </div>
+                        <div class="mission-card w-full bg-white text-black border-[3px] border-black rounded-xl px-3 py-2.5 font-comic font-black uppercase flex items-center justify-between shadow-[2px_2px_0px_#000] select-none cursor-default">
                             <div class="flex items-center gap-2 min-w-0">
-                                <span class="w-6 h-6 rounded-md border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-xs shrink-0">[3]</span>
-                                <span class="text-xs sm:text-sm font-bold truncate">MISSION GAMMA</span>
+                                <span class="w-5 h-5 rounded border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-[10px] shrink-0">[3]</span>
+                                <span class="text-xs sm:text-[13px] font-comic italic font-black tracking-wide whitespace-nowrap text-black">MISSION GAMMA</span>
                             </div>
-                            <span class="text-[10px] font-mono text-zinc-500 font-bold hidden sm:inline-block shrink-0">STANDBY</span>
-                        </button>
-                        <button class="mission-btn w-full bg-white text-black border-[3px] border-black rounded-xl p-3 font-comic font-black tracking-wider uppercase flex items-center justify-between shadow-[2px_2px_0px_#000] hover:translate-y-[-1px] transition-all cursor-pointer select-none" onclick="toggleMission(4, event)">
+                            <span class="text-[10px] font-mono text-zinc-500 font-bold tracking-wider shrink-0 ml-1.5 whitespace-nowrap">STANDBY</span>
+                        </div>
+                        <div class="mission-card w-full bg-white text-black border-[3px] border-black rounded-xl px-3 py-2.5 font-comic font-black uppercase flex items-center justify-between shadow-[2px_2px_0px_#000] select-none cursor-default">
                             <div class="flex items-center gap-2 min-w-0">
-                                <span class="w-6 h-6 rounded-md border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-xs shrink-0">[4]</span>
-                                <span class="text-xs sm:text-sm font-bold truncate">MISSION DELTA</span>
+                                <span class="w-5 h-5 rounded border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-[10px] shrink-0">[4]</span>
+                                <span class="text-xs sm:text-[13px] font-comic italic font-black tracking-wide whitespace-nowrap text-black">MISSION DELTA</span>
                             </div>
-                            <span class="text-[10px] font-mono text-zinc-500 font-bold hidden sm:inline-block shrink-0">STANDBY</span>
-                        </button>
+                            <span class="text-[10px] font-mono text-zinc-500 font-bold tracking-wider shrink-0 ml-1.5 whitespace-nowrap">STANDBY</span>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Bottom Metrics Row -->
                 <div class="mt-4 pt-3 border-t-2 border-black flex flex-wrap items-center justify-between gap-3 text-xs font-mono font-bold uppercase tracking-wider text-black">
                     <div class="flex items-center gap-1.5">
-                        <span class="text-amber-500 text-sm">⚡</span>
+                        <i data-lucide="zap" class="w-4 h-4 text-amber-500"></i>
                         <span>TOTAL FOCUS: <span id="total-focus-mins-text" class="text-black font-extrabold">0 MINS</span></span>
                     </div>
                     <div class="flex items-center gap-1.5">
-                        <span class="text-amber-500 text-sm">⭐</span>
+                        <i data-lucide="award" class="w-4 h-4 text-amber-500"></i>
                         <span>FULL PROTOCOLS CLEARED: <span id="full-protocols-text" class="text-black font-extrabold">0x [4/4]</span></span>
                     </div>
                 </div>
@@ -1971,42 +1967,10 @@
             { id: 4, name: "MISSION DELTA" }
         ];
 
-        function toggleMission(slotIndex, event) {
-            if (event) event.preventDefault();
-            if (AudioEngine) AudioEngine.shieldClang();
-
-            // Toggle manual interactive progress
-            if (slotIndex <= tacticalDebriefState.currentWaveProgress) {
-                tacticalDebriefState.currentWaveProgress = slotIndex - 1;
-                tacticalDebriefState.totalSingleSessions = Math.max(0, tacticalDebriefState.fullOperations * 4 + tacticalDebriefState.currentWaveProgress);
-                tacticalDebriefState.totalFocusMinutes = tacticalDebriefState.totalSingleSessions * 25;
-                showToast(`MISSION ${slotIndex} RESET`, "pause");
-            } else {
-                tacticalDebriefState.currentWaveProgress = slotIndex;
-                tacticalDebriefState.totalSingleSessions = tacticalDebriefState.fullOperations * 4 + slotIndex;
-                tacticalDebriefState.totalFocusMinutes = tacticalDebriefState.totalSingleSessions * 25;
-                if (AudioEngine) AudioEngine.repulsorZap();
-                
-                if (tacticalDebriefState.currentWaveProgress === 4) {
-                    tacticalDebriefState.fullOperations++;
-                    tacticalDebriefState.currentWaveProgress = 0;
-                    tacticalDebriefState.currentWave = tacticalDebriefState.fullOperations + 1;
-                    if (AudioEngine) AudioEngine.fanfare();
-                    if (typeof triggerHeroEnergyBeam === 'function') triggerHeroEnergyBeam(currentHeroKey);
-                    showToast(`WAVE ACCOMPLISHED! ADVANCING TO WAVE #${tacticalDebriefState.currentWave}!`, "done");
-                } else {
-                    showToast(`MISSION ${slotIndex} ACCOMPLISHED!`, "done");
-                }
-            }
-
-            renderTacticalMissions();
-        }
-
+        // S.H.I.E.L.D. Mission status is driven 100% by the physical ESP32 device via Supabase logs
         function renderTacticalMissions() {
-            // 1. Update Header Badges
-            const opsText = document.getElementById('ops-cleared-text');
+            // 1. Update Header Badge (Today's Sessions from Supabase)
             const todayText = document.getElementById('today-sessions-text');
-            if (opsText) opsText.innerText = `${tacticalDebriefState.fullOperations} OPS CLEARED`;
             if (todayText) todayText.innerText = `TODAY: ${tacticalDebriefState.totalSingleSessions} SESSIONS`;
 
             // 2. Update Inner Deployment Container Header
@@ -2021,7 +1985,7 @@
             if (focusMinsText) focusMinsText.innerText = `${tacticalDebriefState.totalFocusMinutes} MINS`;
             if (protocolsText) protocolsText.innerText = `${tacticalDebriefState.fullOperations}x [4/4]`;
 
-            // 4. Update 2x2 Grid of Mission Cards
+            // 4. Update 2x2 Grid of Mission Cards (100% Driven by ESP32 via Supabase)
             const grid = document.getElementById('daily-milestones-grid');
             if (!grid) return;
 
@@ -2034,36 +1998,42 @@
 
                 if (isAccomplished) {
                     return `
-                        <button class="mission-btn w-full bg-[#10B981] text-black border-[3px] border-black rounded-xl p-3 font-comic font-black tracking-wider uppercase flex items-center justify-between shadow-[2px_2px_0px_#000] hover:translate-y-[-1px] transition-all cursor-pointer select-none" onclick="toggleMission(${m.id}, event)" title="Click to toggle">
+                        <div class="mission-card w-full bg-[#10B981] text-black border-[3px] border-black rounded-xl px-3 py-2.5 font-comic font-black uppercase flex items-center justify-between shadow-[2px_2px_0px_#000] select-none cursor-default">
                             <div class="flex items-center gap-2 min-w-0">
-                                <span class="w-6 h-6 rounded-md border-2 border-black bg-black text-[#10B981] flex items-center justify-center font-mono font-bold text-xs shrink-0">✓</span>
-                                <span class="text-xs sm:text-sm font-bold truncate line-through opacity-85">[${m.id}] ${m.name}</span>
+                                <span class="w-5 h-5 rounded border-2 border-black bg-black text-[#10B981] flex items-center justify-center shrink-0">
+                                    <i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>
+                                </span>
+                                <span class="text-xs sm:text-[13px] font-comic italic font-black tracking-wide line-through opacity-85 whitespace-nowrap text-black">${m.name}</span>
                             </div>
-                            <span class="font-comic font-black text-[9px] sm:text-[10px] tracking-wider uppercase bg-[#FACC15] text-black border-2 border-black px-1.5 sm:px-2 py-0.5 rounded shadow-[2px_2px_0px_#000] rotate-[-2deg] shrink-0">ACCOMPLISHED✓</span>
-                        </button>
+                            <span class="font-comic font-black text-[9px] sm:text-[10px] tracking-wider uppercase bg-[#FACC15] text-black border-2 border-black px-1.5 py-0.5 rounded shadow-[2px_2px_0px_#000] rotate-[-2deg] shrink-0 whitespace-nowrap inline-flex items-center gap-1 ml-1.5">
+                                <span>ACCOMPLISHED</span>
+                                <i data-lucide="check" class="w-2.5 h-2.5 stroke-[3]"></i>
+                            </span>
+                        </div>
                     `;
                 } else if (isActive) {
                     return `
-                        <button class="mission-btn w-full bg-[#FEF3C7] text-black border-[3px] border-black rounded-xl p-3 font-comic font-black tracking-wider uppercase flex items-center justify-between shadow-[3px_3px_0px_#000] ring-2 ring-amber-400 animate-pulse hover:translate-y-[-1px] transition-all cursor-pointer select-none" onclick="toggleMission(${m.id}, event)" title="Hardware Focus Session In Progress">
+                        <div class="mission-card w-full bg-[#FEF3C7] text-black border-[3px] border-black rounded-xl px-3 py-2.5 font-comic font-black uppercase flex items-center justify-between shadow-[3px_3px_0px_#000] ring-2 ring-amber-400 animate-pulse select-none cursor-default">
                             <div class="flex items-center gap-2 min-w-0">
-                                <span class="w-6 h-6 rounded-md border-2 border-black bg-amber-400 text-black flex items-center justify-center font-mono font-bold text-xs shrink-0">[${m.id}]</span>
-                                <span class="text-xs sm:text-sm font-bold truncate text-black">${m.name}</span>
+                                <span class="w-5 h-5 rounded border-2 border-black bg-amber-400 text-black flex items-center justify-center font-mono font-bold text-[10px] shrink-0">[${m.id}]</span>
+                                <span class="text-xs sm:text-[13px] font-comic italic font-black tracking-wide whitespace-nowrap text-black">${m.name}</span>
                             </div>
-                            <span class="inline-flex items-center gap-1 font-mono text-[9px] font-bold uppercase bg-amber-400 text-black border border-black px-1.5 py-0.5 rounded shadow-[1px_1px_0px_#000] shrink-0">
+                            <span class="inline-flex items-center gap-1.5 font-mono text-[9px] font-bold uppercase bg-amber-400 text-black border border-black px-2 py-0.5 rounded shadow-[1px_1px_0px_#000] shrink-0 whitespace-nowrap ml-1.5">
                                 <span class="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping"></span>
-                                <span>&gt;&gt;&gt; ACTIVE &lt;&lt;&lt;</span>
+                                <i data-lucide="activity" class="w-3 h-3"></i>
+                                <span>ACTIVE</span>
                             </span>
-                        </button>
+                        </div>
                     `;
                 } else {
                     return `
-                        <button class="mission-btn w-full bg-white text-black border-[3px] border-black rounded-xl p-3 font-comic font-black tracking-wider uppercase flex items-center justify-between shadow-[2px_2px_0px_#000] hover:translate-y-[-1px] transition-all cursor-pointer select-none" onclick="toggleMission(${m.id}, event)" title="Click to toggle">
+                        <div class="mission-card w-full bg-white text-black border-[3px] border-black rounded-xl px-3 py-2.5 font-comic font-black uppercase flex items-center justify-between shadow-[2px_2px_0px_#000] select-none cursor-default">
                             <div class="flex items-center gap-2 min-w-0">
-                                <span class="w-6 h-6 rounded-md border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-xs shrink-0">[${m.id}]</span>
-                                <span class="text-xs sm:text-sm font-bold truncate text-black">${m.name}</span>
+                                <span class="w-5 h-5 rounded border-2 border-black bg-zinc-100 text-black flex items-center justify-center font-mono font-bold text-[10px] shrink-0">[${m.id}]</span>
+                                <span class="text-xs sm:text-[13px] font-comic italic font-black tracking-wide whitespace-nowrap text-black">${m.name}</span>
                             </div>
-                            <span class="text-[10px] font-mono text-zinc-500 font-bold shrink-0">STANDBY</span>
-                        </button>
+                            <span class="text-[10px] font-mono text-zinc-500 font-bold tracking-wider shrink-0 ml-1.5 whitespace-nowrap">STANDBY</span>
+                        </div>
                     `;
                 }
             }).join('');
