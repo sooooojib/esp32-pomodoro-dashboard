@@ -17,7 +17,7 @@ const char* SUPABASE_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdX
 #define I2C_SCL_PIN      38  // LCD SCL (Left Header - Pin 12 from top)
 #define BUTTON_PIN       21  // Main Button (Left Header - Pin 4 from top)
 #define RESET_BUTTON_PIN 14  // Reset Work / Cancel Break (Right Header - Pin 2 from top)
-#define BUZZER_PIN       39  // Buzzer (Left Header - Pin 13 from top) [Directly below 38]
+#define BUZZER_PIN       39  // Buzzer (Left Header - Pin 13 from top)
 #define WORK_LED_PIN     41  // Work Phase Red LED (Left Header - Pin 15 from top)
 #define BREAK_LED_PIN    42  // Break Phase Green LED (Left Header - Pin 16 from top)
 
@@ -105,9 +105,10 @@ void saveCheckpoint() {
   prefs.putUChar("state", (uint8_t)currentState);
   prefs.putUChar("count", pomodoroCount);
   prefs.putUInt("rem", remainingSeconds);
-  prefs.putBool("alarm", false); // Never persist active alarm across reboots
   Serial.printf("[NVS] Checkpoint saved -> Phase: %s [%d/4], Remaining: %u sec\n",
-                getPhaseName(currentState), pomodoroCount + 1, remainingSeconds);
+                getPhaseName(currentState),
+                (pomodoroCount >= 4) ? 4 : (pomodoroCount + 1),
+                remainingSeconds);
 }
 
 void loadCheckpoint() {
@@ -118,33 +119,38 @@ void loadCheckpoint() {
   totalPhaseSeconds = getDurationForState(currentState);
 
   pomodoroCount = prefs.getUChar("count", 0);
-  if (pomodoroCount >= 4) pomodoroCount = 0;
+  if (currentState == STATE_LONG_BREAK) {
+    if (pomodoroCount > 4) pomodoroCount = 4;
+  } else {
+    if (pomodoroCount >= 4) pomodoroCount = 0;
+  }
 
   remainingSeconds = prefs.getUInt("rem", totalPhaseSeconds);
   if (remainingSeconds > totalPhaseSeconds || remainingSeconds == 0) {
     remainingSeconds = totalPhaseSeconds;
   }
 
-  // Always force alarms to false on boot
   isAlarming = false;
+  isConfirmingReset = false;
   isRunning = false;
 
   Serial.printf("[NVS] Restored -> Phase: %s [%d/4], Remaining: %u sec\n",
-                getPhaseName(currentState), pomodoroCount + 1, remainingSeconds);
+                getPhaseName(currentState),
+                (pomodoroCount >= 4) ? 4 : (pomodoroCount + 1),
+                remainingSeconds);
 }
 
 void setup() {
   Serial.begin(115200);
   delay(300);
 
-  // Power optimizations
-  setCpuFrequencyMhz(80);
+  // 160 MHz balances cool operation with fast SSL/TLS handshakes
+  setCpuFrequencyMhz(160);
   WiFi.setSleep(true);
 
-  // Configure pins and guarantee buzzer and LEDs start completely silent/off
+  // Initialize pins and force outputs LOW before tone() attaches LEDC
   pinMode(BUZZER_PIN, OUTPUT);
   digitalWrite(BUZZER_PIN, LOW);
-  noTone(BUZZER_PIN);
 
   pinMode(WORK_LED_PIN, OUTPUT);
   digitalWrite(WORK_LED_PIN, LOW);
@@ -163,8 +169,8 @@ void setup() {
   prefs.begin("pomodoro", false);
   loadCheckpoint();
 
-  // Initialize I2C Bus with timeout protection
-  Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
+  // Initialize I2C at standard 100kHz with 50ms timeout
+  Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN, 100000);
   Wire.setTimeOut(50);
 
   byte lcdAddress = 0x27;
@@ -214,7 +220,7 @@ void setup() {
   }
   delay(1500);
 
-  syncQueue = xQueueCreate(10, sizeof(SyncMessage));
+  syncQueue = xQueueCreate(15, sizeof(SyncMessage));
 
   xTaskCreatePinnedToCore(
     supabaseBackgroundWorker,
@@ -231,7 +237,7 @@ void setup() {
   lcd->clear();
   updateOutputs();
   updateDisplay();
-  Serial.println("[READY] ESP32-S3 Camera-Safe Pomodoro Online.");
+  Serial.println("[READY] ESP32-S3 Final Pomodoro System Online.");
 }
 
 void loop() {
@@ -241,6 +247,12 @@ void loop() {
 
   if (isRunning && !isAlarming && !isConfirmingReset) {
     uint32_t currentMillis = millis();
+
+    // Guard against tick burst if timer was ever delayed
+    if (currentMillis - lastTick > 5000) {
+      lastTick = currentMillis - 1000;
+    }
+
     if (currentMillis - lastTick >= 1000) {
       lastTick += 1000;
 
@@ -248,11 +260,13 @@ void loop() {
         remainingSeconds--;
         updateDisplay();
 
+        // Save NVS checkpoint + pulse cloud heartbeat every full minute
         if (remainingSeconds > 0 && (remainingSeconds % 60 == 0)) {
           saveCheckpoint();
           queueStateSync();
         }
 
+        // Phase completed
         if (remainingSeconds == 0) {
           isRunning = false;
           isAlarming = true;
@@ -282,6 +296,7 @@ void handleMainButton() {
       btnState = reading;
 
       if (btnState == LOW) {
+        // Case 1: Cancel confirmation prompt (BTN: NO) and resume previous state
         if (isConfirmingReset) {
           isConfirmingReset = false;
           playButtonClickBeep();
@@ -290,14 +305,17 @@ void handleMainButton() {
           updateDisplay();
           queueStateSync();
           Serial.println("[PROMPT] Canceled by user.");
-        } else if (isAlarming) {
+        }
+        // Case 2: Dismiss phase completion alarm and advance to next phase
+        else if (isAlarming) {
           isAlarming = false;
           noTone(BUZZER_PIN);
-          digitalWrite(BUZZER_PIN, LOW);
           playButtonClickBeep();
           advanceState();
           Serial.println("[BUTTON] Alarm dismissed. Advancing phase.");
-        } else {
+        }
+        // Case 3: Standard Start / Pause toggle
+        else {
           playButtonClickBeep();
           isRunning = !isRunning;
           if (isRunning) {
@@ -330,17 +348,20 @@ void handleResetButton() {
 
       if (resetBtnState == LOW) {
         if (!isConfirmingReset) {
+          // 1st Press: Enter prompt and immediately pause cloud state
           isConfirmingReset = true;
           noTone(BUZZER_PIN);
-          digitalWrite(BUZZER_PIN, LOW);
           playResetPromptBeepBeep();
           updateDisplay();
+          queueStateSync(); // Immediately tells website the timer is paused
+
           if (currentState == STATE_SHORT_BREAK || currentState == STATE_LONG_BREAK) {
             Serial.println("[PROMPT] Cancel Break? (RST=Yes, BTN=No)");
           } else {
             Serial.println("[PROMPT] Confirm Reset? (RST=Yes, BTN=No)");
           }
         } else {
+          // 2nd Press: Confirmed (RST: YES)
           if (currentState == STATE_SHORT_BREAK || currentState == STATE_LONG_BREAK) {
             skipBreakToWork();
           } else {
@@ -358,7 +379,6 @@ void executeReset() {
   isConfirmingReset = false;
   isAlarming = false;
   noTone(BUZZER_PIN);
-  digitalWrite(BUZZER_PIN, LOW);
   playResetConfirmedBeep();
 
   remainingSeconds = totalPhaseSeconds;
@@ -368,17 +388,17 @@ void executeReset() {
   updateOutputs();
   updateDisplay();
   queueStateSync();
-  Serial.println("[RESET] Confirmed! Work module restarted.");
+  Serial.println("[RESET] Confirmed! Work module restarted at 25:00 HOLD.");
 }
 
 void skipBreakToWork() {
   isConfirmingReset = false;
   isAlarming = false;
   noTone(BUZZER_PIN);
-  digitalWrite(BUZZER_PIN, LOW);
   playResetConfirmedBeep();
 
-  if (currentState == STATE_LONG_BREAK) {
+  // If skipping Long Break after 4/4, wrap cycle back to 0 (Work 1/4)
+  if (currentState == STATE_LONG_BREAK || pomodoroCount >= 4) {
     pomodoroCount = 0;
   }
 
@@ -392,7 +412,7 @@ void skipBreakToWork() {
   updateOutputs();
   updateDisplay();
   queueStateSync();
-  Serial.printf("[BREAK CANCELED] Advanced to WORK [%d/4] (HOLD).\n", pomodoroCount + 1);
+  Serial.printf("[BREAK CANCELED] Jumped to WORK [%d/4] (HOLD).\n", pomodoroCount + 1);
 }
 
 void handleAlarmBuzzer() {
@@ -413,7 +433,6 @@ void handleAlarmBuzzer() {
       tone(BUZZER_PIN, 2200);
     } else {
       noTone(BUZZER_PIN);
-      digitalWrite(BUZZER_PIN, LOW);
     }
   }
 }
@@ -424,12 +443,16 @@ void advanceState() {
     if (pomodoroCount >= 4) {
       currentState = STATE_LONG_BREAK;
       totalPhaseSeconds = DURATION_LONG_BREAK;
-      pomodoroCount = 0;
+      // Keep pomodoroCount = 4 during Long Break so all 4 Infinity Stones glow on web HUD
     } else {
       currentState = STATE_SHORT_BREAK;
       totalPhaseSeconds = DURATION_SHORT_BREAK;
     }
   } else {
+    // Returning from Short or Long Break to Work
+    if (currentState == STATE_LONG_BREAK || pomodoroCount >= 4) {
+      pomodoroCount = 0;
+    }
     currentState = STATE_WORK;
     totalPhaseSeconds = DURATION_WORK;
   }
@@ -469,7 +492,6 @@ void playResetPromptBeepBeep() {
   tone(BUZZER_PIN, 2000, 90);
   delay(100);
   noTone(BUZZER_PIN);
-  digitalWrite(BUZZER_PIN, LOW);
 }
 
 void playResetConfirmedBeep() {
@@ -478,7 +500,6 @@ void playResetConfirmedBeep() {
   tone(BUZZER_PIN, 1200, 120);
   delay(130);
   noTone(BUZZER_PIN);
-  digitalWrite(BUZZER_PIN, LOW);
 }
 
 void updateDisplay() {
@@ -486,6 +507,8 @@ void updateDisplay() {
 
   char line1[17];
   char line2[17];
+
+  uint8_t displayCycle = (pomodoroCount >= 4) ? 4 : (pomodoroCount + 1);
 
   if (isConfirmingReset) {
     if (currentState == STATE_SHORT_BREAK || currentState == STATE_LONG_BREAK) {
@@ -497,7 +520,7 @@ void updateDisplay() {
   } else if (isAlarming) {
     switch (currentState) {
       case STATE_WORK:
-        snprintf(line1, sizeof(line1), "WORK [%d/4]  DONE", pomodoroCount + 1);
+        snprintf(line1, sizeof(line1), "WORK [%d/4]  DONE", displayCycle);
         break;
       case STATE_SHORT_BREAK:
         snprintf(line1, sizeof(line1), "BREAK       DONE");
@@ -510,7 +533,7 @@ void updateDisplay() {
   } else {
     switch (currentState) {
       case STATE_WORK:
-        snprintf(line1, sizeof(line1), "WORK [%d/4]  %s", pomodoroCount + 1, isRunning ? "RUN " : "HOLD");
+        snprintf(line1, sizeof(line1), "WORK [%d/4]  %s", displayCycle, isRunning ? "RUN " : "HOLD");
         break;
       case STATE_SHORT_BREAK:
         snprintf(line1, sizeof(line1), "BREAK       %s", isRunning ? "RUN " : "HOLD");
@@ -548,7 +571,7 @@ void queueStateSync() {
   SyncMessage msg;
   msg.action = ACTION_UPDATE_STATE;
   strncpy(msg.phase, getPhaseName(currentState), sizeof(msg.phase));
-  msg.running = isRunning;
+  msg.running = (isConfirmingReset || isAlarming) ? false : isRunning;
   msg.remaining = remainingSeconds;
   msg.total = totalPhaseSeconds;
   msg.count = pomodoroCount;
@@ -564,21 +587,35 @@ void queueSessionLog(const char* phaseName, uint32_t mins) {
   xQueueSend(syncQueue, &msg, 0);
 }
 
+// Background Worker Task (Runs on Core 0)
 void supabaseBackgroundWorker(void* parameter) {
-  WiFiClientSecure client;
-  client.setInsecure();
-
   SyncMessage msg;
+  SyncMessage nextMsg;
 
   for (;;) {
     if (xQueueReceive(syncQueue, &msg, portMAX_DELAY) == pdTRUE) {
+      // Coalesce consecutive state updates: if multiple button presses happened rapidly,
+      // skip stale intermediate state updates and send only the latest state!
+      while (msg.action == ACTION_UPDATE_STATE && uxQueueMessagesWaiting(syncQueue) > 0) {
+        if (xQueuePeek(syncQueue, &nextMsg, 0) == pdTRUE && nextMsg.action == ACTION_UPDATE_STATE) {
+          xQueueReceive(syncQueue, &msg, 0);
+        } else {
+          break; // Next item is ACTION_LOG_SESSION, preserve order
+        }
+      }
+
       if (WiFi.status() != WL_CONNECTED) {
         Serial.println("[SUPABASE] Wi-Fi disconnected. Reconnecting...");
         WiFi.reconnect();
         continue;
       }
 
+      WiFiClientSecure client;
+      client.setInsecure();
+
       HTTPClient http;
+      http.setConnectTimeout(5000); // 5000 ms (5 seconds)
+      http.setTimeout(5000);        // 5000 ms (5 seconds)
 
       if (msg.action == ACTION_UPDATE_STATE) {
         char url[256];
@@ -596,7 +633,8 @@ void supabaseBackgroundWorker(void* parameter) {
         );
 
         int httpResponseCode = http.PATCH(payload);
-        Serial.printf("[SUPABASE] State sync HTTP %d\n", httpResponseCode);
+        Serial.printf("[SUPABASE] State sync HTTP %d (%s, %u sec)\n",
+                      httpResponseCode, msg.running ? "RUN" : "HOLD", msg.remaining);
         if (httpResponseCode < 0) {
           Serial.printf("[SUPABASE] HTTP error: %s\n", http.errorToString(httpResponseCode).c_str());
         }
