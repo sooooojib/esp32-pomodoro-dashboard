@@ -3626,7 +3626,18 @@
             { id: 4, name: "MISSION DELTA" }
         ];
 
-        // S.H.I.E.L.D. Mission status: Synchronized directly with live ESP32 pomodoro_count
+        // Utility: Check if a given ISO timestamp occurred on the current local calendar date
+        function isLocalToday(timestamp) {
+            if (!timestamp) return false;
+            const d = new Date(timestamp);
+            if (isNaN(d.getTime())) return false;
+            const now = new Date();
+            return d.getFullYear() === now.getFullYear() &&
+                   d.getMonth() === now.getMonth() &&
+                   d.getDate() === now.getDate();
+        }
+
+        // S.H.I.E.L.D. Mission status: Synchronized directly with live ESP32 pomodoro_count & database
         function renderTacticalMissions() {
             // 1. Derive active module index directly from ESP32 hardware state
             const espModuleIndex = (typeof hardwareState !== 'undefined' && Number.isInteger(hardwareState.pomodoro_count)) 
@@ -3638,23 +3649,29 @@
                 ? espModuleIndex
                 : Math.max(tacticalDebriefState.currentWaveProgress || 0, espModuleIndex);
 
-            // 2. Update Header Badge (Today's Sessions from Supabase)
+            // 2. Synchronize Deployment Wave Number (4/4 completed wave remains on current wave until next starts)
+            const waveNumber = (effectiveWaveProgress === 4 && tacticalDebriefState.fullOperations > 0)
+                ? tacticalDebriefState.fullOperations
+                : (tacticalDebriefState.fullOperations + 1);
+            tacticalDebriefState.currentWave = waveNumber;
+
+            // 3. Update Header Badge (Strictly today's completed sessions from Supabase)
             const todayText = document.getElementById('today-sessions-text');
             if (todayText) todayText.innerText = `TODAY: ${tacticalDebriefState.totalSingleSessions} SESSIONS`;
 
-            // 3. Update Inner Deployment Container Header
+            // 4. Update Inner Deployment Container Header
             const waveTitle = document.getElementById('deployment-wave-title');
             const waveObj = document.getElementById('wave-objective-counter');
-            if (waveTitle) waveTitle.innerText = `DEPLOYMENT WAVE #${tacticalDebriefState.currentWave} (4 SESSIONS)`;
+            if (waveTitle) waveTitle.innerText = `DEPLOYMENT WAVE #${waveNumber} (4 SESSIONS)`;
             if (waveObj) waveObj.innerText = `OBJECTIVE: ${effectiveWaveProgress} / 4 DONE`;
 
-            // 4. Update Bottom Metrics
+            // 5. Update Bottom Metrics
             const focusMinsText = document.getElementById('total-focus-mins-text');
             const protocolsText = document.getElementById('full-protocols-text');
             if (focusMinsText) focusMinsText.innerText = `${tacticalDebriefState.totalFocusMinutes} MINS`;
             if (protocolsText) protocolsText.innerText = `${tacticalDebriefState.fullOperations}x [4/4]`;
 
-            // 5. Update 2x2 Grid of Mission Cards
+            // 6. Update 2x2 Grid of Mission Cards
             const grid = document.getElementById('daily-milestones-grid');
             if (!grid) return;
 
@@ -3667,8 +3684,8 @@
             grid.innerHTML = MISSION_SLOTS.map(m => {
                 // If this is the active slot running currently
                 const isActive = isWorkRunning && (m.id === activeSlotId);
-                // If a slot is lower than the active module or already accomplished in this wave
-                const isAccomplished = !isActive && (m.id <= espModuleIndex || (!isWorkRunning && m.id <= effectiveWaveProgress));
+                // If a slot is accomplished in this wave
+                const isAccomplished = !isActive && (m.id <= effectiveWaveProgress);
 
                 if (isActive) {
                     return `
@@ -3723,31 +3740,48 @@
 
         async function updateTacticalDebrief() {
             try {
+                let allLogs = null;
                 if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-                    const today = new Date().toISOString().split('T')[0];
-                    const { data: logs, error } = await supabaseClient
+                    const { data, error } = await supabaseClient
                         .from('session_logs')
                         .select('*')
-                        .gte('completed_at', `${today}T00:00:00Z`)
-                        .order('completed_at', { ascending: true });
+                        .order('completed_at', { ascending: false });
 
-                    if (!error && logs) {
-                        const workSessions = logs.filter(l => l.phase === 'WORK').length;
-                        const totalSingleSessions = workSessions;
-                        const fullOperations = Math.floor(totalSingleSessions / 4);
-                        const currentWaveProgress = totalSingleSessions % 4;
-                        const currentWave = fullOperations + 1;
-                        const totalFocusMinutes = totalSingleSessions * 25;
-
-                        tacticalDebriefState.totalSingleSessions = totalSingleSessions;
-                        tacticalDebriefState.fullOperations = fullOperations;
-                        tacticalDebriefState.currentWaveProgress = currentWaveProgress;
-                        tacticalDebriefState.currentWave = currentWave;
-                        tacticalDebriefState.totalFocusMinutes = totalFocusMinutes;
-
-                        renderTacticalMissions();
-                        return;
+                    if (!error && data && data.length > 0) {
+                        allLogs = data;
+                        if (typeof tacticalArchiveData !== 'undefined') {
+                            tacticalArchiveData.allLogs = data;
+                            tacticalArchiveData.workLogs = data.filter(l => l.phase === 'WORK');
+                        }
                     }
+                }
+
+                // If Supabase has no logs or query failed, fallback to tacticalArchiveData or showcase logs
+                if (!allLogs || allLogs.length === 0) {
+                    if (typeof tacticalArchiveData !== 'undefined' && tacticalArchiveData.allLogs && tacticalArchiveData.allLogs.length > 0) {
+                        allLogs = tacticalArchiveData.allLogs;
+                    }
+                }
+
+                if (allLogs && allLogs.length > 0) {
+                    const allWorkLogs = allLogs.filter(l => l.phase === 'WORK');
+                    
+                    // 1. All-time wave calculations (independent of calendar day)
+                    const fullOperations = Math.floor(allWorkLogs.length / 4);
+                    const currentWaveProgress = allWorkLogs.length % 4;
+
+                    // 2. Local Calendar Day calculations (Strictly sessions completed today in user's local timezone)
+                    const todayWorkLogs = allWorkLogs.filter(l => isLocalToday(l.completed_at));
+                    const totalSingleSessions = todayWorkLogs.length;
+                    const totalFocusMinutes = todayWorkLogs.reduce((acc, l) => acc + (l.duration_minutes || 25), 0);
+
+                    tacticalDebriefState.totalSingleSessions = totalSingleSessions;
+                    tacticalDebriefState.totalFocusMinutes = totalFocusMinutes;
+                    tacticalDebriefState.fullOperations = fullOperations;
+                    tacticalDebriefState.currentWaveProgress = currentWaveProgress;
+
+                    renderTacticalMissions();
+                    return;
                 }
             } catch (err) {
                 console.warn("updateTacticalDebrief query error:", err);
