@@ -1028,8 +1028,8 @@
                 <!-- 3 Superhero Comic Metrics Blocks (Uniform Outer Card Style) -->
                 <div class="grid grid-cols-3 gap-3">
                     
-                    <!-- Threats Neutralized -->
-                    <div class="neo-card bg-[#E11D48] text-white p-6 flex flex-col justify-between">
+                    <!-- Threats Neutralized (Today's Completed Sessions) -->
+                    <div class="neo-card bg-[#E11D48] text-white p-6 flex flex-col justify-between" title="Today's completed focus sessions">
                         <div class="flex items-center justify-between text-xs">
                             <span class="font-mono text-[10px] uppercase font-bold text-white/90 tracking-wider">THREATS SMASHED</span>
                             <i data-lucide="crosshair" class="w-4 h-4 text-white"></i>
@@ -1039,11 +1039,11 @@
                                 0
                             </div>
                         </div>
-                        <span class="font-mono text-[10px] font-bold text-white/80 uppercase tracking-wider">SESSIONS DONE</span>
+                        <span class="font-mono text-[10px] font-bold text-white/80 uppercase tracking-wider">TODAY'S SESSIONS</span>
                     </div>
 
-                    <!-- Arc Energy Zone Time -->
-                    <div class="neo-card bg-[#FACC15] text-black p-6 flex flex-col justify-between">
+                    <!-- Arc Energy Zone Time (Today's Focus Hours) -->
+                    <div class="neo-card bg-[#FACC15] text-black p-6 flex flex-col justify-between" title="Today's total focus hours">
                         <div class="flex items-center justify-between text-xs">
                             <span class="font-mono text-[10px] uppercase font-bold text-black/80 tracking-wider">ARC ENERGY</span>
                             <i data-lucide="zap" class="w-4 h-4 text-black"></i>
@@ -1054,11 +1054,11 @@
                                 <span class="text-base font-normal ml-0.5">h</span>
                             </div>
                         </div>
-                        <span class="font-mono text-[10px] font-bold text-black/75 uppercase tracking-wider">FOCUS OUTPUT</span>
+                        <span class="font-mono text-[10px] font-bold text-black/75 uppercase tracking-wider">TODAY'S FOCUS</span>
                     </div>
 
-                    <!-- Rest & Serum Recharge -->
-                    <div class="neo-card bg-[#06B6D4] text-black p-6 flex flex-col justify-between">
+                    <!-- Rest & Serum Recharge (Today's Breaks Taken) -->
+                    <div class="neo-card bg-[#06B6D4] text-black p-6 flex flex-col justify-between" title="Today's breaks taken">
                         <div class="flex items-center justify-between text-xs">
                             <span class="font-mono text-[10px] uppercase font-bold text-black/80 tracking-wider">SERUM REST</span>
                             <i data-lucide="heart-pulse" class="w-4 h-4 text-black"></i>
@@ -1068,7 +1068,7 @@
                                 0
                             </div>
                         </div>
-                        <span class="font-mono text-[10px] font-bold text-black/75 uppercase tracking-wider">BREAKS TAKEN</span>
+                        <span class="font-mono text-[10px] font-bold text-black/75 uppercase tracking-wider">TODAY'S BREAKS</span>
                     </div>
 
                 </div>
@@ -3771,7 +3771,7 @@
                     const currentWaveProgress = allWorkLogs.length % 4;
 
                     // 2. Local Calendar Day calculations (Strictly sessions completed today in user's local timezone)
-                    const todayWorkLogs = allWorkLogs.filter(l => isLocalToday(l.completed_at));
+                    const todayWorkLogs = allWorkLogs.filter(l => isLocalToday(l.completed_at || l.created_at || l.timestamp));
                     const totalSingleSessions = todayWorkLogs.length;
                     const totalFocusMinutes = todayWorkLogs.reduce((acc, l) => acc + (l.duration_minutes || 25), 0);
 
@@ -3803,6 +3803,12 @@
                 }
 
                 if (!logs || logs.length === 0) {
+                    if (typeof tacticalArchiveData !== 'undefined' && tacticalArchiveData.allLogs && tacticalArchiveData.allLogs.length > 0) {
+                        logs = tacticalArchiveData.allLogs;
+                    }
+                }
+
+                if (!logs || logs.length === 0) {
                     logs = [
                         { phase: 'WORK', duration_minutes: 25, completed_at: new Date(Date.now() - 12 * 60 * 1000).toISOString() },
                         { phase: 'SHORT_BREAK', duration_minutes: 5, completed_at: new Date(Date.now() - 40 * 60 * 1000).toISOString() },
@@ -3811,16 +3817,27 @@
                     ];
                 }
 
-                let workCount = 0;
-                let breakCount = 0;
-                let totalFocusMinutes = 0;
+                let allTimeFocusMinutes = 0;
+                let todayWorkCount = 0;
+                let todayBreakCount = 0;
+                let todayFocusMinutes = 0;
 
                 logs.forEach(session => {
-                    if (session.phase === 'WORK') {
-                        workCount++;
-                        totalFocusMinutes += session.duration_minutes || 25;
+                    const isWork = session.phase === 'WORK';
+                    const dur = Number(session.duration_minutes) || (isWork ? 25 : 5);
+                    const ts = session.completed_at || session.created_at || session.timestamp;
+                    const isToday = isLocalToday(ts);
+
+                    if (isWork) {
+                        allTimeFocusMinutes += dur;
+                        if (isToday) {
+                            todayWorkCount++;
+                            todayFocusMinutes += dur;
+                        }
                     } else {
-                        breakCount++;
+                        if (isToday) {
+                            todayBreakCount++;
+                        }
                     }
                 });
 
@@ -3828,11 +3845,12 @@
                 const smashedEl = document.getElementById('stat-smashed');
                 const breakCountEl = document.getElementById('stat-break-count');
 
-                if (focusHoursEl) focusHoursEl.innerText = (totalFocusMinutes / 60).toFixed(1);
-                if (smashedEl) smashedEl.innerText = workCount;
-                if (breakCountEl) breakCountEl.innerText = breakCount;
+                // Strictly update HUD stat cards with today's values only
+                if (focusHoursEl) focusHoursEl.innerText = (todayFocusMinutes / 60).toFixed(1);
+                if (smashedEl) smashedEl.innerText = todayWorkCount;
+                if (breakCountEl) breakCountEl.innerText = todayBreakCount;
 
-                updateShieldClearance(totalFocusMinutes);
+                updateShieldClearance(allTimeFocusMinutes);
                 renderMissionDebriefs(logs.slice(0, 8));
                 await updateTacticalDebrief();
 
