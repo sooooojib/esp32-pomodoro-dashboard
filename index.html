@@ -1539,7 +1539,7 @@
                         <i data-lucide="shield" class="w-4 h-4 text-[#06B6D4]"></i>
                         <span>24-HOUR COMBAT SPECTRUM</span>
                     </span>
-                    <span class="text-zinc-600">HISTORICAL ALL-TIME</span>
+                    <span id="peak-spectrum-footer-label" class="text-zinc-600">PAST 7 DAYS</span>
                 </div>
             </div>
 
@@ -3981,7 +3981,7 @@
             renderTacticalKPIs(tacticalArchiveData.allLogs, tacticalArchiveData.workLogs);
             renderHeatmap(tacticalArchiveData.workLogs);
             renderVolumeChart();
-            renderPeakHours(tacticalArchiveData.workLogs);
+            renderPeakHours();
             renderArchiveTable();
 
             if (window.lucide) lucide.createIcons();
@@ -4252,6 +4252,7 @@
                 }
             }
             renderVolumeChart();
+            renderPeakHours();
         }
 
         function inspectVolumeBar(dateKey, mins, count) {
@@ -4421,8 +4422,9 @@
         }
 
         let activePeakHourState = {
-            peakRangeStr: '10:00 AM - 11:00 AM',
-            peakOps: 0
+            peakRangeStr: 'NO SESSIONS RECORDED YET',
+            peakOps: 0,
+            peakHours: new Set()
         };
 
         function inspectHourlyBar(h, count, isPeak) {
@@ -4486,7 +4488,7 @@
             }
             if (iconWrap) iconWrap.innerHTML = `<i data-lucide="flame" class="w-4 h-4 text-[#E11D48]"></i>`;
             if (peakText) {
-                if (activePeakHourState.peakOps === 0) {
+                if (!activePeakHourState || activePeakHourState.peakOps === 0) {
                     peakText.innerText = `PEAK WINDOW: NO SESSIONS RECORDED YET`;
                 } else {
                     peakText.innerText = `PEAK WINDOW: ${activePeakHourState.peakRangeStr} (PRIME PROTOCOL)`;
@@ -4494,12 +4496,13 @@
             }
             if (peakOpsCount) {
                 peakOpsCount.className = "text-[10px] bg-black text-[#FACC15] px-2 py-0.5 rounded border border-black shrink-0 font-mono font-bold";
-                peakOpsCount.innerText = `${activePeakHourState.peakOps} COMBAT OP${activePeakHourState.peakOps === 1 ? '' : 'S'}`;
+                const count = activePeakHourState ? activePeakHourState.peakOps : 0;
+                peakOpsCount.innerText = `${count} COMBAT OP${count === 1 ? '' : 'S'}`;
             }
             if (window.lucide) lucide.createIcons();
         }
 
-        function renderPeakHours(workLogs) {
+        function renderPeakHours(customLogs) {
             const container = document.getElementById('hourly-bars-container');
             const peakText = document.getElementById('peak-hour-text');
             const peakOpsCount = document.getElementById('peak-hour-ops-count');
@@ -4507,8 +4510,22 @@
 
             container.onmouseleave = resetHourlyInspect;
 
+            const days = tacticalArchiveData.volumeRangeDays || 7;
+            const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+
+            // Filter by the active period (7 or 30 days) to accurately reflect Focus Volume Drill
+            const logsToUse = customLogs || (tacticalArchiveData.workLogs || []).filter(l => {
+                if (!l.completed_at) return false;
+                return new Date(l.completed_at).getTime() >= cutoff;
+            });
+
+            const badgeTag = document.getElementById('peak-badge-tag');
+            const footerLabel = document.getElementById('peak-spectrum-footer-label');
+            if (badgeTag) badgeTag.innerText = `${days}D SPECTRUM`;
+            if (footerLabel) footerLabel.innerText = `PAST ${days} DAYS`;
+
             const hourlyCounts = new Array(24).fill(0);
-            workLogs.forEach(l => {
+            logsToUse.forEach(l => {
                 if (l.completed_at) {
                     const h = new Date(l.completed_at).getHours();
                     if (h >= 0 && h < 24) hourlyCounts[h]++;
@@ -4526,37 +4543,83 @@
             if (hourlyYMid) hourlyYMid.innerText = yMidHourly;
             if (hourlyYBase) hourlyYBase.innerText = '0';
 
-            let peakHour = 10;
-            let maxFound = -1;
-            for (let h = 0; h < 24; h++) {
-                if (hourlyCounts[h] > maxFound) {
-                    maxFound = hourlyCounts[h];
-                    peakHour = h;
-                }
-            }
-
-            function formatHour12(h, withMinutes = true) {
+            function formatHour12(h) {
                 const period = h >= 12 ? 'PM' : 'AM';
                 let h12 = h % 12;
                 if (h12 === 0) h12 = 12;
-                return withMinutes ? `${h12}:00 ${period}` : `${h12} ${period}`;
+                return `${h12}:00 ${period}`;
             }
 
-            const nextHour = (peakHour + 1) % 24;
-            const peakRangeStr = `${formatHour12(peakHour)} - ${formatHour12(nextHour)}`;
+            const totalSessions = hourlyCounts.reduce((a, b) => a + b, 0);
+            const peakHours = new Set();
+            let peakRangeStr = 'NO SESSIONS RECORDED YET';
+            let peakOps = 0;
+
+            if (totalSessions > 0) {
+                let bestStart = -1;
+                let maxScore = -1;
+
+                // Detect optimal peak focus window using 2-hour rolling density
+                // Break ties by daytime waking hours (08:00 - 22:00) so middle-of-the-night edge cases are not falsely declared as prime protocol
+                for (let h = 0; h < 24; h++) {
+                    const nextH = (h + 1) % 24;
+                    const prevH = (h - 1 + 24) % 24;
+                    const count2h = hourlyCounts[h] + hourlyCounts[nextH];
+                    const density = hourlyCounts[prevH] + count2h + hourlyCounts[(h + 2) % 24];
+                    const isDaytime = (h >= 8 && h <= 21);
+
+                    const score = (count2h * 100) + (density * 10) + (isDaytime ? 5 : 0) + (hourlyCounts[h] > 0 ? 1 : 0);
+                    if (score > maxScore && count2h > 0) {
+                        maxScore = score;
+                        bestStart = h;
+                    }
+                }
+
+                if (bestStart === -1) {
+                    for (let h = 0; h < 24; h++) {
+                        if (hourlyCounts[h] > 0) {
+                            const isDaytime = (h >= 8 && h <= 21);
+                            const score = hourlyCounts[h] * 10 + (isDaytime ? 2 : 0);
+                            if (score > maxScore) {
+                                maxScore = score;
+                                bestStart = h;
+                            }
+                        }
+                    }
+                }
+
+                if (bestStart !== -1) {
+                    const nextH = (bestStart + 1) % 24;
+                    if (hourlyCounts[nextH] > 0) {
+                        // Multi-hour cluster (e.g. 3:00 PM - 5:00 PM)
+                        peakHours.add(bestStart);
+                        peakHours.add(nextH);
+                        const endH = (bestStart + 2) % 24;
+                        peakRangeStr = `${formatHour12(bestStart)} - ${formatHour12(endH)}`;
+                        peakOps = hourlyCounts[bestStart] + hourlyCounts[nextH];
+                    } else {
+                        // Single dominant hour
+                        peakHours.add(bestStart);
+                        peakRangeStr = `${formatHour12(bestStart)} - ${formatHour12(nextH)}`;
+                        peakOps = hourlyCounts[bestStart];
+                    }
+                }
+            }
+
             activePeakHourState.peakRangeStr = peakRangeStr;
-            activePeakHourState.peakOps = hourlyCounts[peakHour];
+            activePeakHourState.peakOps = peakOps;
+            activePeakHourState.peakHours = peakHours;
             resetHourlyInspect();
 
             container.innerHTML = hourlyCounts.map((count, h) => {
-                const isPeak = (h === peakHour && count > 0);
+                const isPeak = peakHours.has(h);
                 const heightPct = count > 0 ? Math.max(12, Math.min(100, Math.round((count / yMaxHourly) * 100))) : 4;
                 const barColor = isPeak ? 'bg-[#FACC15] ring-2 ring-black' : count > 0 ? 'bg-[#06B6D4]' : 'bg-zinc-200 border-black/30';
-                const hourFormatted = formatHour12(h, true);
+                const hourFormatted = formatHour12(h);
 
                 return `
                     <div class="flex-1 min-w-0 flex flex-col items-center justify-end h-full group relative cursor-pointer" 
-                         title="${hourFormatted}: ${count} session${count === 1 ? '' : 's'}"
+                         title="${hourFormatted}: ${count} session${count === 1 ? '' : 's'}${isPeak ? ' (Peak Window)' : ''}"
                          onmouseenter="inspectHourlyBar(${h}, ${count}, ${isPeak})"
                          onmouseleave="resetHourlyInspect()"
                          onclick="inspectHourlyBar(${h}, ${count}, ${isPeak})">
