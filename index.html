@@ -1518,10 +1518,10 @@
 
                             <!-- Chart Body -->
                             <div class="flex-1 min-w-0 relative">
-                                <div class="h-32 flex items-end justify-between gap-1 pt-3 min-w-0 w-full overflow-hidden relative z-10" id="hourly-bars-container">
+                                <div class="h-32 flex items-end justify-between gap-[2px] sm:gap-1 pt-3 px-2 sm:px-2.5 min-w-0 w-full relative z-10" id="hourly-bars-container">
                                     <!-- 24 hourly columns dynamically injected -->
                                 </div>
-                                <div class="flex justify-between text-[9px] font-mono font-bold text-zinc-600 pt-1.5 mt-1 select-none">
+                                <div class="flex justify-between text-[9px] font-mono font-bold text-zinc-600 pt-1.5 mt-1 select-none px-2 sm:px-2.5">
                                     <span>12 AM (NIGHT)</span>
                                     <span>6 AM (DAWN)</span>
                                     <span>12 PM (NOON)</span>
@@ -4666,7 +4666,7 @@
             container.innerHTML = hourlyCounts.map((count, h) => {
                 const isPeak = peakHours.has(h);
                 const heightPct = count > 0 ? Math.max(12, Math.min(100, Math.round((count / yMaxHourly) * 100))) : 4;
-                const barColor = isPeak ? 'bg-[#FACC15] ring-2 ring-black' : count > 0 ? 'bg-[#06B6D4]' : 'bg-zinc-200 border-black/30';
+                const barColor = isPeak ? 'bg-[#FACC15] ring-2 ring-black z-10' : count > 0 ? 'bg-[#06B6D4]' : 'bg-zinc-200 border-black/30';
                 const hourFormatted = formatHour12(h);
 
                 return `
@@ -4675,7 +4675,7 @@
                          onmouseenter="inspectHourlyBar(${h}, ${count}, ${isPeak})"
                          onmouseleave="resetHourlyInspect()"
                          onclick="inspectHourlyBar(${h}, ${count}, ${isPeak})">
-                        <div class="w-full rounded-t border border-black ${barColor} transition-all group-hover:bg-[#E11D48] group-hover:scale-y-110 origin-bottom" style="height: ${heightPct}%;"></div>
+                        <div class="w-full max-w-[28px] rounded-t border border-black ${barColor} transition-all group-hover:bg-[#E11D48] group-hover:scale-y-110 origin-bottom" style="height: ${heightPct}%;"></div>
                     </div>
                 `;
             }).join('');
