@@ -3612,11 +3612,11 @@
         };
 
         let tacticalDebriefState = {
-            totalSingleSessions: 6,
-            fullOperations: 1,
-            currentWaveProgress: 2,
-            currentWave: 2,
-            totalFocusMinutes: 150
+            totalSingleSessions: 0,
+            fullOperations: 0,
+            currentWaveProgress: 0,
+            currentWave: 1,
+            totalFocusMinutes: 0
         };
 
         const MISSION_SLOTS = [
@@ -3626,36 +3626,61 @@
             { id: 4, name: "MISSION DELTA" }
         ];
 
-        // S.H.I.E.L.D. Mission status is driven 100% by the physical ESP32 device via Supabase logs
+        // S.H.I.E.L.D. Mission status: Synchronized directly with live ESP32 pomodoro_count
         function renderTacticalMissions() {
-            // 1. Update Header Badge (Today's Sessions from Supabase)
+            // 1. Derive active module index directly from ESP32 hardware state
+            const espModuleIndex = (typeof hardwareState !== 'undefined' && Number.isInteger(hardwareState.pomodoro_count)) 
+                ? hardwareState.pomodoro_count 
+                : 0;
+
+            // Effective progress inside the active 4-module wave
+            const effectiveWaveProgress = (typeof isEspConnected !== 'undefined' && isEspConnected)
+                ? espModuleIndex
+                : Math.max(tacticalDebriefState.currentWaveProgress || 0, espModuleIndex);
+
+            // 2. Update Header Badge (Today's Sessions from Supabase)
             const todayText = document.getElementById('today-sessions-text');
             if (todayText) todayText.innerText = `TODAY: ${tacticalDebriefState.totalSingleSessions} SESSIONS`;
 
-            // 2. Update Inner Deployment Container Header
+            // 3. Update Inner Deployment Container Header
             const waveTitle = document.getElementById('deployment-wave-title');
             const waveObj = document.getElementById('wave-objective-counter');
             if (waveTitle) waveTitle.innerText = `DEPLOYMENT WAVE #${tacticalDebriefState.currentWave} (4 SESSIONS)`;
-            if (waveObj) waveObj.innerText = `OBJECTIVE: ${tacticalDebriefState.currentWaveProgress} / 4 DONE`;
+            if (waveObj) waveObj.innerText = `OBJECTIVE: ${effectiveWaveProgress} / 4 DONE`;
 
-            // 3. Update Bottom Metrics
+            // 4. Update Bottom Metrics
             const focusMinsText = document.getElementById('total-focus-mins-text');
             const protocolsText = document.getElementById('full-protocols-text');
             if (focusMinsText) focusMinsText.innerText = `${tacticalDebriefState.totalFocusMinutes} MINS`;
             if (protocolsText) protocolsText.innerText = `${tacticalDebriefState.fullOperations}x [4/4]`;
 
-            // 4. Update 2x2 Grid of Mission Cards (100% Driven by ESP32 via Supabase)
+            // 5. Update 2x2 Grid of Mission Cards
             const grid = document.getElementById('daily-milestones-grid');
             if (!grid) return;
 
             const isWorkRunning = hardwareState.is_running && hardwareState.phase === 'WORK';
-            const activeSlotId = isWorkRunning ? (tacticalDebriefState.currentWaveProgress + 1) : null;
+            const isWorkPaused = !hardwareState.is_running && hardwareState.phase === 'WORK';
+            // Slot ID is 1-based: pomodoro_count 0 -> Slot 1 (Alpha), pomodoro_count 1 -> Slot 2 (Beta)
+            const activeSlotId = isWorkRunning ? (espModuleIndex + 1) : null;
+            const pausedSlotId = isWorkPaused ? (espModuleIndex + 1) : null;
 
             grid.innerHTML = MISSION_SLOTS.map(m => {
-                const isAccomplished = m.id <= tacticalDebriefState.currentWaveProgress;
-                const isActive = !isAccomplished && (m.id === activeSlotId);
+                // If this is the active slot running currently
+                const isActive = isWorkRunning && (m.id === activeSlotId);
+                // If a slot is lower than the active module or already accomplished in this wave
+                const isAccomplished = !isActive && (m.id <= espModuleIndex || (!isWorkRunning && m.id <= effectiveWaveProgress));
 
-                if (isAccomplished) {
+                if (isActive) {
+                    return `
+                        <div class="mission-card w-full bg-amber-50 text-black border-[3px] border-black rounded-xl px-3 py-2.5 font-mono flex items-center justify-between ring-4 ring-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.9),2px_2px_0px_#000] animate-pulse select-none cursor-default">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <span class="w-6 h-6 rounded-lg border-2 border-black bg-amber-400 text-black flex items-center justify-center font-mono font-black text-xs shrink-0 shadow-[1px_1px_0px_#000]">${m.id}</span>
+                                <span class="text-xs sm:text-[13px] font-mono font-bold tracking-wider uppercase whitespace-nowrap text-black">${m.name}</span>
+                            </div>
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 border border-black animate-ping shrink-0 mr-1" title="Hardware Mission Running"></span>
+                        </div>
+                    `;
+                } else if (isAccomplished) {
                     return `
                         <div class="mission-card w-full bg-[#10B981] text-black border-[3px] border-black rounded-xl px-3 py-2.5 font-mono flex items-center justify-between shadow-[2px_2px_0px_#000] select-none cursor-default">
                             <div class="flex items-center gap-2.5 min-w-0">
@@ -3670,14 +3695,14 @@
                             </span>
                         </div>
                     `;
-                } else if (isActive) {
+                } else if (pausedSlotId && m.id === pausedSlotId) {
                     return `
-                        <div class="mission-card w-full bg-amber-50 text-black border-[3px] border-black rounded-xl px-3 py-2.5 font-mono flex items-center justify-between ring-4 ring-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.9),2px_2px_0px_#000] animate-pulse select-none cursor-default">
+                        <div class="mission-card w-full bg-amber-50/70 text-black border-[3px] border-black rounded-xl px-3 py-2.5 font-mono flex items-center justify-between shadow-[2px_2px_0px_#000] select-none cursor-default">
                             <div class="flex items-center gap-2.5 min-w-0">
-                                <span class="w-6 h-6 rounded-lg border-2 border-black bg-amber-400 text-black flex items-center justify-center font-mono font-black text-xs shrink-0 shadow-[1px_1px_0px_#000]">${m.id}</span>
+                                <span class="w-6 h-6 rounded-lg border-2 border-black bg-amber-300 text-black flex items-center justify-center font-mono font-black text-xs shrink-0 shadow-[1px_1px_0px_#000]">${m.id}</span>
                                 <span class="text-xs sm:text-[13px] font-mono font-bold tracking-wider uppercase whitespace-nowrap text-black">${m.name}</span>
                             </div>
-                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 border border-black animate-ping shrink-0 mr-1" title="Hardware Mission Running"></span>
+                            <span class="font-mono font-bold text-[9px] sm:text-[10px] tracking-wider uppercase bg-amber-300 text-black border border-black px-1.5 py-0.5 rounded shadow-[1px_1px_0px_#000] shrink-0 ml-1.5 whitespace-nowrap">PAUSED</span>
                         </div>
                     `;
                 } else {
