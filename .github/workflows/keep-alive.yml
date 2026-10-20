@@ -1,0 +1,40 @@
+name: Keep Supabase Active
+
+on:
+  schedule:
+    # Runs at 00:00 UTC every 3 days (Supabase pauses after 7 days of inactivity)
+    - cron: '0 0 */3 * *'
+  workflow_dispatch: # Allows manual trigger from the Actions tab anytime
+
+jobs:
+  ping-supabase:
+    name: Ping Supabase Database
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send keep-alive query to PostgREST
+        env:
+          # Uses GitHub Secrets if configured, otherwise falls back to the default project keys
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://ykncypzibxorhaatyqah.supabase.co' }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlrbmN5cHppYnhvcmhhYXR5cWFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxOTE4MDgsImV4cCI6MjEwNzc2NzgwOH0.cVWlzZOw5et55NiYcp3n1g6ophDvmp-GgCHyo9Vf5sI' }}
+        run: |
+          echo "Sending keep-alive query to Supabase PostgREST..."
+          
+          # Target device_state table used by the Pomodoro dashboard
+          ENDPOINT="${SUPABASE_URL}/rest/v1/device_state?select=id&limit=1"
+          
+          HTTP_RESPONSE=$(curl -s -o /tmp/response.json -w "%{http_code}" -X GET "$ENDPOINT" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            -H "Content-Type: application/json")
+
+          echo "HTTP Status Code: $HTTP_RESPONSE"
+          echo "Response Body:"
+          cat /tmp/response.json
+          echo ""
+
+          if [ "$HTTP_RESPONSE" -ge 200 ] && [ "$HTTP_RESPONSE" -lt 300 ]; then
+            echo "✅ Supabase database successfully queried! Activity registered."
+          else
+            echo "❌ Keep-alive query failed with status $HTTP_RESPONSE"
+            exit 1
+          fi

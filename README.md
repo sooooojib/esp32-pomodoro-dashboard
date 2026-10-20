@@ -60,3 +60,14 @@ Open `index.html` in your web browser or run:
 python3 -m http.server 8080
 ```
 Visit `http://localhost:8080/index.html`.
+
+---
+
+## ⚡ Supabase Keep-Alive (Free Tier Inactivity Prevention)
+
+Supabase Free Tier projects pause automatically after 7 days without queries. A GitHub Action workflow ([keep-alive.yml](.github/workflows/keep-alive.yml)) runs every 3 days via cron to query `device_state`, keeping your database active 24/7 without manual intervention.
+
+To trigger it manually anytime:
+1. Navigate to **Actions** in your GitHub repository.
+2. Select **Keep Supabase Active**.
+3. Click **Run workflow**.
