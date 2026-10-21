@@ -197,9 +197,20 @@
             workLogs.forEach(l => {
                 if (l.completed_at) {
                     const key = new Date(l.completed_at).toLocaleDateString('en-CA');
-                    if (!dateMap[key]) dateMap[key] = { count: 0, mins: 0 };
+                    if (!dateMap[key]) {
+                        dateMap[key] = { count: 0, mins: 0, workCount: 0, specialCount: 0, specialMins: 0, workMins: 0 };
+                    }
+                    const isSpecial = typeof isCustomPhase === 'function' && isCustomPhase(l.phase);
+                    const dur = Number(l.duration_minutes) || (isSpecial ? 25 : 25);
                     dateMap[key].count++;
-                    dateMap[key].mins += (l.duration_minutes || 25);
+                    dateMap[key].mins += dur;
+                    if (isSpecial) {
+                        dateMap[key].specialCount++;
+                        dateMap[key].specialMins += dur;
+                    } else {
+                        dateMap[key].workCount++;
+                        dateMap[key].workMins += dur;
+                    }
                 }
             });
 
@@ -237,7 +248,7 @@
                         return `<div class="w-6 h-6 sm:w-7 sm:h-7 opacity-0"></div>`;
                     }
                     const key = d.toLocaleDateString('en-CA');
-                    const entry = dateMap[key] || { count: 0, mins: 0 };
+                    const entry = dateMap[key] || { count: 0, mins: 0, workCount: 0, specialCount: 0, specialMins: 0, workMins: 0 };
                     const c = entry.count;
                     if (c > 0) activeDaysCount++;
 
@@ -259,11 +270,20 @@
                     }
 
                     const dateTitle = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    let hoverTitle = `${dateTitle} • ${c} sessions (${entry.mins} mins)`;
+                    if (entry.specialCount > 0) {
+                        hoverTitle = `${dateTitle} • ${entry.workCount} combat + ${entry.specialCount} special (${entry.specialMins}m) • ${entry.mins} mins total`;
+                    }
                     return `
                         <div class="heatmap-tile w-6 h-6 sm:w-7 sm:h-7 rounded-md transition-all hover:scale-125 hover:z-20 cursor-pointer flex items-center justify-center select-none group relative ${bgClass}"
-                             data-date="${key}" data-count="${c}" data-mins="${entry.mins}"
+                             data-date="${key}" 
+                             data-count="${c}" 
+                             data-mins="${entry.mins}"
+                             data-work-count="${entry.workCount}"
+                             data-special-count="${entry.specialCount}"
+                             data-special-mins="${entry.specialMins}"
                              onmouseenter="inspectHeatmapTile(this)" onclick="inspectHeatmapTile(this)"
-                             title="${dateTitle} • ${c} sessions (${entry.mins} mins)">
+                             title="${hoverTitle}">
                             ${innerContent}
                         </div>
                     `;
@@ -304,10 +324,16 @@
             const dateStr = tile.getAttribute('data-date');
             const count = parseInt(tile.getAttribute('data-count') || '0', 10);
             const mins = parseInt(tile.getAttribute('data-mins') || '0', 10);
+            const workCount = parseInt(tile.getAttribute('data-work-count') || '0', 10);
+            const specialCount = parseInt(tile.getAttribute('data-special-count') || '0', 10);
+            const specialMins = parseInt(tile.getAttribute('data-special-mins') || '0', 10);
 
             const d = new Date(dateStr + 'T12:00:00');
             const formattedDate = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
             const dayName = d.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
+
+            // Protocols are strictly 4/4 cycles from regular Pomodoro blocks
+            const protocolsFinished = Math.floor(workCount / 4);
 
             // 1. Bottom inspect bar (Clean operational readout, no redundant badge)
             const inspectText = document.getElementById('heatmap-inspect-text');
@@ -318,34 +344,69 @@
                         <span class="text-zinc-700">${formattedDate} • 0 SESSIONS (0 MINS)</span>
                     `;
                 } else {
-                    const protocols = Math.floor(count / 4);
-                    const protocolNote = protocols > 0 ? ` • ${protocols} PROTOCOL${protocols > 1 ? 'S' : ''} FINISHED` : '';
+                    const protocolNote = protocolsFinished > 0 ? ` • ${protocolsFinished} PROTOCOL${protocolsFinished > 1 ? 'S' : ''} FINISHED` : '';
+                    let sessionDetail = `${count} SESSIONS FINISHED (${mins} MINS)`;
+                    if (specialCount > 0) {
+                        sessionDetail = `${count} SESSIONS FINISHED (${mins} MINS: ${workCount} COMBAT + <span class="text-[#7C3AED] font-bold">${specialCount} SPECIAL OPS [${specialMins}M]</span>)`;
+                    }
                     inspectText.innerHTML = `
                         <i data-lucide="crosshair" class="w-4 h-4 text-[#E11D48]"></i>
-                        <span class="text-black font-mono font-bold">${formattedDate} • ${count} SESSIONS FINISHED (${mins} MINS)${protocolNote}</span>
+                        <span class="text-black font-mono font-bold">${formattedDate} • ${sessionDetail}${protocolNote}</span>
                     `;
                 }
             }
 
-            // 2. Right Recon Telemetry Panel (Fourth Image: Protocols & Sessions Finished)
+            // 2. Right Recon Telemetry Panel (Protocols & Sessions Finished)
             const reconDayTag = document.getElementById('recon-day-tag');
             const reconDateTitle = document.getElementById('recon-date-title');
             const reconOutputDesc = document.getElementById('recon-output-desc');
             const reconProtocols = document.getElementById('recon-protocols-count');
             const reconSessions = document.getElementById('recon-sessions-count');
+            const reconSessionsSubtag = document.getElementById('recon-sessions-subtag');
+            const reconProtocolsSubtag = document.getElementById('recon-protocols-subtag');
 
             if (reconDayTag) reconDayTag.innerText = `${dayName} // RECON`;
             if (reconDateTitle) reconDateTitle.innerText = formattedDate;
+
             if (reconOutputDesc) {
-                reconOutputDesc.innerText = count === 0
-                    ? '0 SESSIONS COMPLETED • 0 MINS LOGGED'
-                    : `${mins} FOCUS MINUTES LOGGED`;
+                if (count === 0) {
+                    reconOutputDesc.innerHTML = `<span class="text-zinc-500">0 SESSIONS COMPLETED • 0 MINS LOGGED</span>`;
+                } else if (specialCount > 0) {
+                    reconOutputDesc.innerHTML = `
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="text-zinc-800">${mins} FOCUS MINUTES LOGGED</span>
+                            <span class="bg-[#7C3AED] text-white text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border border-black shadow-[1px_1px_0px_#000] inline-flex items-center gap-1">
+                                <i data-lucide="zap" class="w-2.5 h-2.5 text-[#FACC15]"></i>
+                                ${specialCount === 1 ? `1 SPECIAL OPS (${specialMins}M)` : `${specialCount} SPECIAL OPS (${specialMins}M)`}
+                            </span>
+                        </div>
+                    `;
+                } else {
+                    reconOutputDesc.innerText = `${mins} FOCUS MINUTES LOGGED`;
+                }
             }
 
-            const protocolsFinished = Math.floor(count / 4);
-            const sessionsFinished = count;
             if (reconProtocols) reconProtocols.innerText = protocolsFinished;
-            if (reconSessions) reconSessions.innerText = sessionsFinished;
+            if (reconSessions) reconSessions.innerText = count;
+
+            if (reconProtocolsSubtag) {
+                if (count === 0) {
+                    reconProtocolsSubtag.innerText = "4 COMBAT / CYCLE";
+                } else {
+                    const inProgressSlots = workCount % 4;
+                    reconProtocolsSubtag.innerText = inProgressSlots > 0 ? `${inProgressSlots}/4 CYCLE IN PROGRESS` : "4x25M CYCLE LOCKED";
+                }
+            }
+
+            if (reconSessionsSubtag) {
+                if (count === 0) {
+                    reconSessionsSubtag.innerText = "";
+                } else if (specialCount > 0) {
+                    reconSessionsSubtag.innerHTML = `${workCount} COMBAT • <span class="text-[#7C3AED] font-bold">${specialCount} SPECIAL (${specialMins}M)</span>`;
+                } else {
+                    reconSessionsSubtag.innerText = `${count} COMBAT PROTOCOLS`;
+                }
+            }
 
             if (window.lucide) lucide.createIcons();
         }
@@ -373,7 +434,7 @@
             renderPeakHours();
         }
 
-        function inspectVolumeBar(dateKey, mins, count) {
+        function inspectVolumeBar(dateKey, mins, count, workCount = count, specialCount = 0, specialMins = 0) {
             const calloutText = document.getElementById('volume-inspect-text');
             const calloutBadge = document.getElementById('volume-inspect-badge');
             if (!calloutText) return;
@@ -388,11 +449,18 @@
                     calloutBadge.innerText = "NO SESSIONS";
                 }
             } else {
-                const protocols = Math.floor(count / 4);
+                const protocols = Math.floor(workCount / 4);
                 const protocolText = protocols > 0 ? ` • ${protocols} PROTOCOL${protocols > 1 ? 'S' : ''} FINISHED` : '';
-                calloutText.innerText = `${formatted} • ${mins} MINS (${count} SESSIONS COMPLETED)${protocolText}`;
+                let sessionBreakdown = `${count} SESSIONS COMPLETED`;
+                if (specialCount > 0) {
+                    sessionBreakdown = `${count} SESSIONS: ${workCount} COMBAT + ${specialCount} SPECIAL [${specialMins}M]`;
+                }
+                calloutText.innerHTML = `${formatted} • ${mins} MINS (${sessionBreakdown})${protocolText}`;
                 if (calloutBadge) {
-                    if (mins >= 100) {
+                    if (specialCount > 0) {
+                        calloutBadge.className = "text-[10px] bg-[#7C3AED] text-white px-2 py-0.5 rounded border border-black shrink-0 font-mono font-bold shadow-[1px_1px_0px_#000]";
+                        calloutBadge.innerText = `${specialCount} SPECIAL OPS`;
+                    } else if (mins >= 100) {
                         calloutBadge.className = "text-[10px] bg-[#E11D48] text-white px-2 py-0.5 rounded border border-black shrink-0 font-mono font-bold shadow-[1px_1px_0px_#000]";
                         calloutBadge.innerText = "HIGH FOCUS";
                     } else if (mins >= 50) {
@@ -434,9 +502,20 @@
             tacticalArchiveData.workLogs.forEach(l => {
                 if (l.completed_at) {
                     const key = new Date(l.completed_at).toLocaleDateString('en-CA');
-                    if (!dateMap[key]) dateMap[key] = { count: 0, mins: 0 };
+                    if (!dateMap[key]) {
+                        dateMap[key] = { count: 0, mins: 0, workCount: 0, specialCount: 0, specialMins: 0, workMins: 0 };
+                    }
+                    const isSpecial = typeof isCustomPhase === 'function' && isCustomPhase(l.phase);
+                    const dur = Number(l.duration_minutes) || (isSpecial ? 25 : 25);
                     dateMap[key].count++;
-                    dateMap[key].mins += (l.duration_minutes || 25);
+                    dateMap[key].mins += dur;
+                    if (isSpecial) {
+                        dateMap[key].specialCount++;
+                        dateMap[key].specialMins += dur;
+                    } else {
+                        dateMap[key].workCount++;
+                        dateMap[key].workMins += dur;
+                    }
                 }
             });
 
@@ -446,12 +525,15 @@
                 const d = new Date(today);
                 d.setDate(today.getDate() - i);
                 const key = d.toLocaleDateString('en-CA');
-                const stats = dateMap[key] || { count: 0, mins: 0 };
+                const stats = dateMap[key] || { count: 0, mins: 0, workCount: 0, specialCount: 0, specialMins: 0, workMins: 0 };
                 dayItems.push({
                     date: d,
                     key,
                     mins: stats.mins,
-                    count: stats.count
+                    count: stats.count,
+                    workCount: stats.workCount,
+                    specialCount: stats.specialCount,
+                    specialMins: stats.specialMins
                 });
             }
 
@@ -487,7 +569,10 @@
                 const hasMins = d.mins > 0;
                 // Mathematically exact height relative to yMax
                 const heightPct = hasMins ? Math.max(10, Math.min(100, Math.round((d.mins / yMax) * 100))) : 4;
-                const fullTitle = `${d.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}: ${d.mins}m (${d.count}x)`;
+                let fullTitle = `${d.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}: ${d.mins}m (${d.count}x)`;
+                if (d.specialCount > 0) {
+                    fullTitle = `${d.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}: ${d.mins}m (${d.workCount} combat + ${d.specialCount} special [${d.specialMins}m])`;
+                }
                 const barColor = d.mins >= 100 ? 'bg-[#E11D48]' : d.mins > 0 ? 'bg-[#FACC15]' : 'bg-zinc-200/90 border-black/30 hover:border-black hover:bg-zinc-300';
                 const shadowClass = hasMins ? 'shadow-[2px_2px_0px_#000]' : '';
 
@@ -500,9 +585,9 @@
                 return `
                     <div class="flex-1 min-w-0 flex flex-col items-center justify-end h-full group relative cursor-pointer" 
                          title="${fullTitle}"
-                         onmouseenter="inspectVolumeBar('${d.key}', ${d.mins}, ${d.count})"
+                         onmouseenter="inspectVolumeBar('${d.key}', ${d.mins}, ${d.count}, ${d.workCount}, ${d.specialCount}, ${d.specialMins})"
                          onmouseleave="resetVolumeInspect()"
-                         onclick="inspectVolumeBar('${d.key}', ${d.mins}, ${d.count})">
+                         onclick="inspectVolumeBar('${d.key}', ${d.mins}, ${d.count}, ${d.workCount}, ${d.specialCount}, ${d.specialMins})">
                         <div class="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 bg-black text-[#FACC15] text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border border-black pointer-events-none whitespace-nowrap z-30 shadow-[1px_1px_0px_#000]">
                             ${d.mins}m
                         </div>
