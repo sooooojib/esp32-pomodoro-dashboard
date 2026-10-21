@@ -15,6 +15,10 @@
 
         let currentActiveView = 'live-hud';
 
+        function isCustomPhase(phase) {
+            return phase === 'SPECIAL' || phase === 'CUSTOM';
+        }
+
         function switchView(viewName) {
             currentActiveView = viewName;
             if (typeof AudioEngine !== 'undefined') {

@@ -35,15 +35,19 @@
 
         // S.H.I.E.L.D. Mission status: Synchronized directly with live ESP32 pomodoro_count & database
         function renderTacticalMissions() {
+            const isCustom = (typeof hardwareState !== 'undefined' && typeof isCustomPhase === 'function' && isCustomPhase(hardwareState.phase));
+            const isCustomRunning = (typeof hardwareState !== 'undefined' && hardwareState.is_running && isCustom);
+
             // 1. Derive active module index directly from ESP32 hardware state
-            const espModuleIndex = (typeof hardwareState !== 'undefined' && Number.isInteger(hardwareState.pomodoro_count)) 
+            // If in custom session phase, standard 25m wave progress is preserved and does not jump
+            const espModuleIndex = (typeof hardwareState !== 'undefined' && Number.isInteger(hardwareState.pomodoro_count) && !isCustom) 
                 ? hardwareState.pomodoro_count 
-                : 0;
+                : (tacticalDebriefState.currentWaveProgress || 0);
 
             // Effective progress inside the active 4-module wave
-            const effectiveWaveProgress = (typeof isEspConnected !== 'undefined' && isEspConnected)
+            const effectiveWaveProgress = (typeof isEspConnected !== 'undefined' && isEspConnected && !isCustom)
                 ? espModuleIndex
-                : Math.max(tacticalDebriefState.currentWaveProgress || 0, espModuleIndex);
+                : Math.max(tacticalDebriefState.currentWaveProgress || 0, (isCustom ? 0 : espModuleIndex));
 
             // 2. Synchronize Deployment Wave Number (4/4 completed wave remains on current wave until next starts)
             const waveNumber = (effectiveWaveProgress === 4 && tacticalDebriefState.fullOperations > 0)
@@ -51,15 +55,27 @@
                 : (tacticalDebriefState.fullOperations + 1);
             tacticalDebriefState.currentWave = waveNumber;
 
-            // 3. Update Header Badge (Strictly today's completed sessions from Supabase)
+            // 3. Update Header Badge (Strictly today's completed sessions from Supabase including custom sessions)
             const todayText = document.getElementById('today-sessions-text');
             if (todayText) todayText.innerText = `TODAY: ${tacticalDebriefState.totalSingleSessions} SESSIONS`;
 
             // 4. Update Inner Deployment Container Header
             const waveTitle = document.getElementById('deployment-wave-title');
             const waveObj = document.getElementById('wave-objective-counter');
-            if (waveTitle) waveTitle.innerText = `DEPLOYMENT WAVE #${waveNumber} (4 SESSIONS)`;
-            if (waveObj) waveObj.innerText = `OBJECTIVE: ${effectiveWaveProgress} / 4 DONE`;
+            if (waveTitle) {
+                if (isCustomRunning) {
+                    waveTitle.innerHTML = `<span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-purple-500 animate-ping"></span> SPECIAL OPS IN PROGRESS // WAVE #${waveNumber}</span>`;
+                } else {
+                    waveTitle.innerText = `DEPLOYMENT WAVE #${waveNumber} (4 SESSIONS)`;
+                }
+            }
+            if (waveObj) {
+                if (isCustomRunning) {
+                    waveObj.innerHTML = `<span class="bg-[#7C3AED] text-white px-2 py-0.5 rounded text-[10px] font-mono font-bold border border-black shadow-[1px_1px_0px_#000]">SPECIAL SPRINT</span>`;
+                } else {
+                    waveObj.innerText = `OBJECTIVE: ${effectiveWaveProgress} / 4 DONE`;
+                }
+            }
 
             // 5. Update Bottom Metrics
             const focusMinsText = document.getElementById('total-focus-mins-text');
@@ -73,7 +89,7 @@
 
             const isWorkRunning = hardwareState.is_running && hardwareState.phase === 'WORK';
             const isWorkPaused = !hardwareState.is_running && hardwareState.phase === 'WORK';
-            // Slot ID is 1-based: pomodoro_count 0 -> Slot 1 (Alpha), pomodoro_count 1 -> Slot 2 (Beta)
+            // Slot ID is 1-based: pomodoro_count 0 -> Slot 1 (Alpha), strictly tied to regular WORK
             const activeSlotId = isWorkRunning ? (espModuleIndex + 1) : null;
             const pausedSlotId = isWorkPaused ? (espModuleIndex + 1) : null;
 
@@ -147,7 +163,7 @@
                         allLogs = data;
                         if (typeof tacticalArchiveData !== 'undefined') {
                             tacticalArchiveData.allLogs = data;
-                            tacticalArchiveData.workLogs = data.filter(l => l.phase === 'WORK');
+                            tacticalArchiveData.workLogs = data.filter(l => l.phase === 'WORK' || (typeof isCustomPhase === 'function' && isCustomPhase(l.phase)));
                         }
                     }
                 }
@@ -160,21 +176,30 @@
                 }
 
                 if (allLogs && allLogs.length > 0) {
-                    const allWorkLogs = allLogs.filter(l => l.phase === 'WORK');
-                    
-                    // 1. All-time wave calculations (independent of calendar day)
-                    const fullOperations = Math.floor(allWorkLogs.length / 4);
-                    const currentWaveProgress = allWorkLogs.length % 4;
+                    // Filter logs from midnight today:
+                    const logs = allLogs.filter(l => isLocalToday(l.completed_at || l.created_at || l.timestamp));
+                    const todayLogs = logs.filter(l => l.phase === 'WORK' || (typeof isCustomPhase === 'function' && isCustomPhase(l.phase)));
 
-                    // 2. Local Calendar Day calculations (Strictly sessions completed today in user's local timezone)
-                    const todayWorkLogs = allWorkLogs.filter(l => isLocalToday(l.completed_at || l.created_at || l.timestamp));
-                    const totalSingleSessions = todayWorkLogs.length;
-                    const totalFocusMinutes = todayWorkLogs.reduce((acc, l) => acc + (l.duration_minutes || 25), 0);
+                    const workLogs = logs.filter(l => l.phase === 'WORK');
+                    const customLogs = logs.filter(l => typeof isCustomPhase === 'function' && isCustomPhase(l.phase));
+
+                    // Wave slots strictly tied to regular Pomodoros:
+                    const totalStandardWork = workLogs.length;
+                    const fullOperations = Math.floor(totalStandardWork / 4);
+                    const currentWaveProgress = totalStandardWork % 4;
+                    const currentWave = fullOperations + 1;
+
+                    // Total Daily Focus Minutes includes both:
+                    const totalFocusMinutes = (totalStandardWork * 25) + 
+                      customLogs.reduce((acc, l) => acc + (l.duration_minutes || 0), 0);
+
+                    const totalSingleSessions = todayLogs.length;
 
                     tacticalDebriefState.totalSingleSessions = totalSingleSessions;
                     tacticalDebriefState.totalFocusMinutes = totalFocusMinutes;
                     tacticalDebriefState.fullOperations = fullOperations;
                     tacticalDebriefState.currentWaveProgress = currentWaveProgress;
+                    tacticalDebriefState.currentWave = currentWave;
 
                     renderTacticalMissions();
                     return;
@@ -219,12 +244,12 @@
                 let todayFocusMinutes = 0;
 
                 logs.forEach(session => {
-                    const isWork = session.phase === 'WORK';
-                    const dur = Number(session.duration_minutes) || (isWork ? 25 : 5);
+                    const isFocus = session.phase === 'WORK' || (typeof isCustomPhase === 'function' && isCustomPhase(session.phase));
+                    const dur = Number(session.duration_minutes) || (isFocus ? 25 : 5);
                     const ts = session.completed_at || session.created_at || session.timestamp;
                     const isToday = isLocalToday(ts);
 
-                    if (isWork) {
+                    if (isFocus) {
                         allTimeFocusMinutes += dur;
                         if (isToday) {
                             todayWorkCount++;
@@ -300,11 +325,22 @@
             }
 
             list.innerHTML = logs.map(session => {
+                const isCustom = typeof isCustomPhase === 'function' && isCustomPhase(session.phase);
                 const isWork = session.phase === 'WORK';
                 const timeStr = session.completed_at ? new Date(session.completed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent';
-                const iconName = isWork ? 'target' : 'coffee';
-                const badgeBg = isWork ? 'bg-[#E11D48] text-white' : 'bg-[#06B6D4] text-black';
-                const xpGain = isWork ? `+${(session.duration_minutes || 25) * 10} XP` : '+25 XP';
+                let iconName = 'coffee';
+                let badgeBg = 'bg-[#06B6D4] text-black';
+                let xpGain = '+25 XP';
+
+                if (isCustom) {
+                    iconName = 'zap';
+                    badgeBg = 'bg-[#7C3AED] text-white';
+                    xpGain = `+${(session.duration_minutes || 25) * 10} XP`;
+                } else if (isWork) {
+                    iconName = 'target';
+                    badgeBg = 'bg-[#E11D48] text-white';
+                    xpGain = `+${(session.duration_minutes || 25) * 10} XP`;
+                }
 
                 return `
                     <div class="flex items-center justify-between p-2.5 bg-white border-2 border-black rounded-xl shadow-none">
@@ -315,16 +351,16 @@
                             <div>
                                 <div class="flex items-center gap-1.5">
                                     <span class="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded border border-black ${badgeBg}">
-                                        ${session.phase}
+                                        ${isCustom ? 'SPECIAL OPS' : session.phase}
                                     </span>
                                     <span class="text-xs font-bold text-zinc-800 font-comic tracking-wide">
-                                        ${session.duration_minutes || 25} MINS
+                                        ${session.duration_minutes || (isWork ? 25 : isCustom ? 25 : 5)} MINS
                                     </span>
                                 </div>
                                 <span class="text-[10px] font-mono text-zinc-500">${timeStr}</span>
                             </div>
                         </div>
-                        <span class="font-mono text-xs font-bold text-emerald-600 bg-emerald-100 border border-black px-2 py-0.5 rounded shadow-none">
+                        <span class="font-mono text-xs font-bold ${isCustom ? 'text-purple-700 bg-purple-100' : 'text-emerald-600 bg-emerald-100'} border border-black px-2 py-0.5 rounded shadow-none">
                             ${xpGain}
                         </span>
                     </div>

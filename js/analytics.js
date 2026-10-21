@@ -46,18 +46,23 @@
                     const sessionTime = new Date(dayDate);
                     sessionTime.setHours(hour, minute, 0, 0);
 
+                    // Add occasional realistic custom standalone sessions with varying durations
+                    const isCustom = (dayOffset % 5 === 1 && s === 0) || (dayOffset === 1 && s === 1);
+                    const customDur = (s === 1) ? 40 : 15;
+
                     logs.push({
                         id: `log-${dayOffset}-${s}-w`,
-                        phase: 'WORK',
-                        duration_minutes: 25,
+                        phase: isCustom ? 'SPECIAL' : 'WORK',
+                        duration_minutes: isCustom ? customDur : 25,
                         completed_at: sessionTime.toISOString()
                     });
 
-                    const breakTime = new Date(sessionTime.getTime() + 25 * 60 * 1000);
+                    const breakDuration = (s === 3) ? 15 : 5;
+                    const breakTime = new Date(sessionTime.getTime() + (isCustom ? customDur : 25) * 60 * 1000);
                     logs.push({
                         id: `log-${dayOffset}-${s}-b`,
                         phase: (s === 3) ? 'LONG_BREAK' : 'SHORT_BREAK',
-                        duration_minutes: (s === 3) ? 15 : 5,
+                        duration_minutes: breakDuration,
                         completed_at: breakTime.toISOString()
                     });
                 }
@@ -88,7 +93,7 @@
             }
 
             tacticalArchiveData.allLogs = allLogs;
-            tacticalArchiveData.workLogs = allLogs.filter(l => l.phase === 'WORK');
+            tacticalArchiveData.workLogs = allLogs.filter(l => l.phase === 'WORK' || (typeof isCustomPhase === 'function' && isCustomPhase(l.phase)));
 
             renderTacticalKPIs(tacticalArchiveData.allLogs, tacticalArchiveData.workLogs);
             renderHeatmap(tacticalArchiveData.workLogs);
@@ -100,7 +105,7 @@
         }
 
         function renderTacticalKPIs(allLogs, workLogs) {
-            // 1. Total Combat Output
+            // 1. Total Combat Output (Combined standard work and custom sessions)
             const totalWorkMinutes = workLogs.reduce((acc, l) => acc + (l.duration_minutes || 25), 0);
             const totalHours = (totalWorkMinutes / 60).toFixed(1);
             const elHours = document.getElementById('stat-alltime-hours');
@@ -108,9 +113,10 @@
             if (elHours) elHours.innerText = totalHours;
             if (elSessions) elSessions.innerText = `${workLogs.length} OPS`;
 
-            // 2. Protocols Mastered
-            const protocolsMastered = Math.floor(workLogs.length / 4);
-            const waveProgress = workLogs.length % 4;
+            // 2. Protocols Mastered (4/4 cycles strictly tied to standard regular Pomodoros)
+            const standardWorkLogs = workLogs.filter(l => l.phase === 'WORK');
+            const protocolsMastered = Math.floor(standardWorkLogs.length / 4);
+            const waveProgress = standardWorkLogs.length % 4;
             const elProtocols = document.getElementById('stat-protocols-mastered');
             const elGauge = document.getElementById('stat-protocols-gauge');
             if (elProtocols) elProtocols.innerText = protocolsMastered;
@@ -772,9 +778,11 @@
             const filter = tacticalArchiveData.currentFilter || 'ALL';
             let filtered = tacticalArchiveData.allLogs || [];
             if (filter === 'WORK') {
-                filtered = filtered.filter(l => l.phase === 'WORK');
+                filtered = filtered.filter(l => l.phase === 'WORK' || (typeof isCustomPhase === 'function' && isCustomPhase(l.phase)));
+            } else if (filter === 'SPECIAL' || filter === 'CUSTOM') {
+                filtered = filtered.filter(l => typeof isCustomPhase === 'function' && isCustomPhase(l.phase));
             } else if (filter === 'BREAK') {
-                filtered = filtered.filter(l => l.phase !== 'WORK');
+                filtered = filtered.filter(l => l.phase !== 'WORK' && !(typeof isCustomPhase === 'function' && isCustomPhase(l.phase)));
             }
 
             const pageSize = tacticalArchiveData.pageSize || 10;
@@ -808,6 +816,7 @@
             }
 
             tbody.innerHTML = pageItems.map(item => {
+                const isCustom = typeof isCustomPhase === 'function' && isCustomPhase(item.phase);
                 const isWork = item.phase === 'WORK';
                 const isLongBreak = item.phase === 'LONG_BREAK';
                 const dateObj = item.completed_at ? new Date(item.completed_at) : new Date();
@@ -817,7 +826,11 @@
                 let badgeHtml = '';
                 let statusHtml = '';
                 let xpHtml = '';
-                if (isWork) {
+                if (isCustom) {
+                    badgeHtml = `<span class="bg-[#7C3AED] text-white font-mono font-bold text-xs px-2 py-0.5 rounded border border-black inline-flex items-center gap-1 shadow-none"><i data-lucide="zap" class="w-3 h-3 text-[#FACC15]"></i> SPECIAL OPS</span>`;
+                    statusHtml = `<span class="text-purple-700 font-mono font-bold text-xs inline-flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> CONQUERED</span>`;
+                    xpHtml = `<span class="text-amber-600 font-mono font-black text-xs">+${(item.duration_minutes || 25) * 10} XP</span>`;
+                } else if (isWork) {
                     badgeHtml = `<span class="bg-[#E11D48] text-white font-mono font-bold text-xs px-2 py-0.5 rounded border border-black inline-flex items-center gap-1 shadow-none"><i data-lucide="swords" class="w-3 h-3"></i> COMBAT</span>`;
                     statusHtml = `<span class="text-emerald-700 font-mono font-bold text-xs inline-flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> CONQUERED</span>`;
                     xpHtml = `<span class="text-amber-600 font-mono font-black text-xs">+${(item.duration_minutes || 25) * 10} XP</span>`;
@@ -840,7 +853,7 @@
                             ${badgeHtml}
                         </td>
                         <td class="py-2.5 px-3.5 border-r border-black/10 font-bold text-black whitespace-nowrap">
-                            ${item.duration_minutes || (isWork ? 25 : 5)} MINS
+                            ${item.duration_minutes || (isWork || isCustom ? 25 : 5)} MINS
                         </td>
                         <td class="py-2.5 px-3.5 border-r border-black/10 whitespace-nowrap">
                             ${statusHtml}

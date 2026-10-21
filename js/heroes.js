@@ -739,7 +739,7 @@
             const speech = document.getElementById('hero-speech');
             const statusTag = document.getElementById('hero-status-tag');
 
-            let mode = !isRunning ? 'PAUSED' : (phase === 'WORK' ? 'WORK' : 'BREAK');
+            let mode = !isRunning ? 'PAUSED' : ((phase === 'WORK' || (typeof isCustomPhase === 'function' && isCustomPhase(phase))) ? 'WORK' : 'BREAK');
 
             if (mode === 'WORK') {
                 statusTag.innerText = "COMBAT LOCK";

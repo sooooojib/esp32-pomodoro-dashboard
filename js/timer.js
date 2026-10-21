@@ -72,7 +72,9 @@
             const prevPhase = currentPhase;
 
             localSeconds = Number.isInteger(data.remaining_seconds) ? data.remaining_seconds : 1500;
-            totalSeconds = data.total_phase_seconds || 1500;
+            totalSeconds = (Number.isInteger(data.total_phase_seconds) && data.total_phase_seconds > 0)
+                ? data.total_phase_seconds
+                : ((typeof isCustomPhase === 'function' && isCustomPhase(data.phase)) && Number.isInteger(data.remaining_seconds) && data.remaining_seconds > 0 ? data.remaining_seconds : 1500);
             currentPhase = data.phase || 'WORK';
             isRunning = !!data.is_running;
             pomodoroCount = data.pomodoro_count || 0;
@@ -98,7 +100,20 @@
 
             timerDisplay.innerText = formatTime(localSeconds);
 
-            if (currentPhase === "WORK") {
+            const isCustom = typeof isCustomPhase === 'function' && isCustomPhase(currentPhase);
+
+            if (isCustom) {
+                if (phaseTitle) phaseTitle.innerText = "SPECIAL OPS PROTOCOL";
+                if (phaseIconBox) {
+                    phaseIconBox.className = "w-[36px] h-[36px] min-w-[36px] min-h-[36px] rounded-lg bg-[#7C3AED] text-white border-2 border-black flex items-center justify-center shadow-none";
+                    phaseIconBox.innerHTML = `<i data-lucide="zap" class="w-5 h-5"></i>`;
+                }
+                progressBar.className = "h-full bg-[#7C3AED] rounded-full transition-all duration-500 ease-out";
+                progressPercent.className = "text-[#7C3AED] font-mono font-bold";
+                const sprintMins = Math.round(totalSeconds / 60) || Math.round(localSeconds / 60) || 25;
+                hudModeText.innerHTML = `<span class="w-2 h-2 rounded-full bg-purple-500 animate-ping inline-block"></span> <span>CUSTOM FOCUS SPRINT (${sprintMins} MINS)</span>`;
+                hardwareInstructionText.innerText = "SPECIAL OPS IN PROGRESS! PRESS DESK BUTTON OR PAUSE ON HUD.";
+            } else if (currentPhase === "WORK") {
                 if (phaseTitle) phaseTitle.innerText = "COMBAT PROTOCOL";
                 if (phaseIconBox) {
                     phaseIconBox.className = "w-[36px] h-[36px] min-w-[36px] min-h-[36px] rounded-lg bg-[#EF4444] border-2 border-black flex items-center justify-center text-white shadow-none";
@@ -155,8 +170,9 @@
         }
 
         function updateProgress() {
-            const elapsed = Math.max(0, totalSeconds - localSeconds);
-            const pct = Math.min(100, Math.round((elapsed / totalSeconds) * 100)) || 0;
+            const safeTotal = (totalSeconds && totalSeconds > 0) ? totalSeconds : (localSeconds > 0 ? localSeconds : 1500);
+            const elapsed = Math.max(0, safeTotal - localSeconds);
+            const pct = Math.min(100, Math.round((elapsed / safeTotal) * 100)) || 0;
             progressBar.style.width = `${pct}%`;
             progressPercent.innerText = `${pct}%`;
         }
@@ -180,7 +196,12 @@
                         clearInterval(localTimerInterval);
                         AudioEngine.fanfare();
                         triggerSuperpower(currentHeroKey);
-                        showToast("MISSION COMPLETE!", "done");
+                        if (typeof isCustomPhase === 'function' && isCustomPhase(currentPhase)) {
+                            const earnedXp = Math.round((totalSeconds || 1500) / 60) * 10;
+                            showToast(`SPECIAL OPS COMPLETE: +${earnedXp} XP!`, "done");
+                        } else {
+                            showToast("MISSION COMPLETE!", "done");
+                        }
                         loadAnalytics();
                         loadTacticalStats();
                         if (typeof updateTacticalDebrief === 'function') {

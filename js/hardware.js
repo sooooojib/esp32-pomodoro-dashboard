@@ -144,6 +144,10 @@
                             await loadTacticalStats();
                         }
                         
+                        const logData = payload.new || {};
+                        const isCustom = typeof isCustomPhase === 'function' && isCustomPhase(logData.phase);
+                        const isWork = logData.phase === 'WORK';
+
                         // Automatic Audio Chime & Fanfare
                         if (typeof AudioEngine !== 'undefined') {
                             AudioEngine.fanfare();
@@ -152,12 +156,26 @@
                             }, 350);
                         }
 
-                        // Automatic Hero Superpower Animation
+                        // Automatic Hero Superpower Animation & Full-Screen Beam
+                        const activeHero = typeof currentHeroKey !== 'undefined' ? currentHeroKey : 'ironman';
+                        if (typeof triggerHeroEnergyBeam === 'function') {
+                            triggerHeroEnergyBeam(activeHero);
+                        }
                         if (typeof triggerSuperpower === 'function') {
-                            triggerSuperpower(currentHeroKey);
+                            triggerSuperpower(activeHero);
                         }
 
-                        showToast("MISSION COMPLETE: S.H.I.E.L.D. DEBRIEF UPDATED!", "done");
+                        if (isCustom) {
+                            const customMins = logData.duration_minutes || (logData.total_phase_seconds ? Math.round(logData.total_phase_seconds / 60) : 25);
+                            const xpGain = customMins * 10;
+                            showToast(`SPECIAL OPS COMPLETE: +${xpGain} XP DEPOSITED! (${customMins} MINS)`, "done");
+                        } else if (isWork) {
+                            const workMins = logData.duration_minutes || 25;
+                            const xpGain = workMins * 10;
+                            showToast(`MISSION COMPLETE: S.H.I.E.L.D. DEBRIEF UPDATED! (+${xpGain} XP)`, "done");
+                        } else {
+                            showToast("RECHARGE LOGGED TO S.H.I.E.L.D. ARCHIVE", "done");
+                        }
                     }
                 )
                 .subscribe();
