@@ -22,15 +22,10 @@
             { id: 4, name: "MISSION DELTA" }
         ];
 
-        // Utility: Check if a given ISO timestamp occurred on the current local calendar date
+        // Utility: Check if a given ISO timestamp occurred on the current calendar date in Asia/Dhaka (UTC+6)
         function isLocalToday(timestamp) {
             if (!timestamp) return false;
-            const d = new Date(timestamp);
-            if (isNaN(d.getTime())) return false;
-            const now = new Date();
-            return d.getFullYear() === now.getFullYear() &&
-                   d.getMonth() === now.getMonth() &&
-                   d.getDate() === now.getDate();
+            return typeof isDhakaToday === 'function' ? isDhakaToday(timestamp) : false;
         }
 
         // S.H.I.E.L.D. Mission status: Synchronized directly with live ESP32 pomodoro_count & database
@@ -176,7 +171,7 @@
                 }
 
                 if (allLogs && allLogs.length > 0) {
-                    // Filter logs from midnight today:
+                    // Filter logs by completed_at occurring today in Asia/Dhaka (UTC+6):
                     const logs = allLogs.filter(l => isLocalToday(l.completed_at || l.created_at || l.timestamp));
                     const todayLogs = logs.filter(l => l.phase === 'WORK' || (typeof isCustomPhase === 'function' && isCustomPhase(l.phase)));
 
@@ -189,9 +184,8 @@
                     const currentWaveProgress = totalStandardWork % 4;
                     const currentWave = fullOperations + 1;
 
-                    // Total Daily Focus Minutes includes both:
-                    const totalFocusMinutes = (totalStandardWork * 25) + 
-                      customLogs.reduce((acc, l) => acc + (l.duration_minutes || 0), 0);
+                    // 1. Sum Actual duration_minutes directly from each row rather than multiplying by fixed numbers
+                    const totalFocusMinutes = todayLogs.reduce((acc, l) => acc + (Number(l.duration_minutes) || 0), 0);
 
                     const totalSingleSessions = todayLogs.length;
 
@@ -245,7 +239,7 @@
 
                 logs.forEach(session => {
                     const isFocus = session.phase === 'WORK' || (typeof isCustomPhase === 'function' && isCustomPhase(session.phase));
-                    const dur = Number(session.duration_minutes) || (isFocus ? 25 : 5);
+                    const dur = Number(session.duration_minutes) || (isFocus ? 25 : (session.phase === 'LONG_BREAK' ? 15 : 5));
                     const ts = session.completed_at || session.created_at || session.timestamp;
                     const isToday = isLocalToday(ts);
 
@@ -327,19 +321,32 @@
             list.innerHTML = logs.map(session => {
                 const isCustom = typeof isCustomPhase === 'function' && isCustomPhase(session.phase);
                 const isWork = session.phase === 'WORK';
-                const timeStr = session.completed_at ? new Date(session.completed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent';
+                const isLong = session.phase === 'LONG_BREAK';
+                const timeStr = session.completed_at
+                    ? new Date(session.completed_at).toLocaleTimeString('en-US', { timeZone: 'Asia/Dhaka', hour: '2-digit', minute: '2-digit' })
+                    : 'Recent';
+                const dur = Number(session.duration_minutes) || (isWork || isCustom ? 25 : (isLong ? 15 : 5));
+
                 let iconName = 'coffee';
                 let badgeBg = 'bg-[#06B6D4] text-black';
-                let xpGain = '+25 XP';
+                let xpGain = `+${dur * 5} XP`;
+                let phaseLabel = session.phase === 'SHORT_BREAK' ? 'BREAK' : session.phase;
 
                 if (isCustom) {
                     iconName = 'zap';
                     badgeBg = 'bg-[#7C3AED] text-white';
-                    xpGain = `+${(session.duration_minutes || 25) * 10} XP`;
+                    xpGain = `+${dur * 10} XP`;
+                    phaseLabel = 'SPECIAL OPS';
                 } else if (isWork) {
-                    iconName = 'target';
+                    iconName = 'swords';
                     badgeBg = 'bg-[#E11D48] text-white';
-                    xpGain = `+${(session.duration_minutes || 25) * 10} XP`;
+                    xpGain = `+${dur * 10} XP`;
+                    phaseLabel = 'COMBAT';
+                } else if (isLong) {
+                    iconName = 'award';
+                    badgeBg = 'bg-[#FACC15] text-black';
+                    xpGain = `+${dur * 5} XP`;
+                    phaseLabel = 'LONG BREAK';
                 }
 
                 return `
@@ -351,16 +358,16 @@
                             <div>
                                 <div class="flex items-center gap-1.5">
                                     <span class="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded border border-black ${badgeBg}">
-                                        ${isCustom ? 'SPECIAL OPS' : session.phase}
+                                        ${phaseLabel}
                                     </span>
                                     <span class="text-xs font-bold text-zinc-800 font-comic tracking-wide">
-                                        ${session.duration_minutes || (isWork ? 25 : isCustom ? 25 : 5)} MINS
+                                        ${dur} MINS
                                     </span>
                                 </div>
                                 <span class="text-[10px] font-mono text-zinc-500">${timeStr}</span>
                             </div>
                         </div>
-                        <span class="font-mono text-xs font-bold ${isCustom ? 'text-purple-700 bg-purple-100' : 'text-emerald-600 bg-emerald-100'} border border-black px-2 py-0.5 rounded shadow-none">
+                        <span class="font-mono text-xs font-bold ${isCustom ? 'text-purple-700 bg-purple-100' : isWork ? 'text-emerald-700 bg-emerald-100' : 'text-cyan-700 bg-cyan-100'} border border-black px-2 py-0.5 rounded shadow-none">
                             ${xpGain}
                         </span>
                     </div>

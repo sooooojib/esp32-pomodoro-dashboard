@@ -1,54 +1,129 @@
 #include <Wire.h>
-#include <LiquidCrystal_I2C.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <WiFiClientSecure.h>
 #include <Preferences.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SH110X.h>
+#include <time.h>
+#include <esp_wifi.h>
+#include <esp_arduino_version.h>
 
 // ================= USER CONFIGURATION =================
 const char* WIFI_SSID     = "sojib";
-const char* WIFI_PASS     = "Sajib 3296";
+const char* WIFI_PASS     = "Sajib3296";
 const char* SUPABASE_URL  = "https://ykncypzibxorhaatyqah.supabase.co";
 const char* SUPABASE_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlrbmN5cHppYnhvcmhhYXR5cWFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxOTE4MDgsImV4cCI6MjEwNzc2NzgwOH0.cVWlzZOw5et55NiYcp3n1g6ophDvmp-GgCHyo9Vf5sI";
+
+// Volume Duty Cycles (8-bit PWM: 128 = 100% max volume)
+#define BUZZER_CLICK_DUTY         24      // ~30% loudness for button clicks & prompts
+#define BUZZER_ALARM_DUTY         64      // ~40% louder for the continuous finish alarm
+
+// Timeouts (in milliseconds)
+#define RESET_PROMPT_TIMEOUT_MS   6000UL  // Auto-cancel reset prompt after 6 seconds
+#define ALARM_SILENCE_TIMEOUT_MS  90000UL // Auto-silence finish buzzer after 90 seconds
+
+// Bangladesh Standard Time (BST = UTC+6, POSIX string "BST-6")
+const char* TZ_INFO       = "BST-6";
+const char* NTP_SERVER_1  = "bd.pool.ntp.org";
+const char* NTP_SERVER_2  = "time.google.com";
+const char* NTP_SERVER_3  = "pool.ntp.org";
+
+// ---------- Power / heat tuning ----------
+#define CPU_MHZ                 80
+#define WIFI_TX_POWER           WIFI_POWER_17dBm
+#define LOOP_DELAY_MS           20
+#define CLOUD_HEARTBEAT_SECS    60
+#define CONTRAST_NORMAL         120
+#define DEBUG_SERIAL            0
 // ======================================================
 
-// --- Camera & PSRAM Safe Pin Definitions ---
-#define I2C_SDA_PIN      47  // LCD SDA (Left Header - Pin 5 from top)
-#define I2C_SCL_PIN      38  // LCD SCL (Left Header - Pin 12 from top)
-#define BUTTON_PIN       21  // Main Button (Left Header - Pin 4 from top)
-#define RESET_BUTTON_PIN 14  // Reset Work / Cancel Break (Right Header - Pin 2 from top)
-#define BUZZER_PIN       39  // Buzzer (Left Header - Pin 13 from top)
-#define WORK_LED_PIN     41  // Work Phase Red LED (Left Header - Pin 15 from top)
-#define BREAK_LED_PIN    42  // Break Phase Green LED (Left Header - Pin 16 from top)
+#if DEBUG_SERIAL
+  #define LOGF(...) Serial.printf(__VA_ARGS__)
+#else
+  #define LOGF(...) do {} while (0)
+#endif
 
-LiquidCrystal_I2C* lcd = nullptr;
+// --- Pin Definitions (30-Pin ESP32-WROOM-32) ---
+#define OLED_SDA_PIN     21
+#define OLED_SCL_PIN     22
+#define START_BTN_PIN    18
+#define RESET_BTN_PIN    19
+#define MODE_BTN_PIN     23
+#define BUZZER_PIN       27
+#define WORK_LED_PIN     4
+#define BREAK_LED_PIN    5
+
+Adafruit_SH1106G display = Adafruit_SH1106G(128, 64, &Wire, -1);
 Preferences prefs;
 
+// --- System Operational Modes ---
+enum DisplayMode { MODE_POMODORO, MODE_CLOCK, MODE_SPECIAL };
+DisplayMode currentDisplayMode = MODE_CLOCK;
+
 // --- Pomodoro Durations (in seconds) ---
-const uint32_t DURATION_WORK        = 25 * 60; // 25 minutes
-const uint32_t DURATION_SHORT_BREAK = 5 * 60;  // 5 minutes
-const uint32_t DURATION_LONG_BREAK  = 15 * 60; // 15 minutes
+const uint32_t DURATION_WORK        = 25 * 60;
+const uint32_t DURATION_SHORT_BREAK = 5 * 60;
+const uint32_t DURATION_LONG_BREAK  = 15 * 60;
 
 enum PomodoroState { STATE_WORK = 0, STATE_SHORT_BREAK = 1, STATE_LONG_BREAK = 2 };
 PomodoroState currentState = STATE_WORK;
 
+// --- Normal Pomodoro State Variables ---
 bool isRunning = false;
 bool isAlarming = false;
+bool isAlarmSilenced = false;
 bool isConfirmingReset = false;
 uint32_t remainingSeconds = DURATION_WORK;
 uint32_t totalPhaseSeconds = DURATION_WORK;
 uint8_t pomodoroCount = 0;
 
-// --- Timing & Debounce Variables ---
-uint32_t lastTick = 0;
-int lastBtnReading = HIGH;
-int btnState = HIGH;
-uint32_t lastBtnDebounceTime = 0;
+// --- Special Session (5-60m in 5m steps) State Variables ---
+bool activeTimerIsSpecial = false;
+bool isSpecialSetting     = false;
+uint8_t specialMinutes    = 25;
+uint32_t specialRemainingSeconds = 25 * 60;
+uint32_t specialTotalSeconds     = 25 * 60;
+bool specialDialDirty     = false;
+uint32_t lastDialChange   = 0;
 
-int lastResetReading = HIGH;
-int resetBtnState = HIGH;
-uint32_t lastResetDebounceTime = 0;
+// --- Timing & Auto-Timeout Trackers ---
+uint32_t lastTick = 0;
+uint32_t resetPromptStartMillis = 0;
+uint32_t alarmStartMillis = 0;
+int lastDrawnSecond = -1;
+uint32_t lastClockSyncRetry = 0;
+
+// --- Non-Blocking Buzzer Sequencer ---
+struct ToneStep {
+  uint16_t freq;
+  uint8_t  duty;
+  uint16_t durationMs;
+};
+
+const uint8_t MAX_TONE_STEPS = 4;
+ToneStep toneSeq[MAX_TONE_STEPS];
+uint8_t toneStepCount = 0;
+uint8_t toneStepIndex = 0;
+uint32_t toneStepStart = 0;
+bool toneSeqActive = false;
+
+// --- Unified Button Debouncer ---
+enum { BTN_START = 0, BTN_RESET = 1, BTN_MODE = 2 };
 const uint32_t debounceDelay = 50;
+
+struct Button {
+  uint8_t  pin;
+  int      lastReading;
+  int      state;
+  uint32_t lastChange;
+};
+
+Button buttons[3] = {
+  { START_BTN_PIN, HIGH, HIGH, 0 },
+  { RESET_BTN_PIN, HIGH, HIGH, 0 },
+  { MODE_BTN_PIN,  HIGH, HIGH, 0 }
+};
 
 // --- Background Sync Queue & Structures ---
 enum SyncAction { ACTION_UPDATE_STATE, ACTION_LOG_SESSION };
@@ -61,17 +136,35 @@ struct SyncMessage {
   uint32_t total;
   uint8_t count;
   uint32_t durationMins;
+  char completedAt[24]; // ISO-8601 UTC timestamp ("YYYY-MM-DDTHH:MM:SSZ")
 };
 
-QueueHandle_t syncQueue;
+QueueHandle_t syncQueue = nullptr;
+
+static WiFiClientSecure secureClient;
+static HTTPClient httpClient;
 
 // --- Function Prototypes ---
+void initBuzzerPWM();
+void setBuzzerTone(unsigned int freq, uint8_t duty = BUZZER_CLICK_DUTY);
+void stopBuzzer();
+void startToneSequence(const ToneStep* steps, uint8_t count);
+void updateBuzzerSequencer();
 void saveCheckpoint();
 void loadCheckpoint();
-void updateDisplay();
+void drawCentered(const char* text, int y, uint8_t size = 1);
+void safeDisplayFlush();
+void renderBootScreen(const char* line1, const char* line2);
+void updateOledDisplay();
+void renderClockDisplay();
+void renderSpecialDisplay();
+void drawProgressLine(int xStart, int y, int maxWidth, float progress);
+bool wasPressed(uint8_t idx);
 void handleMainButton();
 void handleResetButton();
+void handleModeButton();
 void handleAlarmBuzzer();
+void handleTimeouts();
 void advanceState();
 void executeReset();
 void skipBreakToWork();
@@ -82,6 +175,8 @@ void playResetConfirmedBeep();
 void queueStateSync();
 void queueSessionLog(const char* phaseName, uint32_t mins);
 void supabaseBackgroundWorker(void* parameter);
+bool getClock(struct tm* out);
+void getUtcIsoTimestamp(char* buf, size_t len);
 
 const char* getPhaseName(PomodoroState state) {
   switch (state) {
@@ -101,14 +196,125 @@ uint32_t getDurationForState(PomodoroState state) {
   }
 }
 
+bool getClock(struct tm* out) {
+  time_t now = time(nullptr);
+  if (now < 1700000000L) return false;
+  localtime_r(&now, out);
+  return true;
+}
+
+void getUtcIsoTimestamp(char* buf, size_t len) {
+  time_t now = time(nullptr);
+  if (now < 1700000000L) {
+    buf[0] = '\0'; // NTP not synced yet; let Supabase default to now()
+    return;
+  }
+  struct tm utcTm;
+  gmtime_r(&now, &utcTm);
+  strftime(buf, len, "%Y-%m-%dT%H:%M:%SZ", &utcTm);
+}
+
+// --- Dual-Level PWM Tone Engine & Non-Blocking Sequencer ---
+void initBuzzerPWM() {
+#if defined(ESP_ARDUINO_VERSION_MAJOR) && ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+  ledcAttach(BUZZER_PIN, 2000, 8);
+  ledcWrite(BUZZER_PIN, 0);
+#else
+  ledcSetup(0, 2000, 8);
+  ledcAttachPin(BUZZER_PIN, 0);
+  ledcWrite(0, 0);
+#endif
+}
+
+void setBuzzerTone(unsigned int freq, uint8_t duty) {
+  if (freq == 0) {
+    stopBuzzer();
+    return;
+  }
+#if defined(ESP_ARDUINO_VERSION_MAJOR) && ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+  ledcChangeFrequency(BUZZER_PIN, freq, 8);
+  ledcWrite(BUZZER_PIN, duty);
+#else
+  ledcWriteTone(0, freq);
+  ledcWrite(0, duty);
+#endif
+}
+
+void stopBuzzer() {
+#if defined(ESP_ARDUINO_VERSION_MAJOR) && ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+  ledcWrite(BUZZER_PIN, 0);
+#else
+  ledcWrite(0, 0);
+#endif
+}
+
+void startToneSequence(const ToneStep* steps, uint8_t count) {
+  if (count == 0 || count > MAX_TONE_STEPS) return;
+  for (uint8_t i = 0; i < count; i++) {
+    toneSeq[i] = steps[i];
+  }
+  toneStepCount = count;
+  toneStepIndex = 0;
+  toneStepStart = millis();
+  toneSeqActive = true;
+
+  if (toneSeq[0].freq > 0) {
+    setBuzzerTone(toneSeq[0].freq, toneSeq[0].duty);
+  } else {
+    stopBuzzer();
+  }
+}
+
+void updateBuzzerSequencer() {
+  if (!toneSeqActive) return;
+
+  if (millis() - toneStepStart >= toneSeq[toneStepIndex].durationMs) {
+    toneStepIndex++;
+    if (toneStepIndex >= toneStepCount) {
+      stopBuzzer();
+      toneSeqActive = false;
+    } else {
+      toneStepStart = millis();
+      if (toneSeq[toneStepIndex].freq > 0) {
+        setBuzzerTone(toneSeq[toneStepIndex].freq, toneSeq[toneStepIndex].duty);
+      } else {
+        stopBuzzer();
+      }
+    }
+  }
+}
+
+void playButtonClickBeep() {
+  static const ToneStep seq[] = {
+    { 2400, BUZZER_CLICK_DUTY, 45 }
+  };
+  startToneSequence(seq, 1);
+}
+
+void playResetPromptBeepBeep() {
+  static const ToneStep seq[] = {
+    { 2000, BUZZER_CLICK_DUTY, 70 },
+    { 0,    0,                 70 },
+    { 2000, BUZZER_CLICK_DUTY, 70 }
+  };
+  startToneSequence(seq, 3);
+}
+
+void playResetConfirmedBeep() {
+  static const ToneStep seq[] = {
+    { 2000, BUZZER_CLICK_DUTY, 65 },
+    { 1200, BUZZER_CLICK_DUTY, 95 }
+  };
+  startToneSequence(seq, 2);
+}
+
 void saveCheckpoint() {
   prefs.putUChar("state", (uint8_t)currentState);
   prefs.putUChar("count", pomodoroCount);
   prefs.putUInt("rem", remainingSeconds);
-  Serial.printf("[NVS] Checkpoint saved -> Phase: %s [%d/4], Remaining: %u sec\n",
-                getPhaseName(currentState),
-                (pomodoroCount >= 4) ? 4 : (pomodoroCount + 1),
-                remainingSeconds);
+  prefs.putUChar("spec_min", specialMinutes);
+  prefs.putUInt("spec_rem", specialRemainingSeconds);
+  prefs.putBool("in_spec", activeTimerIsSpecial && !isSpecialSetting);
 }
 
 void loadCheckpoint() {
@@ -130,95 +336,126 @@ void loadCheckpoint() {
     remainingSeconds = totalPhaseSeconds;
   }
 
+  specialMinutes = prefs.getUChar("spec_min", 25);
+  if (specialMinutes < 5 || specialMinutes > 60 || (specialMinutes % 5 != 0)) {
+    specialMinutes = 25;
+  }
+  specialTotalSeconds = (uint32_t)specialMinutes * 60;
+
+  specialRemainingSeconds = prefs.getUInt("spec_rem", specialTotalSeconds);
+  if (specialRemainingSeconds > specialTotalSeconds || specialRemainingSeconds == 0) {
+    specialRemainingSeconds = specialTotalSeconds;
+  }
+
+  bool wasInSpecial = prefs.getBool("in_spec", false);
+  activeTimerIsSpecial = wasInSpecial;
+  isSpecialSetting = false;
+
+  currentDisplayMode = MODE_CLOCK;
   isAlarming = false;
+  isAlarmSilenced = false;
   isConfirmingReset = false;
   isRunning = false;
+}
 
-  Serial.printf("[NVS] Restored -> Phase: %s [%d/4], Remaining: %u sec\n",
-                getPhaseName(currentState),
-                (pomodoroCount >= 4) ? 4 : (pomodoroCount + 1),
-                remainingSeconds);
+// Centers text horizontally within the visible 124px glass area (center = 63)
+void drawCentered(const char* text, int y, uint8_t size) {
+  int len = strlen(text);
+  int pxWidth = (len * 6 * size) - size;
+  int x = (126 - pxWidth) / 2;
+  if (x < 2) x = 2;
+  display.setTextSize(size);
+  display.setCursor(x, y);
+  display.print(text);
+}
+
+// Prevents SH1106 vertical/horizontal hardware shift from Wi-Fi/breadboard noise
+void safeDisplayFlush() {
+  display.oled_command(0x40); // Lock display start line to 0
+  display.oled_command(0xD3); // Set display vertical offset
+  display.oled_command(0x00); // Offset = 0
+  display.display();
+}
+
+// Fixed-position boot screen so header & line never jump during startup
+void renderBootScreen(const char* line1, const char* line2) {
+  display.clearDisplay();
+  drawCentered("FOCUS HUD", 10, 1);
+  display.drawFastHLine(14, 22, 98, SH110X_WHITE);
+  drawCentered(line1, 30, 1);
+  if (line2 && strlen(line2) > 0) {
+    drawCentered(line2, 43, 1);
+  }
+  safeDisplayFlush();
 }
 
 void setup() {
+  setCpuFrequencyMhz(CPU_MHZ);
+#if DEBUG_SERIAL
   Serial.begin(115200);
-  delay(300);
+  delay(200);
+#endif
 
-  // 160 MHz balances cool operation with fast SSL/TLS handshakes
-  setCpuFrequencyMhz(160);
-  WiFi.setSleep(true);
-
-  // Initialize pins and force outputs LOW before tone() attaches LEDC
-  pinMode(BUZZER_PIN, OUTPUT);
-  digitalWrite(BUZZER_PIN, LOW);
+  initBuzzerPWM();
 
   pinMode(WORK_LED_PIN, OUTPUT);
   digitalWrite(WORK_LED_PIN, LOW);
-
   pinMode(BREAK_LED_PIN, OUTPUT);
   digitalWrite(BREAK_LED_PIN, LOW);
 
-  pinMode(BUTTON_PIN, INPUT_PULLUP);
-  pinMode(RESET_BUTTON_PIN, INPUT_PULLUP);
+  pinMode(START_BTN_PIN, INPUT_PULLUP);
+  pinMode(RESET_BTN_PIN, INPUT_PULLUP);
+  pinMode(MODE_BTN_PIN, INPUT_PULLUP);
 
-  // Turn off built-in RGB LED on GPIO 48
-  pinMode(48, OUTPUT);
-  digitalWrite(48, LOW);
-
-  // Restore NVS state
   prefs.begin("pomodoro", false);
   loadCheckpoint();
 
-  // Initialize I2C at standard 100kHz with 50ms timeout
-  Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN, 100000);
+  Wire.begin(OLED_SDA_PIN, OLED_SCL_PIN);
+  Wire.setClock(100000);
   Wire.setTimeOut(50);
+  delay(50);
 
-  byte lcdAddress = 0x27;
-  for (byte i = 1; i < 127; i++) {
-    Wire.beginTransmission(i);
-    if (Wire.endTransmission() == 0) {
-      lcdAddress = i;
-      break;
+  if (!display.begin(0x3C, true)) {
+    LOGF("[ERROR] SH1106 OLED not found at 0x3C!\n");
+    for (int i = 0; i < 3; i++) {
+      digitalWrite(WORK_LED_PIN, HIGH);
+      delay(100);
+      digitalWrite(WORK_LED_PIN, LOW);
+      digitalWrite(BREAK_LED_PIN, HIGH);
+      delay(100);
+      digitalWrite(BREAK_LED_PIN, LOW);
     }
   }
 
-  lcd = new LiquidCrystal_I2C(lcdAddress, 16, 2);
-  lcd->init();
-  lcd->backlight();
-  lcd->clear();
+  display.setRotation(2);
+  display.setContrast(CONTRAST_NORMAL);
+  display.setTextColor(SH110X_WHITE);
 
-  // Wi-Fi Connection Screen
-  lcd->setCursor(0, 0);
-  lcd->print("WiFi Connecting");
-  lcd->setCursor(0, 1);
-  lcd->print(WIFI_SSID);
+  // Boot Step 1: Show Wi-Fi Connecting Screen (capped at 5s max wait)
+  renderBootScreen("CONNECTING WIFI", WIFI_SSID);
 
+  WiFi.persistent(false);
   WiFi.mode(WIFI_STA);
+  WiFi.setAutoReconnect(true);
   WiFi.begin(WIFI_SSID, WIFI_PASS);
-  Serial.printf("\n[WIFI] Connecting to %s...\n", WIFI_SSID);
+  WiFi.setTxPower(WIFI_TX_POWER);
+  esp_wifi_set_ps(WIFI_PS_MIN_MODEM);
+  configTzTime(TZ_INFO, NTP_SERVER_1, NTP_SERVER_2, NTP_SERVER_3);
 
   int attempts = 0;
-  while (WiFi.status() != WL_CONNECTED && attempts < 25) {
+  while (WiFi.status() != WL_CONNECTED && attempts < 10) {
     delay(500);
-    Serial.print(".");
     attempts++;
   }
 
-  lcd->clear();
+  // Boot Step 2: Show Wi-Fi Confirmation Screen
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.printf("\n[WIFI] Connected! IP: %s\n", WiFi.localIP().toString().c_str());
-    lcd->setCursor(0, 0);
-    lcd->print("WiFi Connected!");
-    lcd->setCursor(0, 1);
-    lcd->print(WiFi.localIP().toString());
+    String ipStr = WiFi.localIP().toString();
+    renderBootScreen("WIFI CONNECTED", ipStr.c_str());
   } else {
-    Serial.println("\n[WIFI] Connection FAILED. Operating offline with NVS.");
-    lcd->setCursor(0, 0);
-    lcd->print("Offline Mode");
-    lcd->setCursor(0, 1);
-    lcd->print("NVS Active");
+    renderBootScreen("WIFI SYNCING...", "NVS ACTIVE");
   }
-  delay(1500);
+  delay(1000);
 
   syncQueue = xQueueCreate(15, sizeof(SyncMessage));
 
@@ -233,171 +470,346 @@ void setup() {
   );
 
   queueStateSync();
-
-  lcd->clear();
   updateOutputs();
-  updateDisplay();
-  Serial.println("[READY] ESP32-S3 Final Pomodoro System Online.");
+
+  // Boot Step 3: Land directly on the 12-Hour BD Time Clock
+  currentDisplayMode = MODE_CLOCK;
+  lastDrawnSecond = -1;
+  renderClockDisplay();
 }
 
 void loop() {
+  updateBuzzerSequencer();
   handleMainButton();
   handleResetButton();
+  handleModeButton();
+  handleTimeouts();
   handleAlarmBuzzer();
 
+  // Debounced cloud sync when stepping +5M on the SPECIAL SET screen
+  if (specialDialDirty && (millis() - lastDialChange >= 800)) {
+    specialDialDirty = false;
+    queueStateSync();
+  }
+
+  // 1-Second Countdown Engine (Zero-drift catch-up loop)
   if (isRunning && !isAlarming && !isConfirmingReset) {
     uint32_t currentMillis = millis();
 
-    // Guard against tick burst if timer was ever delayed
-    if (currentMillis - lastTick > 5000) {
-      lastTick = currentMillis - 1000;
+    // Safety cap if millis() ever jumped vastly
+    if (currentMillis - lastTick > 10000UL) {
+      lastTick = currentMillis - 1000UL;
     }
 
-    if (currentMillis - lastTick >= 1000) {
-      lastTick += 1000;
+    bool displayNeedsUpdate = false;
+    while (currentMillis - lastTick >= 1000UL) {
+      lastTick += 1000UL;
 
-      if (remainingSeconds > 0) {
-        remainingSeconds--;
-        updateDisplay();
+      uint32_t &activeRem = activeTimerIsSpecial ? specialRemainingSeconds : remainingSeconds;
+      uint32_t activeTot  = activeTimerIsSpecial ? specialTotalSeconds : totalPhaseSeconds;
 
-        // Save NVS checkpoint + pulse cloud heartbeat every full minute
-        if (remainingSeconds > 0 && (remainingSeconds % 60 == 0)) {
+      if (activeRem > 0) {
+        activeRem--;
+        displayNeedsUpdate = true;
+
+        if (activeRem > 0 && (activeRem % 60 == 0)) {
           saveCheckpoint();
-          queueStateSync();
+          if (activeRem % CLOUD_HEARTBEAT_SECS == 0) {
+            queueStateSync();
+          }
         }
 
-        // Phase completed
-        if (remainingSeconds == 0) {
+        // Timer Hit 00:00
+        if (activeRem == 0) {
           isRunning = false;
           isAlarming = true;
+          isAlarmSilenced = false;
+          alarmStartMillis = millis();
+          currentDisplayMode = activeTimerIsSpecial ? MODE_SPECIAL : MODE_POMODORO;
           updateOutputs();
-          updateDisplay();
+          displayNeedsUpdate = true;
 
-          queueSessionLog(getPhaseName(currentState), totalPhaseSeconds / 60);
+          if (activeTimerIsSpecial) {
+            queueSessionLog("SPECIAL", specialMinutes);
+          } else {
+            queueSessionLog(getPhaseName(currentState), activeTot / 60);
+          }
           queueStateSync();
-          Serial.println("[ALARM] Phase complete! Session logged to Supabase.");
+          break;
         }
+      }
+    }
+
+    if (displayNeedsUpdate && (currentDisplayMode == MODE_POMODORO || currentDisplayMode == MODE_SPECIAL)) {
+      updateOledDisplay();
+    }
+  }
+
+  // Live Clock Refresh (1fps)
+  if (currentDisplayMode == MODE_CLOCK) {
+    struct tm timeinfo;
+    if (getClock(&timeinfo)) {
+      if (timeinfo.tm_sec != lastDrawnSecond) {
+        lastDrawnSecond = timeinfo.tm_sec;
+        renderClockDisplay();
+      }
+    } else {
+      if (millis() - lastClockSyncRetry > 1000) {
+        lastClockSyncRetry = millis();
+        renderClockDisplay();
       }
     }
   }
 
-  delay(10);
+  delay(LOOP_DELAY_MS);
+}
+
+// Auto-cancels reset confirmation after 6s & auto-silences alarm buzzer after 90s
+void handleTimeouts() {
+  uint32_t now = millis();
+
+  if (isConfirmingReset && (now - resetPromptStartMillis >= RESET_PROMPT_TIMEOUT_MS)) {
+    isConfirmingReset = false;
+    lastTick = now;
+    playButtonClickBeep();
+    updateOutputs();
+    updateOledDisplay();
+    queueStateSync();
+  }
+
+  if (isAlarming && !isAlarmSilenced && (now - alarmStartMillis >= ALARM_SILENCE_TIMEOUT_MS)) {
+    isAlarmSilenced = true;
+    stopBuzzer();
+  }
+}
+
+bool wasPressed(uint8_t idx) {
+  Button &b = buttons[idx];
+  int reading = digitalRead(b.pin);
+  bool pressed = false;
+
+  if (reading != b.lastReading) {
+    b.lastChange = millis();
+  }
+  if ((millis() - b.lastChange) > debounceDelay && reading != b.state) {
+    b.state = reading;
+    if (b.state == LOW) pressed = true;
+  }
+  b.lastReading = reading;
+  return pressed;
+}
+
+// Handles MODE Button (D23):
+// - When Running (RUN): Toggles strictly between Active Timer (Pomo OR Special) <-> CLOCK
+// - When Paused (HOLD):
+//     If a Special Session is paused mid-countdown, Clock -> Special -> Pomodoro -> Clock
+//     Otherwise normal cycle: Clock -> Pomodoro -> Special (SET) -> Clock
+void handleModeButton() {
+  if (!wasPressed(BTN_MODE)) return;
+  if (isAlarming || isConfirmingReset) return;
+
+  playButtonClickBeep();
+
+  // CASE 1: Timer is actively RUNNING (Lock out switching between Pomo and Special)
+  if (isRunning) {
+    if (currentDisplayMode == MODE_CLOCK) {
+      currentDisplayMode = activeTimerIsSpecial ? MODE_SPECIAL : MODE_POMODORO;
+      updateOledDisplay();
+    } else {
+      currentDisplayMode = MODE_CLOCK;
+      lastDrawnSecond = -1;
+      renderClockDisplay();
+    }
+    return;
+  }
+
+  // CASE 2: Timer is PAUSED / IDLE (HOLD)
+  bool specialPausedMidRun = (specialRemainingSeconds < specialTotalSeconds && specialRemainingSeconds > 0);
+
+  if (currentDisplayMode == MODE_CLOCK) {
+    if (specialPausedMidRun) {
+      // Resume viewing the paused Special Session directly
+      activeTimerIsSpecial = true;
+      isSpecialSetting = false;
+      currentDisplayMode = MODE_SPECIAL;
+    } else {
+      // Normal 1st Toggle from Clock -> Normal Pomodoro (HOLD)
+      specialDialDirty = false;
+      activeTimerIsSpecial = false;
+      isSpecialSetting = false;
+      currentDisplayMode = MODE_POMODORO;
+    }
+    updateOutputs();
+    updateOledDisplay();
+    queueStateSync();
+  }
+  else if (currentDisplayMode == MODE_POMODORO) {
+    if (specialPausedMidRun) {
+      currentDisplayMode = MODE_CLOCK;
+      lastDrawnSecond = -1;
+      renderClockDisplay();
+    } else {
+      // 2nd Toggle -> Special Session (SET screen)
+      activeTimerIsSpecial = true;
+      isSpecialSetting = true;
+      specialTotalSeconds = (uint32_t)specialMinutes * 60;
+      specialRemainingSeconds = specialTotalSeconds;
+      currentDisplayMode = MODE_SPECIAL;
+      updateOutputs();
+      updateOledDisplay();
+      queueStateSync();
+    }
+  }
+  else if (currentDisplayMode == MODE_SPECIAL) {
+    specialDialDirty = false;
+    if (specialPausedMidRun) {
+      // Allow switching to Pomodoro (HOLD) if user wants normal Pomodoro instead
+      activeTimerIsSpecial = false;
+      isSpecialSetting = false;
+      currentDisplayMode = MODE_POMODORO;
+      updateOutputs();
+      updateOledDisplay();
+      queueStateSync();
+    } else {
+      // 3rd Toggle -> Return to Clock
+      currentDisplayMode = MODE_CLOCK;
+      lastDrawnSecond = -1;
+      renderClockDisplay();
+    }
+  }
 }
 
 void handleMainButton() {
-  int reading = digitalRead(BUTTON_PIN);
+  if (!wasPressed(BTN_START)) return;
 
-  if (reading != lastBtnReading) {
-    lastBtnDebounceTime = millis();
+  // If viewing Clock, return to active/last timer view without toggling pause
+  if (currentDisplayMode == MODE_CLOCK) {
+    playButtonClickBeep();
+    currentDisplayMode = activeTimerIsSpecial ? MODE_SPECIAL : MODE_POMODORO;
+    updateOledDisplay();
+    return;
   }
 
-  if ((millis() - lastBtnDebounceTime) > debounceDelay) {
-    if (reading != btnState) {
-      btnState = reading;
+  // If in SPECIAL SET screen: Lock in time and START countdown!
+  if (currentDisplayMode == MODE_SPECIAL && isSpecialSetting) {
+    playButtonClickBeep();
+    specialDialDirty = false;
+    isSpecialSetting = false;
+    activeTimerIsSpecial = true;
+    specialTotalSeconds = (uint32_t)specialMinutes * 60;
+    specialRemainingSeconds = specialTotalSeconds;
+    isRunning = true;
+    lastTick = millis();
+    saveCheckpoint();
+    updateOutputs();
+    updateOledDisplay();
+    queueStateSync();
+    return;
+  }
 
-      if (btnState == LOW) {
-        // Case 1: Cancel confirmation prompt (BTN: NO) and resume previous state
-        if (isConfirmingReset) {
-          isConfirmingReset = false;
-          playButtonClickBeep();
-          lastTick = millis();
-          updateOutputs();
-          updateDisplay();
-          queueStateSync();
-          Serial.println("[PROMPT] Canceled by user.");
-        }
-        // Case 2: Dismiss phase completion alarm and advance to next phase
-        else if (isAlarming) {
-          isAlarming = false;
-          noTone(BUZZER_PIN);
-          playButtonClickBeep();
-          advanceState();
-          Serial.println("[BUTTON] Alarm dismissed. Advancing phase.");
-        }
-        // Case 3: Standard Start / Pause toggle
-        else {
-          playButtonClickBeep();
-          isRunning = !isRunning;
-          if (isRunning) {
-            lastTick = millis();
-          } else {
-            saveCheckpoint();
-          }
-          updateOutputs();
-          updateDisplay();
-          queueStateSync();
-          Serial.printf("[BUTTON] Timer: %s\n", isRunning ? "RUNNING" : "PAUSED");
-        }
-      }
+  if (isConfirmingReset) {
+    isConfirmingReset = false;
+    playButtonClickBeep();
+    lastTick = millis();
+    updateOutputs();
+    updateOledDisplay();
+    queueStateSync();
+  }
+  else if (isAlarming) {
+    isAlarming = false;
+    isAlarmSilenced = false;
+    stopBuzzer();
+    playButtonClickBeep();
+    advanceState();
+  }
+  else {
+    playButtonClickBeep();
+    isRunning = !isRunning;
+    if (isRunning) {
+      lastTick = millis();
+    } else {
+      saveCheckpoint();
     }
+    updateOutputs();
+    updateOledDisplay();
+    queueStateSync();
   }
-
-  lastBtnReading = reading;
 }
 
 void handleResetButton() {
-  int reading = digitalRead(RESET_BUTTON_PIN);
+  if (!wasPressed(BTN_RESET)) return;
 
-  if (reading != lastResetReading) {
-    lastResetDebounceTime = millis();
+  // Lock Reset button when WORK DONE / BREAK DONE / SPECIAL DONE alarm is active
+  if (isAlarming) return;
+
+  if (currentDisplayMode == MODE_CLOCK) {
+    playButtonClickBeep();
+    currentDisplayMode = activeTimerIsSpecial ? MODE_SPECIAL : MODE_POMODORO;
+    updateOledDisplay();
+    return;
   }
 
-  if ((millis() - lastResetDebounceTime) > debounceDelay) {
-    if (reading != resetBtnState) {
-      resetBtnState = reading;
+  // In SPECIAL SET screen: Step +5 Minutes per click (5 -> 10 ... 60 -> 5)
+  if (currentDisplayMode == MODE_SPECIAL && isSpecialSetting) {
+    playButtonClickBeep();
+    specialMinutes += 5;
+    if (specialMinutes > 60) {
+      specialMinutes = 5;
+    }
+    specialTotalSeconds = (uint32_t)specialMinutes * 60;
+    specialRemainingSeconds = specialTotalSeconds;
+    specialDialDirty = true;
+    lastDialChange = millis();
+    updateOledDisplay();
+    return;
+  }
 
-      if (resetBtnState == LOW) {
-        if (!isConfirmingReset) {
-          // 1st Press: Enter prompt and immediately pause cloud state
-          isConfirmingReset = true;
-          noTone(BUZZER_PIN);
-          playResetPromptBeepBeep();
-          updateDisplay();
-          queueStateSync(); // Immediately tells website the timer is paused
-
-          if (currentState == STATE_SHORT_BREAK || currentState == STATE_LONG_BREAK) {
-            Serial.println("[PROMPT] Cancel Break? (RST=Yes, BTN=No)");
-          } else {
-            Serial.println("[PROMPT] Confirm Reset? (RST=Yes, BTN=No)");
-          }
-        } else {
-          // 2nd Press: Confirmed (RST: YES)
-          if (currentState == STATE_SHORT_BREAK || currentState == STATE_LONG_BREAK) {
-            skipBreakToWork();
-          } else {
-            executeReset();
-          }
-        }
-      }
+  if (!isConfirmingReset) {
+    isConfirmingReset = true;
+    resetPromptStartMillis = millis();
+    stopBuzzer();
+    playResetPromptBeepBeep();
+    updateOledDisplay();
+    queueStateSync();
+  } else {
+    if (!activeTimerIsSpecial && (currentState == STATE_SHORT_BREAK || currentState == STATE_LONG_BREAK)) {
+      skipBreakToWork();
+    } else {
+      executeReset();
     }
   }
-
-  lastResetReading = reading;
 }
 
 void executeReset() {
   isConfirmingReset = false;
   isAlarming = false;
-  noTone(BUZZER_PIN);
+  isAlarmSilenced = false;
+  stopBuzzer();
   playResetConfirmedBeep();
 
-  remainingSeconds = totalPhaseSeconds;
-  isRunning = false;
+  if (activeTimerIsSpecial) {
+    isRunning = false;
+    isSpecialSetting = true;
+    specialTotalSeconds = (uint32_t)specialMinutes * 60;
+    specialRemainingSeconds = specialTotalSeconds;
+  } else {
+    remainingSeconds = totalPhaseSeconds;
+    isRunning = false;
+  }
 
   saveCheckpoint();
   updateOutputs();
-  updateDisplay();
+  updateOledDisplay();
   queueStateSync();
-  Serial.println("[RESET] Confirmed! Work module restarted at 25:00 HOLD.");
 }
 
 void skipBreakToWork() {
   isConfirmingReset = false;
   isAlarming = false;
-  noTone(BUZZER_PIN);
+  isAlarmSilenced = false;
+  stopBuzzer();
   playResetConfirmedBeep();
 
-  // If skipping Long Break after 4/4, wrap cycle back to 0 (Work 1/4)
   if (currentState == STATE_LONG_BREAK || pomodoroCount >= 4) {
     pomodoroCount = 0;
   }
@@ -410,46 +822,60 @@ void skipBreakToWork() {
 
   saveCheckpoint();
   updateOutputs();
-  updateDisplay();
+  updateOledDisplay();
   queueStateSync();
-  Serial.printf("[BREAK CANCELED] Jumped to WORK [%d/4] (HOLD).\n", pomodoroCount + 1);
 }
 
+// Continuous finish alarm: uses boosted BUZZER_ALARM_DUTY (40% louder) & yields to short beeps
 void handleAlarmBuzzer() {
-  if (!isAlarming || isConfirmingReset) {
+  static uint32_t lastToggle = 0;
+  static bool soundState = false;
+
+  if (!isAlarming || isAlarmSilenced || isConfirmingReset || toneSeqActive) {
+    soundState = false;
     return;
   }
 
-  static uint32_t lastToggle = 0;
-  static bool soundState = false;
   uint32_t currentMillis = millis();
-
   uint32_t interval = soundState ? 250 : 200;
+
   if (currentMillis - lastToggle >= interval) {
     lastToggle = currentMillis;
     soundState = !soundState;
 
     if (soundState) {
-      tone(BUZZER_PIN, 2200);
+      setBuzzerTone(2200, BUZZER_ALARM_DUTY);
     } else {
-      noTone(BUZZER_PIN);
+      stopBuzzer();
     }
   }
 }
 
 void advanceState() {
+  if (activeTimerIsSpecial) {
+    isRunning = false;
+    isSpecialSetting = true;
+    specialTotalSeconds = (uint32_t)specialMinutes * 60;
+    specialRemainingSeconds = specialTotalSeconds;
+    currentDisplayMode = MODE_SPECIAL;
+
+    saveCheckpoint();
+    updateOutputs();
+    updateOledDisplay();
+    queueStateSync();
+    return;
+  }
+
   if (currentState == STATE_WORK) {
     pomodoroCount++;
     if (pomodoroCount >= 4) {
       currentState = STATE_LONG_BREAK;
       totalPhaseSeconds = DURATION_LONG_BREAK;
-      // Keep pomodoroCount = 4 during Long Break so all 4 Infinity Stones glow on web HUD
     } else {
       currentState = STATE_SHORT_BREAK;
       totalPhaseSeconds = DURATION_SHORT_BREAK;
     }
   } else {
-    // Returning from Short or Long Break to Work
     if (currentState == STATE_LONG_BREAK || pomodoroCount >= 4) {
       pomodoroCount = 0;
     }
@@ -463,204 +889,391 @@ void advanceState() {
 
   saveCheckpoint();
   updateOutputs();
-  updateDisplay();
+  updateOledDisplay();
   queueStateSync();
 }
 
 void updateOutputs() {
-  if ((currentState == STATE_WORK && isRunning) || (currentState == STATE_WORK && isAlarming)) {
-    digitalWrite(WORK_LED_PIN, HIGH);
-  } else {
-    digitalWrite(WORK_LED_PIN, LOW);
+  bool active = isRunning || isAlarming;
+  bool isWorkOrSpec = activeTimerIsSpecial || (currentState == STATE_WORK);
+  bool isBreak = !activeTimerIsSpecial && (currentState == STATE_SHORT_BREAK || currentState == STATE_LONG_BREAK);
+
+  digitalWrite(WORK_LED_PIN,  (isWorkOrSpec && active) ? HIGH : LOW);
+  digitalWrite(BREAK_LED_PIN, (isBreak && active) ? HIGH : LOW);
+}
+
+// Helper: Draws a 2px solid progress bar with a 1px dotted remainder track
+void drawProgressLine(int xStart, int y, int maxWidth, float progress) {
+  if (progress < 0.0f) progress = 0.0f;
+  if (progress > 1.0f) progress = 1.0f;
+
+  int solidWidth = (int)(progress * maxWidth);
+  if (solidWidth > 0) {
+    display.fillRect(xStart, y, solidWidth, 2, SH110X_WHITE);
+  }
+  for (int x = xStart + solidWidth + 3; x <= xStart + maxWidth; x += 4) {
+    display.drawPixel(x, y, SH110X_WHITE);
+  }
+}
+
+// --- OLED: Clock Mode (Option B — Dynamic "Pomo:XX" / "Special:XX" / Blank) ---
+void renderClockDisplay() {
+  struct tm timeinfo;
+  if (!getClock(&timeinfo)) {
+    renderBootScreen("BD STANDARD TIME", "SYNCING CLOCK...");
+    return;
   }
 
-  if (((currentState == STATE_SHORT_BREAK || currentState == STATE_LONG_BREAK) && isRunning) ||
-      ((currentState == STATE_SHORT_BREAK || currentState == STATE_LONG_BREAK) && isAlarming)) {
-    digitalWrite(BREAK_LED_PIN, HIGH);
+  display.clearDisplay();
+
+  // 1. Top Row: Day of Week (x = 4) & Date (right-aligned to x = 120)
+  display.setTextSize(1);
+  display.setCursor(4, 4);
+  const char* daysOfWeek[] = { "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY" };
+  display.print(daysOfWeek[timeinfo.tm_wday]);
+
+  const char* months[] = { "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" };
+  char topDate[12];
+  snprintf(topDate, sizeof(topDate), "%s %02d", months[timeinfo.tm_mon], timeinfo.tm_mday);
+  display.setCursor(85, 4);
+  display.print(topDate);
+
+  // 2. Center Row: "06:11" (with slim colon) + ":39 PM" ending at x = 120
+  int hour12 = timeinfo.tm_hour % 12;
+  if (hour12 == 0) hour12 = 12;
+  const char* ampm = (timeinfo.tm_hour >= 12) ? "PM" : "AM";
+
+  char hhStr[4], mmStr[4];
+  snprintf(hhStr, sizeof(hhStr), "%02d", hour12);
+  snprintf(mmStr, sizeof(mmStr), "%02d", timeinfo.tm_min);
+
+  display.setTextSize(3);
+  display.setCursor(4, 22);
+  display.print(hhStr);
+
+  display.fillRect(41, 27, 3, 3, SH110X_WHITE);
+  display.fillRect(41, 37, 3, 3, SH110X_WHITE);
+
+  display.setCursor(48, 22);
+  display.print(mmStr);
+
+  display.setTextSize(1);
+  display.setCursor(85, 35);
+  display.printf(":%02d %s", timeinfo.tm_sec, ampm);
+
+  // 3. Bottom Row: Dynamic Status ("Pomo:22", "Special:23", or Blank if idle)
+  float secProgress = (float)timeinfo.tm_sec / 59.0f;
+
+  if (isRunning) {
+    char statusStr[16];
+    if (activeTimerIsSpecial) {
+      uint32_t mins = (specialRemainingSeconds + 59) / 60;
+      snprintf(statusStr, sizeof(statusStr), "Special:%02u", (unsigned int)mins);
+    } else {
+      uint32_t mins = (remainingSeconds + 59) / 60;
+      snprintf(statusStr, sizeof(statusStr), "Pomo:%02u", (unsigned int)mins);
+    }
+
+    int textPx = strlen(statusStr) * 6;
+    int textX  = 121 - textPx; // Right-aligned to x = 120 safe margin
+    int barMax = textX - 10;   // Clean gap between progress bar and text
+
+    drawProgressLine(4, 57, barMax, secProgress);
+    display.setTextSize(1);
+    display.setCursor(textX, 54);
+    display.print(statusStr);
   } else {
-    digitalWrite(BREAK_LED_PIN, LOW);
+    // Nothing is running: leave text blank and draw full-width second line
+    drawProgressLine(4, 57, 116, secProgress);
   }
+
+  safeDisplayFlush();
 }
 
-void playButtonClickBeep() {
-  tone(BUZZER_PIN, 2400, 50);
+// --- OLED: Ultra-Minimal Special Session Mode ---
+void renderSpecialDisplay() {
+  display.clearDisplay();
+
+  // 1. Time Dial Screen ("SPECIAL" / "< 25:00 >" / "RST:+5M    BTN:START")
+  if (isSpecialSetting) {
+    display.setTextSize(1);
+    display.setCursor(4, 4);
+    display.print("SPECIAL");
+    display.setCursor(103, 4);
+    display.print("SET");
+
+    char timeStr[6];
+    snprintf(timeStr, sizeof(timeStr), "%02u:00", (unsigned int)specialMinutes);
+    drawCentered(timeStr, 22, 3);
+
+    display.setTextSize(2);
+    display.setCursor(6, 26);
+    display.print("<");
+    display.setCursor(110, 26);
+    display.print(">");
+
+    drawCentered("RST:+5M   BTN:START", 54, 1);
+  }
+  // 2. Reset Special Confirmation Screen
+  else if (isConfirmingReset) {
+    drawCentered("RESET SPECIAL?", 12, 1);
+    display.drawFastHLine(14, 25, 98, SH110X_WHITE);
+    drawCentered("RST:YES   BTN:NO", 38, 1);
+  }
+  // 3. Special Session Complete / Alarm Screen
+  else if (isAlarming) {
+    char doneHeader[22];
+    snprintf(doneHeader, sizeof(doneHeader), "SPECIAL %uM DONE", (unsigned int)specialMinutes);
+    drawCentered(doneHeader, 4, 1);
+    drawCentered("00:00", 21, 3);
+    drawCentered("MOVE TO NEXT PHASE", 54, 1);
+  }
+  // 4. Active / Paused Special Session Countdown
+  else {
+    display.setTextSize(1);
+    display.setCursor(4, 4);
+    display.printf("SPECIAL %uM", (unsigned int)specialMinutes);
+
+    display.fillCircle(80, 7, 2, SH110X_WHITE);
+
+    display.setCursor(isRunning ? 103 : 97, 4);
+    display.print(isRunning ? "RUN" : "HOLD");
+
+    uint32_t mins = specialRemainingSeconds / 60;
+    uint32_t secs = specialRemainingSeconds % 60;
+    char timeStr[6];
+    snprintf(timeStr, sizeof(timeStr), "%02u:%02u", (unsigned int)mins, (unsigned int)secs);
+    drawCentered(timeStr, 22, 3);
+
+    float progress = (float)(specialTotalSeconds - specialRemainingSeconds) / (float)specialTotalSeconds;
+    drawProgressLine(4, 57, 116, progress);
+  }
+
+  safeDisplayFlush();
 }
 
-void playResetPromptBeepBeep() {
-  tone(BUZZER_PIN, 2000, 90);
-  delay(130);
-  tone(BUZZER_PIN, 2000, 90);
-  delay(100);
-  noTone(BUZZER_PIN);
-}
+// --- OLED: Master Display Router ---
+void updateOledDisplay() {
+  if (currentDisplayMode == MODE_CLOCK) return;
+  if (currentDisplayMode == MODE_SPECIAL) {
+    renderSpecialDisplay();
+    return;
+  }
 
-void playResetConfirmedBeep() {
-  tone(BUZZER_PIN, 2000, 70);
-  delay(80);
-  tone(BUZZER_PIN, 1200, 120);
-  delay(130);
-  noTone(BUZZER_PIN);
-}
-
-void updateDisplay() {
-  if (!lcd) return;
-
-  char line1[17];
-  char line2[17];
-
+  display.clearDisplay();
   uint8_t displayCycle = (pomodoroCount >= 4) ? 4 : (pomodoroCount + 1);
 
   if (isConfirmingReset) {
     if (currentState == STATE_SHORT_BREAK || currentState == STATE_LONG_BREAK) {
-      snprintf(line1, sizeof(line1), "CANCEL BREAK?   ");
+      drawCentered("CANCEL BREAK?", 12, 1);
     } else {
-      snprintf(line1, sizeof(line1), "CONFIRM RESET?  ");
+      drawCentered("CONFIRM RESET?", 12, 1);
     }
-    snprintf(line2, sizeof(line2), "RST:YES  BTN:NO ");
-  } else if (isAlarming) {
+    display.drawFastHLine(14, 25, 98, SH110X_WHITE);
+    drawCentered("RST:YES   BTN:NO", 38, 1);
+  }
+  else if (isAlarming) {
+    char doneHeader[22];
     switch (currentState) {
       case STATE_WORK:
-        snprintf(line1, sizeof(line1), "WORK [%d/4]  DONE", displayCycle);
+        snprintf(doneHeader, sizeof(doneHeader), "WORK %d/4 DONE", displayCycle);
         break;
       case STATE_SHORT_BREAK:
-        snprintf(line1, sizeof(line1), "BREAK       DONE");
+        snprintf(doneHeader, sizeof(doneHeader), "SHORT BREAK DONE");
         break;
       case STATE_LONG_BREAK:
-        snprintf(line1, sizeof(line1), "LONG BREAK  DONE");
+        snprintf(doneHeader, sizeof(doneHeader), "LONG BREAK DONE");
         break;
     }
-    snprintf(line2, sizeof(line2), "00:00  PRESS BTN");
-  } else {
-    switch (currentState) {
-      case STATE_WORK:
-        snprintf(line1, sizeof(line1), "WORK [%d/4]  %s", displayCycle, isRunning ? "RUN " : "HOLD");
-        break;
-      case STATE_SHORT_BREAK:
-        snprintf(line1, sizeof(line1), "BREAK       %s", isRunning ? "RUN " : "HOLD");
-        break;
-      case STATE_LONG_BREAK:
-        snprintf(line1, sizeof(line1), "LONG BREAK  %s", isRunning ? "RUN " : "HOLD");
-        break;
+    drawCentered(doneHeader, 4, 1);
+    drawCentered("00:00", 21, 3);
+    drawCentered("MOVE TO NEXT PHASE", 54, 1);
+  }
+  else {
+    display.setTextSize(1);
+    display.setCursor(4, 4);
+    if (currentState == STATE_WORK) {
+      display.printf("WORK %d/4", displayCycle);
+
+      int dotX = 62;
+      int dotY = 7;
+      for (int i = 0; i < 4; i++) {
+        if (i < displayCycle) {
+          display.fillCircle(dotX + (i * 8), dotY, 2, SH110X_WHITE);
+        } else {
+          display.drawCircle(dotX + (i * 8), dotY, 2, SH110X_WHITE);
+        }
+      }
+    } else if (currentState == STATE_SHORT_BREAK) {
+      display.print("BREAK 5M");
+    } else {
+      display.print("LONG BREAK");
     }
+
+    display.setCursor(isRunning ? 103 : 97, 4);
+    display.print(isRunning ? "RUN" : "HOLD");
 
     uint32_t mins = remainingSeconds / 60;
     uint32_t secs = remainingSeconds % 60;
+    char timeStr[6];
+    snprintf(timeStr, sizeof(timeStr), "%02u:%02u", (unsigned int)mins, (unsigned int)secs);
+    drawCentered(timeStr, 22, 3);
 
-    int totalSegments = 8;
     float progress = (float)(totalPhaseSeconds - remainingSeconds) / (float)totalPhaseSeconds;
-    int filled = (int)(progress * totalSegments);
-
-    char bar[9];
-    for (int i = 0; i < totalSegments; i++) {
-      if (i < filled) bar[i] = '=';
-      else if (i == filled) bar[i] = '>';
-      else bar[i] = ' ';
-    }
-    bar[8] = '\0';
-
-    snprintf(line2, sizeof(line2), "%02u:%02u [%s]", (unsigned int)mins, (unsigned int)secs, bar);
+    drawProgressLine(4, 57, 116, progress);
   }
 
-  lcd->setCursor(0, 0);
-  lcd->print(line1);
-  lcd->setCursor(0, 1);
-  lcd->print(line2);
+  safeDisplayFlush();
 }
 
 void queueStateSync() {
+  if (!syncQueue) return;
+
   SyncMessage msg;
+  memset(&msg, 0, sizeof(msg));
   msg.action = ACTION_UPDATE_STATE;
-  strncpy(msg.phase, getPhaseName(currentState), sizeof(msg.phase));
-  msg.running = (isConfirmingReset || isAlarming) ? false : isRunning;
-  msg.remaining = remainingSeconds;
-  msg.total = totalPhaseSeconds;
+
+  if (activeTimerIsSpecial) {
+    strncpy(msg.phase, "SPECIAL", sizeof(msg.phase) - 1);
+    msg.running = (isConfirmingReset || isAlarming || isSpecialSetting) ? false : isRunning;
+    msg.remaining = specialRemainingSeconds;
+    msg.total = specialTotalSeconds;
+  } else {
+    strncpy(msg.phase, getPhaseName(currentState), sizeof(msg.phase) - 1);
+    msg.running = (isConfirmingReset || isAlarming) ? false : isRunning;
+    msg.remaining = remainingSeconds;
+    msg.total = totalPhaseSeconds;
+  }
+
   msg.count = pomodoroCount;
-  msg.durationMins = 0;
   xQueueSend(syncQueue, &msg, 0);
 }
 
 void queueSessionLog(const char* phaseName, uint32_t mins) {
+  if (!syncQueue) return;
+
   SyncMessage msg;
+  memset(&msg, 0, sizeof(msg));
   msg.action = ACTION_LOG_SESSION;
-  strncpy(msg.phase, phaseName, sizeof(msg.phase));
+  strncpy(msg.phase, phaseName, sizeof(msg.phase) - 1);
   msg.durationMins = mins;
+  getUtcIsoTimestamp(msg.completedAt, sizeof(msg.completedAt));
   xQueueSend(syncQueue, &msg, 0);
 }
 
-// Background Worker Task (Runs on Core 0)
+static int sendToSupabase(const char* path, const char* payload, const char* authHeader, bool isPost) {
+  char url[160];
+  snprintf(url, sizeof(url), "%s%s", SUPABASE_URL, path);
+
+  int code = -1;
+  for (int attempt = 0; attempt < 2; attempt++) {
+    httpClient.begin(secureClient, url);
+    httpClient.addHeader("apikey", SUPABASE_KEY);
+    httpClient.addHeader("Authorization", authHeader);
+    httpClient.addHeader("Content-Type", "application/json");
+
+    size_t len = strlen(payload);
+    code = isPost ? httpClient.POST((uint8_t*)payload, len)
+                  : httpClient.PATCH((uint8_t*)payload, len);
+    httpClient.end();
+
+    if (code > 0) break;
+    secureClient.stop();
+  }
+  return code;
+}
+
+static bool sendState(const SyncMessage& m, const char* authHeader) {
+  char payload[200];
+  snprintf(payload, sizeof(payload),
+    "{\"phase\":\"%s\",\"is_running\":%s,\"remaining_seconds\":%u,\"total_phase_seconds\":%u,\"pomodoro_count\":%u}",
+    m.phase, m.running ? "true" : "false", (unsigned)m.remaining, (unsigned)m.total, (unsigned)m.count);
+  int code = sendToSupabase("/rest/v1/device_state?id=eq.1", payload, authHeader, false);
+  LOGF("[SUPABASE] State sync HTTP %d\n", code);
+  return code >= 200 && code < 300;
+}
+
+static bool sendLog(const SyncMessage& m, const char* authHeader) {
+  char payload[160];
+  if (m.completedAt[0] != '\0') {
+    snprintf(payload, sizeof(payload),
+      "{\"phase\":\"%s\",\"duration_minutes\":%u,\"completed_at\":\"%s\"}",
+      m.phase, (unsigned)m.durationMins, m.completedAt);
+  } else {
+    snprintf(payload, sizeof(payload),
+      "{\"phase\":\"%s\",\"duration_minutes\":%u}",
+      m.phase, (unsigned)m.durationMins);
+  }
+  int code = sendToSupabase("/rest/v1/session_logs", payload, authHeader, true);
+  LOGF("[SUPABASE] Session log HTTP %d\n", code);
+  return code >= 200 && code < 300;
+}
+
 void supabaseBackgroundWorker(void* parameter) {
-  SyncMessage msg;
-  SyncMessage nextMsg;
+  static char authHeader[260];
+  snprintf(authHeader, sizeof(authHeader), "Bearer %s", SUPABASE_KEY);
+
+  SyncMessage msg, nextMsg;
+  const uint8_t MAX_PENDING_LOGS = 8;
+  SyncMessage pendingLogs[MAX_PENDING_LOGS];
+  uint8_t pendingCount = 0;
+  uint8_t pendingTries = 0;
+  uint32_t lastReconnect = 0;
+
+  secureClient.setInsecure();
+  httpClient.setReuse(true);
+  httpClient.setConnectTimeout(5000);
+  httpClient.setTimeout(5000);
 
   for (;;) {
-    if (xQueueReceive(syncQueue, &msg, portMAX_DELAY) == pdTRUE) {
-      // Coalesce consecutive state updates: if multiple button presses happened rapidly,
-      // skip stale intermediate state updates and send only the latest state!
+    TickType_t wait = (pendingCount > 0) ? pdMS_TO_TICKS(20000) : portMAX_DELAY;
+    bool got = (xQueueReceive(syncQueue, &msg, wait) == pdTRUE);
+
+    if (got) {
       while (msg.action == ACTION_UPDATE_STATE && uxQueueMessagesWaiting(syncQueue) > 0) {
         if (xQueuePeek(syncQueue, &nextMsg, 0) == pdTRUE && nextMsg.action == ACTION_UPDATE_STATE) {
           xQueueReceive(syncQueue, &msg, 0);
         } else {
-          break; // Next item is ACTION_LOG_SESSION, preserve order
+          break;
         }
       }
+    }
 
-      if (WiFi.status() != WL_CONNECTED) {
-        Serial.println("[SUPABASE] Wi-Fi disconnected. Reconnecting...");
+    if (WiFi.status() != WL_CONNECTED) {
+      if (got && msg.action == ACTION_LOG_SESSION && pendingCount < MAX_PENDING_LOGS) {
+        pendingLogs[pendingCount++] = msg;
+        pendingTries = 0;
+      }
+      if (millis() - lastReconnect > 30000) {
+        lastReconnect = millis();
         WiFi.reconnect();
-        continue;
       }
+      continue;
+    }
 
-      WiFiClientSecure client;
-      client.setInsecure();
+    esp_wifi_set_ps(WIFI_PS_MIN_MODEM);
 
-      HTTPClient http;
-      http.setConnectTimeout(5000); // 5000 ms (5 seconds)
-      http.setTimeout(5000);        // 5000 ms (5 seconds)
+    // Flush queued offline logs in chronological order
+    while (pendingCount > 0) {
+      if (sendLog(pendingLogs[0], authHeader) || ++pendingTries >= 10) {
+        for (uint8_t i = 1; i < pendingCount; i++) {
+          pendingLogs[i - 1] = pendingLogs[i];
+        }
+        pendingCount--;
+        pendingTries = 0;
+      } else {
+        break;
+      }
+    }
 
+    if (got) {
       if (msg.action == ACTION_UPDATE_STATE) {
-        char url[256];
-        snprintf(url, sizeof(url), "%s/rest/v1/device_state?id=eq.1", SUPABASE_URL);
-
-        http.begin(client, url);
-        http.addHeader("apikey", SUPABASE_KEY);
-        http.addHeader("Authorization", String("Bearer ") + SUPABASE_KEY);
-        http.addHeader("Content-Type", "application/json");
-
-        char payload[256];
-        snprintf(payload, sizeof(payload),
-          "{\"phase\":\"%s\",\"is_running\":%s,\"remaining_seconds\":%u,\"total_phase_seconds\":%u,\"pomodoro_count\":%u}",
-          msg.phase, msg.running ? "true" : "false", msg.remaining, msg.total, msg.count
-        );
-
-        int httpResponseCode = http.PATCH(payload);
-        Serial.printf("[SUPABASE] State sync HTTP %d (%s, %u sec)\n",
-                      httpResponseCode, msg.running ? "RUN" : "HOLD", msg.remaining);
-        if (httpResponseCode < 0) {
-          Serial.printf("[SUPABASE] HTTP error: %s\n", http.errorToString(httpResponseCode).c_str());
+        sendState(msg, authHeader);
+      } else if (!sendLog(msg, authHeader)) {
+        if (pendingCount < MAX_PENDING_LOGS) {
+          pendingLogs[pendingCount++] = msg;
+          pendingTries = 0;
         }
-        http.end();
-      } 
-      else if (msg.action == ACTION_LOG_SESSION) {
-        char url[256];
-        snprintf(url, sizeof(url), "%s/rest/v1/session_logs", SUPABASE_URL);
-
-        http.begin(client, url);
-        http.addHeader("apikey", SUPABASE_KEY);
-        http.addHeader("Authorization", String("Bearer ") + SUPABASE_KEY);
-        http.addHeader("Content-Type", "application/json");
-
-        char payload[128];
-        snprintf(payload, sizeof(payload),
-          "{\"phase\":\"%s\",\"duration_minutes\":%u}",
-          msg.phase, msg.durationMins
-        );
-
-        int httpResponseCode = http.POST(payload);
-        Serial.printf("[SUPABASE] Session logged HTTP %d\n", httpResponseCode);
-        if (httpResponseCode < 0) {
-          Serial.printf("[SUPABASE] HTTP error: %s\n", http.errorToString(httpResponseCode).c_str());
-        }
-        http.end();
       }
     }
   }

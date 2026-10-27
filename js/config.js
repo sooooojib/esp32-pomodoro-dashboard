@@ -15,8 +15,49 @@
 
         let currentActiveView = 'live-hud';
 
+        const TARGET_TIMEZONE = 'Asia/Dhaka';
+
         function isCustomPhase(phase) {
             return phase === 'SPECIAL' || phase === 'CUSTOM';
+        }
+
+        // Convert UTC/ISO timestamp or Date object to 'YYYY-MM-DD' in Asia/Dhaka (UTC+6)
+        function getDhakaDateKey(timestamp) {
+            if (!timestamp) return null;
+            const d = new Date(timestamp);
+            if (isNaN(d.getTime())) return null;
+            try {
+                return d.toLocaleDateString('en-CA', { timeZone: TARGET_TIMEZONE });
+            } catch (e) {
+                // Fallback: manually apply +6h offset if browser lacks timeZone support
+                const offsetMs = 6 * 60 * 60 * 1000;
+                const dhakaDate = new Date(d.getTime() + offsetMs);
+                return dhakaDate.toISOString().slice(0, 10);
+            }
+        }
+
+        // Get 0-23 hour in Asia/Dhaka (UTC+6)
+        function getDhakaHour(timestamp) {
+            if (!timestamp) return 0;
+            const d = new Date(timestamp);
+            if (isNaN(d.getTime())) return 0;
+            try {
+                const str = d.toLocaleString('en-US', { timeZone: TARGET_TIMEZONE, hour: 'numeric', hourCycle: 'h23' });
+                const h = parseInt(str, 10);
+                return isNaN(h) ? 0 : (h % 24);
+            } catch (e) {
+                const offsetMs = 6 * 60 * 60 * 1000;
+                const dhakaDate = new Date(d.getTime() + offsetMs);
+                return dhakaDate.getUTCHours();
+            }
+        }
+
+        // Check if an ISO timestamp belongs to "today" in Asia/Dhaka (UTC+6)
+        function isDhakaToday(timestamp) {
+            const key = getDhakaDateKey(timestamp);
+            if (!key) return false;
+            const todayKey = getDhakaDateKey(new Date());
+            return key === todayKey;
         }
 
         function switchView(viewName) {

@@ -46,7 +46,7 @@
                     const sessionTime = new Date(dayDate);
                     sessionTime.setHours(hour, minute, 0, 0);
 
-                    // Add occasional realistic custom standalone sessions with varying durations
+                    // Add occasional realistic custom standalone sessions with varying durations (5-60m)
                     const isCustom = (dayOffset % 5 === 1 && s === 0) || (dayOffset === 1 && s === 1);
                     const customDur = (s === 1) ? 40 : 15;
 
@@ -57,7 +57,8 @@
                         completed_at: sessionTime.toISOString()
                     });
 
-                    const breakDuration = (s === 3) ? 15 : 5;
+                    // Break durations dynamically vary between 5 and 45 mins
+                    const breakDuration = (s === 3) ? 20 : ((dayOffset % 2 === 0) ? 10 : 5);
                     const breakTime = new Date(sessionTime.getTime() + (isCustom ? customDur : 25) * 60 * 1000);
                     logs.push({
                         id: `log-${dayOffset}-${s}-b`,
@@ -105,8 +106,8 @@
         }
 
         function renderTacticalKPIs(allLogs, workLogs) {
-            // 1. Total Combat Output (Combined standard work and custom sessions)
-            const totalWorkMinutes = workLogs.reduce((acc, l) => acc + (l.duration_minutes || 25), 0);
+            // 1. Total Combat Output: Sum actual duration_minutes directly from each row (combined standard work & special ops)
+            const totalWorkMinutes = workLogs.reduce((acc, l) => acc + (Number(l.duration_minutes) || 25), 0);
             const totalHours = (totalWorkMinutes / 60).toFixed(1);
             const elHours = document.getElementById('stat-alltime-hours');
             const elSessions = document.getElementById('stat-alltime-sessions-count');
@@ -122,12 +123,12 @@
             if (elProtocols) elProtocols.innerText = protocolsMastered;
             if (elGauge) elGauge.innerText = `${waveProgress}/4 IN WAVE`;
 
-            // 3. Operational Streak & Daily Average
+            // 3. Operational Streak & Daily Average: Group strictly by completed_at converted to Asia/Dhaka (UTC+6)
             const activeDateSet = new Set();
             workLogs.forEach(l => {
                 if (l.completed_at) {
-                    const dateKey = new Date(l.completed_at).toLocaleDateString('en-CA');
-                    activeDateSet.add(dateKey);
+                    const dateKey = typeof getDhakaDateKey === 'function' ? getDhakaDateKey(l.completed_at) : new Date(l.completed_at).toLocaleDateString('en-CA');
+                    if (dateKey) activeDateSet.add(dateKey);
                 }
             });
 
@@ -147,8 +148,8 @@
                 tempStreak = 1;
                 maxStreak = 1;
                 for (let i = 1; i < sortedDates.length; i++) {
-                    const prev = new Date(sortedDates[i - 1]);
-                    const curr = new Date(sortedDates[i]);
+                    const prev = new Date(sortedDates[i - 1] + 'T00:00:00Z');
+                    const curr = new Date(sortedDates[i] + 'T00:00:00Z');
                     const diffDays = Math.round((curr - prev) / (1000 * 60 * 60 * 24));
                     if (diffDays === 1) {
                         tempStreak++;
@@ -158,16 +159,16 @@
                     if (tempStreak > maxStreak) maxStreak = tempStreak;
                 }
 
-                const todayStr = new Date().toLocaleDateString('en-CA');
-                const yesterdayStr = new Date(Date.now() - 86400000).toLocaleDateString('en-CA');
+                const todayStr = typeof getDhakaDateKey === 'function' ? getDhakaDateKey(new Date()) : new Date().toLocaleDateString('en-CA');
+                const yesterdayStr = typeof getDhakaDateKey === 'function' ? getDhakaDateKey(new Date(Date.now() - 86400000)) : new Date(Date.now() - 86400000).toLocaleDateString('en-CA');
                 if (activeDateSet.has(todayStr) || activeDateSet.has(yesterdayStr)) {
                     currentStreak = 0;
-                    let checkDate = activeDateSet.has(todayStr) ? new Date() : new Date(Date.now() - 86400000);
+                    let checkTime = activeDateSet.has(todayStr) ? Date.now() : (Date.now() - 86400000);
                     while (true) {
-                        const k = checkDate.toLocaleDateString('en-CA');
+                        const k = typeof getDhakaDateKey === 'function' ? getDhakaDateKey(new Date(checkTime)) : new Date(checkTime).toLocaleDateString('en-CA');
                         if (activeDateSet.has(k)) {
                             currentStreak++;
-                            checkDate.setDate(checkDate.getDate() - 1);
+                            checkTime -= 86400000;
                         } else {
                             break;
                         }
@@ -196,12 +197,13 @@
             const dateMap = {};
             workLogs.forEach(l => {
                 if (l.completed_at) {
-                    const key = new Date(l.completed_at).toLocaleDateString('en-CA');
+                    const key = typeof getDhakaDateKey === 'function' ? getDhakaDateKey(l.completed_at) : new Date(l.completed_at).toLocaleDateString('en-CA');
+                    if (!key) return;
                     if (!dateMap[key]) {
                         dateMap[key] = { count: 0, mins: 0, workCount: 0, specialCount: 0, specialMins: 0, workMins: 0 };
                     }
                     const isSpecial = typeof isCustomPhase === 'function' && isCustomPhase(l.phase);
-                    const dur = Number(l.duration_minutes) || (isSpecial ? 25 : 25);
+                    const dur = Number(l.duration_minutes) || 25;
                     dateMap[key].count++;
                     dateMap[key].mins += dur;
                     if (isSpecial) {
@@ -215,10 +217,9 @@
             });
 
             const dayList = [];
-            const today = new Date();
+            const now = Date.now();
             for (let i = 59; i >= 0; i--) {
-                const d = new Date(today);
-                d.setDate(today.getDate() - i);
+                const d = new Date(now - i * 24 * 60 * 60 * 1000);
                 dayList.push(d);
             }
 
@@ -247,7 +248,7 @@
                     if (!d) {
                         return `<div class="w-6 h-6 sm:w-7 sm:h-7 opacity-0"></div>`;
                     }
-                    const key = d.toLocaleDateString('en-CA');
+                    const key = typeof getDhakaDateKey === 'function' ? getDhakaDateKey(d) : d.toLocaleDateString('en-CA');
                     const entry = dateMap[key] || { count: 0, mins: 0, workCount: 0, specialCount: 0, specialMins: 0, workMins: 0 };
                     const c = entry.count;
                     if (c > 0) activeDaysCount++;
@@ -255,21 +256,30 @@
                     let bgClass = "bg-white border-2 border-black/30 hover:border-black hover:bg-amber-50/60 shadow-none";
                     let innerContent = '<span class="text-zinc-400 group-hover:text-black font-mono font-bold text-[9px] select-none">·</span>';
 
+                    // Distinct visual badges for days featuring SPECIAL sessions
                     if (c === 1) {
-                        bgClass = "bg-[#FEF08A] border-2 border-black text-black shadow-[2px_2px_0px_#000]";
-                        innerContent = '';
+                        bgClass = (entry.specialCount > 0 && entry.workCount === 0)
+                            ? "bg-[#DDD6FE] border-2 border-black text-purple-950 shadow-[2px_2px_0px_#000]"
+                            : "bg-[#FEF08A] border-2 border-black text-black shadow-[2px_2px_0px_#000]";
+                        innerContent = entry.specialCount > 0 ? '<svg class="w-2.5 h-2.5 text-[#7C3AED] fill-[#7C3AED]" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>' : '';
                     } else if (c === 2) {
-                        bgClass = "bg-[#FACC15] border-2 border-black text-black shadow-[2px_2px_0px_#000]";
-                        innerContent = '';
+                        bgClass = (entry.specialCount > 0 && entry.workCount === 0)
+                            ? "bg-[#A78BFA] border-2 border-black text-white shadow-[2px_2px_0px_#000]"
+                            : "bg-[#FACC15] border-2 border-black text-black shadow-[2px_2px_0px_#000]";
+                        innerContent = entry.specialCount > 0 ? '<svg class="w-2.5 h-2.5 text-[#7C3AED] fill-[#7C3AED]" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>' : '';
                     } else if (c === 3) {
-                        bgClass = "bg-[#FB923C] border-2 border-black text-black shadow-[2px_2px_0px_#000]";
-                        innerContent = '';
+                        bgClass = (entry.specialCount > 0 && entry.workCount === 0)
+                            ? "bg-[#7C3AED] border-2 border-black text-white shadow-[2px_2px_0px_#000]"
+                            : "bg-[#FB923C] border-2 border-black text-black shadow-[2px_2px_0px_#000]";
+                        innerContent = entry.specialCount > 0 ? '<svg class="w-2.5 h-2.5 text-[#FACC15] fill-[#FACC15]" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>' : '';
                     } else if (c >= 4) {
-                        bgClass = "bg-[#E11D48] text-white border-2 border-black shadow-[2px_2px_0px_#000] ring-1 ring-black";
+                        bgClass = (entry.specialCount > 0 && entry.workCount === 0)
+                            ? "bg-[#6D28D9] text-white border-2 border-black shadow-[2px_2px_0px_#000] ring-1 ring-black"
+                            : "bg-[#E11D48] text-white border-2 border-black shadow-[2px_2px_0px_#000] ring-1 ring-black";
                         innerContent = `<svg class="w-3 h-3 drop-shadow flex-shrink-0" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#FFD700" stroke="#000" stroke-width="1.8"/><circle cx="12" cy="12" r="5" fill="#00F0FF" stroke="#000" stroke-width="1"/><polygon points="12,7 16,14 8,14" fill="#FFFFFF" stroke="#000" stroke-width="0.8"/></svg>`;
                     }
 
-                    const dateTitle = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    const dateTitle = d.toLocaleDateString('en-US', { timeZone: 'Asia/Dhaka', month: 'short', day: 'numeric', year: 'numeric' });
                     let hoverTitle = `${dateTitle} • ${c} sessions (${entry.mins} mins)`;
                     if (entry.specialCount > 0) {
                         hoverTitle = `${dateTitle} • ${entry.workCount} combat + ${entry.specialCount} special (${entry.specialMins}m) • ${entry.mins} mins total`;
@@ -328,9 +338,9 @@
             const specialCount = parseInt(tile.getAttribute('data-special-count') || '0', 10);
             const specialMins = parseInt(tile.getAttribute('data-special-mins') || '0', 10);
 
-            const d = new Date(dateStr + 'T12:00:00');
-            const formattedDate = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
-            const dayName = d.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
+            const d = new Date(dateStr + 'T12:00:00Z');
+            const formattedDate = d.toLocaleDateString('en-US', { timeZone: 'Asia/Dhaka', month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
+            const dayName = d.toLocaleDateString('en-US', { timeZone: 'Asia/Dhaka', weekday: 'long' }).toUpperCase();
 
             // Protocols are strictly 4/4 cycles from regular Pomodoro blocks
             const protocolsFinished = Math.floor(workCount / 4);
@@ -439,8 +449,8 @@
             const calloutBadge = document.getElementById('volume-inspect-badge');
             if (!calloutText) return;
 
-            const d = new Date(dateKey + 'T12:00:00');
-            const formatted = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
+            const d = new Date(dateKey + 'T12:00:00Z');
+            const formatted = d.toLocaleDateString('en-US', { timeZone: 'Asia/Dhaka', weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
 
             if (mins === 0) {
                 calloutText.innerText = `${formatted} • 0 MINS LOGGED (0 SESSIONS)`;
@@ -501,12 +511,13 @@
             const dateMap = {};
             tacticalArchiveData.workLogs.forEach(l => {
                 if (l.completed_at) {
-                    const key = new Date(l.completed_at).toLocaleDateString('en-CA');
+                    const key = typeof getDhakaDateKey === 'function' ? getDhakaDateKey(l.completed_at) : new Date(l.completed_at).toLocaleDateString('en-CA');
+                    if (!key) return;
                     if (!dateMap[key]) {
                         dateMap[key] = { count: 0, mins: 0, workCount: 0, specialCount: 0, specialMins: 0, workMins: 0 };
                     }
                     const isSpecial = typeof isCustomPhase === 'function' && isCustomPhase(l.phase);
-                    const dur = Number(l.duration_minutes) || (isSpecial ? 25 : 25);
+                    const dur = Number(l.duration_minutes) || 25;
                     dateMap[key].count++;
                     dateMap[key].mins += dur;
                     if (isSpecial) {
@@ -520,11 +531,10 @@
             });
 
             const dayItems = [];
-            const today = new Date();
+            const now = Date.now();
             for (let i = days - 1; i >= 0; i--) {
-                const d = new Date(today);
-                d.setDate(today.getDate() - i);
-                const key = d.toLocaleDateString('en-CA');
+                const d = new Date(now - i * 24 * 60 * 60 * 1000);
+                const key = typeof getDhakaDateKey === 'function' ? getDhakaDateKey(d) : d.toLocaleDateString('en-CA');
                 const stats = dateMap[key] || { count: 0, mins: 0, workCount: 0, specialCount: 0, specialMins: 0, workMins: 0 };
                 dayItems.push({
                     date: d,
@@ -569,16 +579,20 @@
                 const hasMins = d.mins > 0;
                 // Mathematically exact height relative to yMax
                 const heightPct = hasMins ? Math.max(10, Math.min(100, Math.round((d.mins / yMax) * 100))) : 4;
-                let fullTitle = `${d.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}: ${d.mins}m (${d.count}x)`;
+                let fullTitle = `${d.date.toLocaleDateString('en-US', { timeZone: 'Asia/Dhaka', weekday: 'short', month: 'short', day: 'numeric' })}: ${d.mins}m (${d.count}x)`;
                 if (d.specialCount > 0) {
-                    fullTitle = `${d.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}: ${d.mins}m (${d.workCount} combat + ${d.specialCount} special [${d.specialMins}m])`;
+                    fullTitle = `${d.date.toLocaleDateString('en-US', { timeZone: 'Asia/Dhaka', weekday: 'short', month: 'short', day: 'numeric' })}: ${d.mins}m (${d.workCount} combat + ${d.specialCount} special [${d.specialMins}m])`;
                 }
-                const barColor = d.mins >= 100 ? 'bg-[#E11D48]' : d.mins > 0 ? 'bg-[#FACC15]' : 'bg-zinc-200/90 border-black/30 hover:border-black hover:bg-zinc-300';
+                const barColor = (d.specialCount > 0 && d.workCount === 0)
+                    ? 'bg-[#7C3AED]'
+                    : (d.specialCount > 0 && d.workCount > 0)
+                        ? 'bg-[#8B5CF6] ring-1 ring-black'
+                        : (d.mins >= 100 ? 'bg-[#E11D48]' : d.mins > 0 ? 'bg-[#FACC15]' : 'bg-zinc-200/90 border-black/30 hover:border-black hover:bg-zinc-300');
                 const shadowClass = hasMins ? 'shadow-[2px_2px_0px_#000]' : '';
 
                 const dayLabelHtml = !is30 ? `
                     <span class="font-mono text-[9px] sm:text-[10px] font-bold text-black mt-1.5 truncate max-w-full text-center select-none block h-3 leading-none">
-                        ${d.date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}
+                        ${d.date.toLocaleDateString('en-US', { timeZone: 'Asia/Dhaka', weekday: 'short' }).toUpperCase()}
                     </span>
                 ` : '';
 
@@ -603,11 +617,11 @@
                     timelineAxis.classList.remove('hidden');
                     timelineAxis.classList.add('flex');
                     const milestones = [
-                        { idx: 0, label: dayItems[0].date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase() },
-                        { idx: 7, label: dayItems[7].date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase() },
-                        { idx: 15, label: dayItems[15].date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase() },
-                        { idx: 22, label: dayItems[22].date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase() },
-                        { idx: 29, label: `TODAY (${dayItems[29].date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()})`, isToday: true }
+                        { idx: 0, label: dayItems[0].date.toLocaleDateString('en-US', { timeZone: 'Asia/Dhaka', month: 'short', day: 'numeric' }).toUpperCase() },
+                        { idx: 7, label: dayItems[7].date.toLocaleDateString('en-US', { timeZone: 'Asia/Dhaka', month: 'short', day: 'numeric' }).toUpperCase() },
+                        { idx: 15, label: dayItems[15].date.toLocaleDateString('en-US', { timeZone: 'Asia/Dhaka', month: 'short', day: 'numeric' }).toUpperCase() },
+                        { idx: 22, label: dayItems[22].date.toLocaleDateString('en-US', { timeZone: 'Asia/Dhaka', month: 'short', day: 'numeric' }).toUpperCase() },
+                        { idx: 29, label: `TODAY (${dayItems[29].date.toLocaleDateString('en-US', { timeZone: 'Asia/Dhaka', month: 'short', day: 'numeric' }).toUpperCase()})`, isToday: true }
                     ];
 
                     timelineAxis.innerHTML = milestones.map(m => `
@@ -730,7 +744,7 @@
             const hourlyCounts = new Array(24).fill(0);
             logsToUse.forEach(l => {
                 if (l.completed_at) {
-                    const h = new Date(l.completed_at).getHours();
+                    const h = typeof getDhakaHour === 'function' ? getDhakaHour(l.completed_at) : new Date(l.completed_at).getHours();
                     if (h >= 0 && h < 24) hourlyCounts[h]++;
                 }
             });
@@ -863,11 +877,11 @@
             const filter = tacticalArchiveData.currentFilter || 'ALL';
             let filtered = tacticalArchiveData.allLogs || [];
             if (filter === 'WORK') {
-                filtered = filtered.filter(l => l.phase === 'WORK' || (typeof isCustomPhase === 'function' && isCustomPhase(l.phase)));
+                filtered = filtered.filter(l => l.phase === 'WORK');
             } else if (filter === 'SPECIAL' || filter === 'CUSTOM') {
                 filtered = filtered.filter(l => typeof isCustomPhase === 'function' && isCustomPhase(l.phase));
             } else if (filter === 'BREAK') {
-                filtered = filtered.filter(l => l.phase !== 'WORK' && !(typeof isCustomPhase === 'function' && isCustomPhase(l.phase)));
+                filtered = filtered.filter(l => l.phase === 'SHORT_BREAK' || l.phase === 'LONG_BREAK');
             }
 
             const pageSize = tacticalArchiveData.pageSize || 10;
@@ -905,8 +919,9 @@
                 const isWork = item.phase === 'WORK';
                 const isLongBreak = item.phase === 'LONG_BREAK';
                 const dateObj = item.completed_at ? new Date(item.completed_at) : new Date();
-                const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const dateStr = dateObj.toLocaleDateString('en-US', { timeZone: 'Asia/Dhaka', month: 'short', day: 'numeric', year: 'numeric' });
+                const timeStr = dateObj.toLocaleTimeString('en-US', { timeZone: 'Asia/Dhaka', hour: '2-digit', minute: '2-digit' });
+                const dur = Number(item.duration_minutes) || (isWork || isCustom ? 25 : (isLongBreak ? 15 : 5));
 
                 let badgeHtml = '';
                 let statusHtml = '';
@@ -914,19 +929,19 @@
                 if (isCustom) {
                     badgeHtml = `<span class="bg-[#7C3AED] text-white font-mono font-bold text-xs px-2 py-0.5 rounded border border-black inline-flex items-center gap-1 shadow-none"><i data-lucide="zap" class="w-3 h-3 text-[#FACC15]"></i> SPECIAL OPS</span>`;
                     statusHtml = `<span class="text-purple-700 font-mono font-bold text-xs inline-flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> CONQUERED</span>`;
-                    xpHtml = `<span class="text-amber-600 font-mono font-black text-xs">+${(item.duration_minutes || 25) * 10} XP</span>`;
+                    xpHtml = `<span class="text-amber-600 font-mono font-black text-xs">+${dur * 10} XP</span>`;
                 } else if (isWork) {
                     badgeHtml = `<span class="bg-[#E11D48] text-white font-mono font-bold text-xs px-2 py-0.5 rounded border border-black inline-flex items-center gap-1 shadow-none"><i data-lucide="swords" class="w-3 h-3"></i> COMBAT</span>`;
                     statusHtml = `<span class="text-emerald-700 font-mono font-bold text-xs inline-flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> CONQUERED</span>`;
-                    xpHtml = `<span class="text-amber-600 font-mono font-black text-xs">+${(item.duration_minutes || 25) * 10} XP</span>`;
+                    xpHtml = `<span class="text-amber-600 font-mono font-black text-xs">+${dur * 10} XP</span>`;
                 } else if (isLongBreak) {
                     badgeHtml = `<span class="bg-[#FACC15] text-black font-mono font-bold text-xs px-2 py-0.5 rounded border border-black inline-flex items-center gap-1 shadow-none"><i data-lucide="award" class="w-3 h-3"></i> SHAWARMA</span>`;
                     statusHtml = `<span class="text-amber-700 font-mono font-bold text-xs inline-flex items-center gap-1"><i data-lucide="check" class="w-3.5 h-3.5"></i> REPLENISHED</span>`;
-                    xpHtml = `<span class="text-cyan-600 font-mono font-black text-xs">+100 XP</span>`;
+                    xpHtml = `<span class="text-cyan-600 font-mono font-black text-xs">+${dur * 5} XP</span>`;
                 } else {
                     badgeHtml = `<span class="bg-[#06B6D4] text-black font-mono font-bold text-xs px-2 py-0.5 rounded border border-black inline-flex items-center gap-1 shadow-none"><i data-lucide="coffee" class="w-3 h-3"></i> RECHARGE</span>`;
                     statusHtml = `<span class="text-cyan-700 font-mono font-bold text-xs inline-flex items-center gap-1"><i data-lucide="check" class="w-3.5 h-3.5"></i> REPLENISHED</span>`;
-                    xpHtml = `<span class="text-cyan-600 font-mono font-black text-xs">+50 XP</span>`;
+                    xpHtml = `<span class="text-cyan-600 font-mono font-black text-xs">+${dur * 5} XP</span>`;
                 }
 
                 return `
@@ -938,7 +953,7 @@
                             ${badgeHtml}
                         </td>
                         <td class="py-2.5 px-3.5 border-r border-black/10 font-bold text-black whitespace-nowrap">
-                            ${item.duration_minutes || (isWork || isCustom ? 25 : 5)} MINS
+                            ${dur} MINS
                         </td>
                         <td class="py-2.5 px-3.5 border-r border-black/10 whitespace-nowrap">
                             ${statusHtml}

@@ -165,16 +165,18 @@
                             triggerSuperpower(activeHero);
                         }
 
+                        const durationMins = Number(logData.duration_minutes) || (logData.total_phase_seconds ? Math.round(logData.total_phase_seconds / 60) : (isWork || isCustom ? 25 : (logData.phase === 'LONG_BREAK' ? 15 : 5)));
+
                         if (isCustom) {
-                            const customMins = logData.duration_minutes || (logData.total_phase_seconds ? Math.round(logData.total_phase_seconds / 60) : 25);
-                            const xpGain = customMins * 10;
-                            showToast(`SPECIAL OPS COMPLETE: +${xpGain} XP DEPOSITED! (${customMins} MINS)`, "done");
+                            const xpGain = durationMins * 10;
+                            showToast(`SPECIAL OPS COMPLETE: +${xpGain} XP DEPOSITED! (${durationMins} MINS)`, "done");
                         } else if (isWork) {
-                            const workMins = logData.duration_minutes || 25;
-                            const xpGain = workMins * 10;
-                            showToast(`MISSION COMPLETE: S.H.I.E.L.D. DEBRIEF UPDATED! (+${xpGain} XP)`, "done");
+                            const xpGain = durationMins * 10;
+                            showToast(`MISSION COMPLETE: S.H.I.E.L.D. DEBRIEF UPDATED! (+${xpGain} XP / ${durationMins} MINS)`, "done");
                         } else {
-                            showToast("RECHARGE LOGGED TO S.H.I.E.L.D. ARCHIVE", "done");
+                            const breakLabel = logData.phase === 'LONG_BREAK' ? 'LONG BREAK' : 'BREAK';
+                            const xpGain = durationMins * 5;
+                            showToast(`${breakLabel} COMPLETE: ${durationMins} MINS LOGGED TO S.H.I.E.L.D. ARCHIVE (+${xpGain} XP)`, "done");
                         }
                     }
                 )

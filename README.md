@@ -47,9 +47,9 @@ A playful, comic pop-art **Avengers-themed** web dashboard companion built for a
 ## 🗄️ Database Schema (Supabase)
 
 - **`device_state` (Row `id = 1`)**:
-  - Columns: `phase` ('WORK', 'SHORT_BREAK', 'LONG_BREAK'), `is_running` (boolean), `remaining_seconds` (int), `total_phase_seconds` (int), `pomodoro_count` (int, 0–4), `updated_at`.
+  - Columns: `phase` ('WORK', 'SHORT_BREAK', 'LONG_BREAK', 'SPECIAL'), `is_running` (boolean), `remaining_seconds` (int), `total_phase_seconds` (int), `pomodoro_count` (int, 0–4), `updated_at`.
 - **`session_logs`**:
-  - Columns: `id`, `phase`, `duration_minutes`, `completed_at`.
+  - Columns: `id`, `phase` ('WORK', 'SHORT_BREAK', 'LONG_BREAK', 'SPECIAL'), `duration_minutes` (int), `completed_at` (ISO timestamp).
 
 ---
 

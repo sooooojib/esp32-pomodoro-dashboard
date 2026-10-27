@@ -71,10 +71,12 @@
             const prevRunning = isRunning;
             const prevPhase = currentPhase;
 
-            localSeconds = Number.isInteger(data.remaining_seconds) ? data.remaining_seconds : 1500;
+            // 1. Remove Hardcoded Durations: Always use device_state.total_phase_seconds as the source of truth
             totalSeconds = (Number.isInteger(data.total_phase_seconds) && data.total_phase_seconds > 0)
                 ? data.total_phase_seconds
-                : ((typeof isCustomPhase === 'function' && isCustomPhase(data.phase)) && Number.isInteger(data.remaining_seconds) && data.remaining_seconds > 0 ? data.remaining_seconds : 1500);
+                : (Number.isInteger(data.remaining_seconds) && data.remaining_seconds > 0 ? data.remaining_seconds : 1500);
+
+            localSeconds = Number.isInteger(data.remaining_seconds) ? data.remaining_seconds : totalSeconds;
             currentPhase = data.phase || 'WORK';
             isRunning = !!data.is_running;
             pomodoroCount = data.pomodoro_count || 0;
@@ -101,17 +103,18 @@
             timerDisplay.innerText = formatTime(localSeconds);
 
             const isCustom = typeof isCustomPhase === 'function' && isCustomPhase(currentPhase);
+            // Dynamic Phase Labels: Live configured duration in minutes matching OLED screen (Math.round(total_phase_seconds / 60))
+            const phaseMins = Math.round(totalSeconds / 60) || Math.round(localSeconds / 60) || (currentPhase === 'SHORT_BREAK' ? 5 : currentPhase === 'LONG_BREAK' ? 15 : 25);
 
             if (isCustom) {
-                if (phaseTitle) phaseTitle.innerText = "SPECIAL OPS PROTOCOL";
+                if (phaseTitle) phaseTitle.innerText = `SPECIAL ${phaseMins}M`;
                 if (phaseIconBox) {
                     phaseIconBox.className = "w-[36px] h-[36px] min-w-[36px] min-h-[36px] rounded-lg bg-[#7C3AED] text-white border-2 border-black flex items-center justify-center shadow-none";
                     phaseIconBox.innerHTML = `<i data-lucide="zap" class="w-5 h-5"></i>`;
                 }
                 progressBar.className = "h-full bg-[#7C3AED] rounded-full transition-all duration-500 ease-out";
                 progressPercent.className = "text-[#7C3AED] font-mono font-bold";
-                const sprintMins = Math.round(totalSeconds / 60) || Math.round(localSeconds / 60) || 25;
-                hudModeText.innerHTML = `<span class="w-2 h-2 rounded-full bg-purple-500 animate-ping inline-block"></span> <span>CUSTOM FOCUS SPRINT (${sprintMins} MINS)</span>`;
+                hudModeText.innerHTML = `<span class="w-2 h-2 rounded-full bg-purple-500 animate-ping inline-block"></span> <span>SPECIAL ${phaseMins}M • FOCUS SPRINT</span>`;
                 hardwareInstructionText.innerText = "SPECIAL OPS IN PROGRESS! PRESS DESK BUTTON OR PAUSE ON HUD.";
             } else if (currentPhase === "WORK") {
                 if (phaseTitle) phaseTitle.innerText = "COMBAT PROTOCOL";
@@ -121,28 +124,30 @@
                 }
                 progressBar.className = "h-full bg-[#E11D48] rounded-full transition-all duration-500 ease-out";
                 progressPercent.className = "text-[#E11D48] font-mono font-bold";
-                hudModeText.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500 animate-ping inline-block"></span> <span>COMBAT FOCUS SPRINT</span>`;
+                hudModeText.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500 animate-ping inline-block"></span> <span>COMBAT FOCUS SPRINT (${phaseMins} MINS)</span>`;
                 hardwareInstructionText.innerText = isRunning ? "FOCUS IN PROGRESS! CLICK PAUSE OR SWITCH OPERATOR." : "CLICK START OR ASSEMBLE TO SIMULATE COMBAT PROTOCOL!";
             } else if (currentPhase === "SHORT_BREAK") {
-                if (phaseTitle) phaseTitle.innerText = "TACTICAL RECHARGE";
+                // OLED matching: "BREAK 10M", "BREAK 5M", etc.
+                if (phaseTitle) phaseTitle.innerText = `BREAK ${phaseMins}M`;
                 if (phaseIconBox) {
                     phaseIconBox.className = "w-[36px] h-[36px] min-w-[36px] min-h-[36px] rounded-lg bg-[#06B6D4] border-2 border-black flex items-center justify-center text-black shadow-none";
                     phaseIconBox.innerHTML = `<i data-lucide="battery-charging" class="w-5 h-5"></i>`;
                 }
                 progressBar.className = "h-full bg-[#06B6D4] rounded-full transition-all duration-500 ease-out";
                 progressPercent.className = "text-[#06B6D4] font-mono font-bold";
-                hudModeText.innerHTML = `<span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping inline-block"></span> <span>5 MIN SERUM RECOVERY</span>`;
-                hardwareInstructionText.innerText = "TAKE A BREATHER! DRINK WATER OR STRETCH. 5 MIN RECOVERY.";
+                hudModeText.innerHTML = `<span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping inline-block"></span> <span>BREAK ${phaseMins}M • SERUM RECOVERY</span>`;
+                hardwareInstructionText.innerText = `TAKE A BREATHER! ${phaseMins} MIN RECOVERY (±5M VIA HARDWARE RESET).`;
             } else {
-                if (phaseTitle) phaseTitle.innerText = "SHAWARMA LONG BREAK";
+                // OLED matching: "LONG BREAK 20M", "LONG BREAK 15M", etc.
+                if (phaseTitle) phaseTitle.innerText = `LONG BREAK ${phaseMins}M`;
                 if (phaseIconBox) {
                     phaseIconBox.className = "w-[36px] h-[36px] min-w-[36px] min-h-[36px] rounded-lg bg-[#FACC15] border-2 border-black flex items-center justify-center text-black shadow-none";
                     phaseIconBox.innerHTML = `<i data-lucide="award" class="w-5 h-5"></i>`;
                 }
                 progressBar.className = "h-full bg-[#FACC15] rounded-full transition-all duration-500 ease-out";
                 progressPercent.className = "text-black font-mono font-bold";
-                hudModeText.innerHTML = `<span class="w-2 h-2 rounded-full bg-yellow-400 animate-ping inline-block"></span> <span>SHAWARMA PARTY (EXTENDED REST)</span>`;
-                hardwareInstructionText.innerText = "INFINITY CYCLE ACHIEVED! ENJOY EXTENDED REST BEFORE ASSEMBLING AGAIN.";
+                hudModeText.innerHTML = `<span class="w-2 h-2 rounded-full bg-yellow-400 animate-ping inline-block"></span> <span>LONG BREAK ${phaseMins}M • SHAWARMA PARTY</span>`;
+                hardwareInstructionText.innerText = `INFINITY CYCLE ACHIEVED! ${phaseMins} MIN REST (±5M VIA HARDWARE RESET).`;
             }
 
             if (isRunning) {
@@ -156,23 +161,42 @@
             renderInfinityGauntlet(pomodoroCount, currentPhase);
             updateProgress();
             renderHero(currentPhase, isRunning);
+
             if (typeof hardwareState !== 'undefined') {
                 hardwareState.is_running = isRunning;
                 hardwareState.phase = currentPhase;
                 hardwareState.pomodoro_count = pomodoroCount;
+                hardwareState.total_phase_seconds = totalSeconds;
+                hardwareState.remaining_seconds = localSeconds;
             }
+
             if (typeof renderTacticalMissions === 'function') {
                 renderTacticalMissions();
             }
-            startLocalTicker();
+
+            // 2. Smooth Live Resync on +5M / -5M Jumps:
+            // When an update arrives while is_running is true, sync local remaining_seconds and total_phase_seconds
+            // without resetting or pausing the local 1-second countdown interval.
+            if (isRunning) {
+                if (!localTimerInterval) {
+                    startLocalTicker();
+                }
+            } else {
+                if (localTimerInterval) {
+                    clearInterval(localTimerInterval);
+                    localTimerInterval = null;
+                }
+            }
 
             if (window.lucide) lucide.createIcons();
         }
 
+        // 3. Guard Progress Math: Calculate progress strictly as:
+        // Math.min(1, Math.max(0, (total_phase_seconds - remaining_seconds) / total_phase_seconds))
         function updateProgress() {
-            const safeTotal = (totalSeconds && totalSeconds > 0) ? totalSeconds : (localSeconds > 0 ? localSeconds : 1500);
-            const elapsed = Math.max(0, safeTotal - localSeconds);
-            const pct = Math.min(100, Math.round((elapsed / safeTotal) * 100)) || 0;
+            const safeTotal = (Number.isInteger(totalSeconds) && totalSeconds > 0) ? totalSeconds : 1500;
+            const progressRatio = Math.min(1, Math.max(0, (safeTotal - localSeconds) / safeTotal));
+            const pct = Math.round(progressRatio * 100);
             progressBar.style.width = `${pct}%`;
             progressPercent.innerText = `${pct}%`;
         }
@@ -194,13 +218,18 @@
                         }
                     } else {
                         clearInterval(localTimerInterval);
+                        localTimerInterval = null;
                         AudioEngine.fanfare();
                         triggerSuperpower(currentHeroKey);
+                        const finishedMins = Math.round(totalSeconds / 60);
                         if (typeof isCustomPhase === 'function' && isCustomPhase(currentPhase)) {
-                            const earnedXp = Math.round((totalSeconds || 1500) / 60) * 10;
-                            showToast(`SPECIAL OPS COMPLETE: +${earnedXp} XP!`, "done");
+                            const earnedXp = finishedMins * 10;
+                            showToast(`SPECIAL OPS COMPLETE: +${earnedXp} XP! (${finishedMins}M)`, "done");
+                        } else if (currentPhase === 'WORK') {
+                            const earnedXp = finishedMins * 10;
+                            showToast(`MISSION COMPLETE: +${earnedXp} XP!`, "done");
                         } else {
-                            showToast("MISSION COMPLETE!", "done");
+                            showToast(`RECHARGE COMPLETE: ${finishedMins}M REST LOGGED!`, "done");
                         }
                         loadAnalytics();
                         loadTacticalStats();
