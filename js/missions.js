@@ -274,31 +274,241 @@
             }
         }
 
-        function updateShieldClearance(totalMinutes) {
-            const totalXP = totalMinutes * 10;
-            const ranks = [
-                { name: "LEVEL 1 RECRUIT", level: 1, minXP: 0, maxXP: 250 },
-                { name: "RESERVE AVENGER", level: 2, minXP: 250, maxXP: 750 },
-                { name: "SUPER SOLDIER", level: 3, minXP: 750, maxXP: 1500 },
-                { name: "GOD OF THUNDER", level: 4, minXP: 1500, maxXP: 3000 },
-                { name: "STARK MASTERMIND", level: 5, minXP: 3000, maxXP: 6000 }
-            ];
+        const SHIELD_RANKS = [
+            // Tier 1: Field Recruitment (0 - 3,200 XP | 0 - 5.3 hrs)
+            { level: 1,  name: "S.H.I.E.L.D. CADET",            minXP: 0,       maxXP: 500,     tier: "Recruit",         hours: "0.8h" },
+            { level: 2,  name: "FIELD INITIATE",               minXP: 500,     maxXP: 1200,    tier: "Recruit",         hours: "2.0h" },
+            { level: 3,  name: "COMMUNICATIONS SPECIALIST",    minXP: 1200,    maxXP: 2100,    tier: "Recruit",         hours: "3.5h" },
+            { level: 4,  name: "LEVEL 4 CLEARANCE AGENT",      minXP: 2100,    maxXP: 3200,    tier: "Field Agent",     hours: "5.3h" },
 
-            let currentRank = ranks[0];
-            for (let r of ranks) {
-                if (totalXP >= r.minXP) currentRank = r;
+            // Tier 2: Special Operations (3,200 - 11,200 XP | ~5.3 - 18.6 hrs)
+            { level: 5,  name: "TACTICAL STRIKE OPERATIVE",    minXP: 3200,    maxXP: 4600,    tier: "Field Agent",     hours: "7.6h" },
+            { level: 6,  name: "SHADOW INFILTRATOR",           minXP: 4600,    maxXP: 6400,    tier: "Field Agent",     hours: "10.6h" },
+            { level: 7,  name: "BLACK OPS RECON",              minXP: 6400,    maxXP: 8600,    tier: "Special Ops",     hours: "14.3h" },
+            { level: 8,  name: "WAKANDAN WAR DOG",             minXP: 8600,    maxXP: 11200,   tier: "Special Ops",     hours: "18.6h" },
+
+            // Tier 3: Avengers Protocol (11,200 - 36,500 XP | ~18.6 - 60.8 hrs)
+            { level: 9,  name: "RESERVE AVENGER",              minXP: 11200,   maxXP: 14500,   tier: "Avenger Initiate", hours: "24.1h" },
+            { level: 10, name: "VIBRANIUM SENTINEL",           minXP: 14500,   maxXP: 18500,   tier: "Avenger",         hours: "30.8h" },
+            { level: 11, name: "SUPER SOLDIER",                minXP: 18500,   maxXP: 23500,   tier: "Avenger",         hours: "39.1h" },
+            { level: 12, name: "QUANTUM REALM EXPLORER",       minXP: 23500,   maxXP: 29500,   tier: "Avenger",         hours: "49.1h" },
+            { level: 13, name: "ARC REACTOR PIONEER",          minXP: 29500,   maxXP: 36500,   tier: "Avenger Elite",   hours: "60.8h" },
+
+            // Tier 4: Earth's Mightiest (36,500 - 97,000 XP | ~60.8 - 161.6 hrs)
+            { level: 14, name: "ASGARDIAN BATTLE TESTED",      minXP: 36500,   maxXP: 45000,   tier: "Earth's Mightiest", hours: "75h" },
+            { level: 15, name: "TITAN BREAKER",                minXP: 45000,   maxXP: 55000,   tier: "Earth's Mightiest", hours: "91h" },
+            { level: 16, name: "GAMMA RADIATED GOLIATH",       minXP: 55000,   maxXP: 67000,   tier: "Earth's Mightiest", hours: "111h" },
+            { level: 17, name: "GOD OF THUNDER",               minXP: 67000,   maxXP: 81000,   tier: "Earth's Mightiest", hours: "135h" },
+            { level: 18, name: "NANOTECH WARRIOR",             minXP: 81000,   maxXP: 97000,   tier: "Stark Vanguard",  hours: "161h" },
+
+            // Tier 5: Mastermind & Mystic Arts (97,000 - 195,000 XP | ~161.6 - 325 hrs)
+            { level: 19, name: "STARK MASTERMIND",             minXP: 97000,   maxXP: 116000,  tier: "Stark Vanguard",  hours: "193h" },
+            { level: 20, name: "MYSTIC ARTS ADEPT",            minXP: 116000,  maxXP: 138000,  tier: "Master Mystic",   hours: "230h" },
+            { level: 21, name: "SORCERER SUPREME",             minXP: 138000,  maxXP: 164000,  tier: "Master Mystic",   hours: "273h" },
+            { level: 22, name: "EYE OF AGAMOTTO KEEPER",       minXP: 164000,  maxXP: 195000,  tier: "Cosmic Sentinel", hours: "325h" },
+
+            // Tier 6: Cosmic Guardians (195,000 - 390,000 XP | ~325 - 650 hrs)
+            { level: 23, name: "NOVA CORPS CENTURION",         minXP: 195000,  maxXP: 232000,  tier: "Cosmic Guardian", hours: "386h" },
+            { level: 24, name: "COSMIC DEFENDER",              minXP: 232000,  maxXP: 276000,  tier: "Cosmic Guardian", hours: "460h" },
+            { level: 25, name: "CELESTIAL HARBINGER",          minXP: 276000,  maxXP: 328000,  tier: "Cosmic Guardian", hours: "546h" },
+            { level: 26, name: "PHOENIX FORCE AVATAR",         minXP: 328000,  maxXP: 390000,  tier: "Cosmic Entity",   hours: "650h" },
+
+            // Tier 7: Omniversal & Multiverse Legends (390,000 - 1,000,000+ XP | 650 - 1,600+ hrs)
+            { level: 27, name: "MULTIVERSE GUARDIAN",          minXP: 390000,  maxXP: 465000,  tier: "Omniversal",      hours: "775h" },
+            { level: 28, name: "INFINITY GAUNTLET BEARER",     minXP: 465000,  maxXP: 555000,  tier: "Omniversal",      hours: "925h" },
+            { level: 29, name: "LIVING TRIBUNAL ARBITER",      minXP: 555000,  maxXP: 700000,  tier: "Omniversal",      hours: "1166h" },
+            { level: 30, name: "THE ONE ABOVE ALL",            minXP: 700000,  maxXP: null,    tier: "Supreme Deity",   hours: "1166h+" }
+        ];
+
+        window.SHIELD_RANKS = SHIELD_RANKS;
+
+        function updateShieldClearance(totalMinutes) {
+            const totalXP = Math.max(0, Math.round(totalMinutes * 10));
+            window.latestTotalXP = totalXP;
+
+            let currentRank = SHIELD_RANKS[0];
+            let currentRankIndex = 0;
+
+            for (let i = 0; i < SHIELD_RANKS.length; i++) {
+                if (totalXP >= SHIELD_RANKS[i].minXP) {
+                    currentRank = SHIELD_RANKS[i];
+                    currentRankIndex = i;
+                }
             }
 
-            document.getElementById('xp-rank-title').innerText = currentRank.name;
-            document.getElementById('xp-level-badge').innerText = `RANK ${currentRank.level}`;
+            const nextRank = SHIELD_RANKS[currentRankIndex + 1] || null;
 
-            const xpInLevel = totalXP - currentRank.minXP;
-            const xpSpan = currentRank.maxXP - currentRank.minXP;
-            const xpPct = Math.min(100, Math.max(5, Math.round((xpInLevel / xpSpan) * 100)));
+            const titleEl = document.getElementById('xp-rank-title');
+            const badgeEl = document.getElementById('xp-level-badge');
+            const counterEl = document.getElementById('xp-counter-text');
+            const fillBarEl = document.getElementById('xp-fill-bar');
+            const nextRankEl = document.getElementById('xp-next-rank-text');
 
-            document.getElementById('xp-fill-bar').style.width = `${xpPct}%`;
-            document.getElementById('xp-counter-text').innerText = `${totalXP} / ${currentRank.maxXP} XP`;
+            if (titleEl) titleEl.innerText = currentRank.name;
+            if (badgeEl) {
+                badgeEl.innerText = `RANK ${currentRank.level}`;
+                if (currentRank.level >= 27) {
+                    badgeEl.className = "hud-badge bg-gradient-to-r from-purple-700 to-indigo-800 text-[#FACC15] border-2 border-black";
+                } else if (currentRank.level >= 19) {
+                    badgeEl.className = "hud-badge bg-gradient-to-r from-amber-500 to-rose-600 text-black border-2 border-black";
+                } else if (currentRank.level >= 9) {
+                    badgeEl.className = "hud-badge bg-[#06B6D4] text-black border-2 border-black";
+                } else {
+                    badgeEl.className = "hud-badge bg-black text-[#FACC15] border-2 border-black";
+                }
+            }
+
+            let xpPct = 100;
+            if (currentRank.maxXP) {
+                const xpInLevel = totalXP - currentRank.minXP;
+                const xpSpan = currentRank.maxXP - currentRank.minXP;
+                xpPct = Math.min(100, Math.max(5, Math.round((xpInLevel / xpSpan) * 100)));
+                if (counterEl) counterEl.innerText = `${totalXP} / ${currentRank.maxXP} XP`;
+            } else {
+                xpPct = 100;
+                if (counterEl) counterEl.innerText = `${totalXP} XP (MAX)`;
+            }
+
+            if (fillBarEl) fillBarEl.style.width = `${xpPct}%`;
+
+            if (nextRankEl) {
+                if (nextRank) {
+                    nextRankEl.innerText = `NEXT: ${nextRank.name}`;
+                } else {
+                    nextRankEl.innerText = `STATUS: MAXIMUM CLEARANCE`;
+                }
+            }
+
+            updateDossierContent(totalXP, currentRank);
         }
+
+        function updateDossierContent(totalXP, currentRank) {
+            const currentRankTag = document.getElementById('dossier-current-rank');
+            const totalXPTag = document.getElementById('dossier-total-xp');
+            const listEl = document.getElementById('dossier-ranks-list');
+            if (!listEl) return;
+
+            if (currentRankTag && currentRank) {
+                currentRankTag.innerText = `RANK ${currentRank.level}: ${currentRank.name}`;
+            }
+            if (totalXPTag) {
+                totalXPTag.innerText = `${totalXP.toLocaleString()} XP`;
+            }
+
+            listEl.innerHTML = SHIELD_RANKS.map(r => {
+                const isCleared = totalXP >= (r.maxXP || Infinity) || r.level < currentRank.level;
+                const isCurrent = r.level === currentRank.level;
+
+                let rowBg = "bg-white hover:bg-slate-50 border border-slate-200";
+                let statusBadge = "";
+
+                if (isCurrent) {
+                    rowBg = "bg-[#FEF3C7] border-2 border-black shadow-[3px_3px_0px_#000]";
+                    statusBadge = `<span class="hud-badge bg-black text-[#FACC15] text-[10px] py-0.5 px-2 flex items-center gap-1"><i data-lucide="zap" class="w-3 h-3 text-[#FACC15]"></i> CURRENT</span>`;
+                } else if (isCleared) {
+                    statusBadge = `<span class="hud-badge bg-emerald-500 text-black text-[10px] py-0.5 px-2 flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i> CLEARED</span>`;
+                } else {
+                    const needed = r.minXP - totalXP;
+                    statusBadge = `<span class="hud-badge bg-slate-200 text-slate-700 text-[10px] py-0.5 px-2 flex items-center gap-1"><i data-lucide="lock" class="w-3 h-3"></i> +${needed.toLocaleString()} XP</span>`;
+                }
+
+                return `
+                    <div class="p-3 rounded-lg flex items-center justify-between gap-3 ${rowBg} transition-all">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="font-mono font-black text-xs px-2 py-1 rounded border border-black ${isCurrent ? 'bg-black text-[#FACC15]' : (isCleared ? 'bg-emerald-100 text-emerald-900' : 'bg-slate-100 text-slate-600')}">
+                                ${r.level < 10 ? '0' + r.level : r.level}
+                            </span>
+                            <div class="truncate">
+                                <div class="font-comic font-bold text-sm text-black leading-tight truncate flex items-center gap-2">
+                                    <span>${r.name}</span>
+                                    <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-300 uppercase">${r.tier}</span>
+                                </div>
+                                <div class="text-[11px] font-mono text-slate-500 font-medium">
+                                    ${r.minXP.toLocaleString()} XP ${r.maxXP ? `– ${r.maxXP.toLocaleString()} XP` : '+'} <span class="text-slate-400">(${r.hours})</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0">
+                            ${statusBadge}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function openShieldDossier() {
+            const modal = document.getElementById('shield-dossier-modal');
+            if (!modal) return;
+            if (typeof AudioEngine !== 'undefined' && AudioEngine.repulsorZap) {
+                AudioEngine.repulsorZap();
+            }
+            modal.classList.remove('hidden');
+            const totalXP = window.latestTotalXP || 0;
+            let currentRank = SHIELD_RANKS[0];
+            for (let r of SHIELD_RANKS) {
+                if (totalXP >= r.minXP) currentRank = r;
+            }
+            updateDossierContent(totalXP, currentRank);
+
+            setTimeout(() => {
+                const activeEl = modal.querySelector('.bg-\\[\\#FEF3C7\\]');
+                if (activeEl) {
+                    activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 80);
+        }
+
+        function closeShieldDossier() {
+            const modal = document.getElementById('shield-dossier-modal');
+            if (!modal) return;
+            modal.classList.add('hidden');
+        }
+
+        function initShieldDossierListeners() {
+            const btnView = document.getElementById('btn-view-ranks');
+            const clearanceCard = document.getElementById('clearance-card');
+            const btnClose = document.getElementById('btn-close-dossier');
+            const modal = document.getElementById('shield-dossier-modal');
+
+            if (btnView) {
+                btnView.onclick = (e) => {
+                    e.stopPropagation();
+                    openShieldDossier();
+                };
+            }
+            if (clearanceCard) {
+                clearanceCard.onclick = () => {
+                    openShieldDossier();
+                };
+            }
+            if (btnClose) {
+                btnClose.onclick = (e) => {
+                    e.stopPropagation();
+                    closeShieldDossier();
+                };
+            }
+            if (modal) {
+                modal.onclick = (e) => {
+                    if (e.target === modal) closeShieldDossier();
+                };
+            }
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+                    closeShieldDossier();
+                }
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initShieldDossierListeners);
+        } else {
+            initShieldDossierListeners();
+        }
+
+        window.openShieldDossier = openShieldDossier;
+        window.closeShieldDossier = closeShieldDossier;
 
         function renderMissionDebriefs(logs) {
             const list = document.getElementById('session-log-list');

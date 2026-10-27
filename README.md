@@ -29,13 +29,16 @@ A playful, comic pop-art **Avengers-themed** web dashboard companion built for a
     4. 🟠 **Soul Stone**
   - Completing all 4 unlocks the **Shawarma Long Break** with a gold confetti fanfare!
 
-- **🛡️ S.H.I.E.L.D. Clearance & Gamification**:
-  - Earn +10 XP per minute to unlock ranks:
-    - *Rank 1: Level 1 Recruit*
-    - *Rank 2: Reserve Avenger*
-    - *Rank 3: Super Soldier*
-    - *Rank 4: God of Thunder*
-    - *Rank 5: Stark Mastermind*
+- **🛡️ S.H.I.E.L.D. Clearance & Gamification (30 Ranked Tiers)**:
+  - Earn +10 XP per focus minute with an exponential difficulty curve across 30 classified clearance ranks:
+    - *Tier 1 (Recruitment)*: Rank 1 S.H.I.E.L.D. Cadet to Rank 4 Level 4 Clearance Agent
+    - *Tier 2 (Special Ops)*: Rank 5 Tactical Strike Operative to Rank 8 Wakandan War Dog
+    - *Tier 3 (Avengers Protocol)*: Rank 9 Reserve Avenger to Rank 13 Arc Reactor Pioneer
+    - *Tier 4 (Earth's Mightiest)*: Rank 14 Asgardian Battle Tested to Rank 18 Nanotech Warrior
+    - *Tier 5 (Mastermind & Mystics)*: Rank 19 Stark Mastermind to Rank 22 Eye of Agamotto Keeper
+    - *Tier 6 (Cosmic Guardians)*: Rank 23 Nova Corps Centurion to Rank 26 Phoenix Force Avatar
+    - *Tier 7 (Omniversal Legends)*: Rank 27 Multiverse Guardian to Rank 30 The One Above All
+  - **Classified Dossier Modal**: Click the "30 RANKS" button or the Clearance Card to inspect your active standing, cleared badges, and XP distance to apex ranks.
   - **Metrics**: Threats Smashed (Work sessions), Arc Reactor Output (Hours), Serum Recovery (Break time).
 
 - **🔊 100% Self-Contained Web Audio API SFX**:
