@@ -553,13 +553,19 @@
             }
         }
 
+        let activeVolumeCalloutState = {
+            text: 'HOVER BARS TO INSPECT COMBAT SESSION BREAKDOWN',
+            badgeText: 'CADENCE',
+            badgeClass: 'text-[10px] bg-black text-[#FACC15] px-2 py-0.5 rounded border border-black shrink-0 font-mono font-bold'
+        };
+
         function resetVolumeInspect() {
             const calloutText = document.getElementById('volume-inspect-text');
             const calloutBadge = document.getElementById('volume-inspect-badge');
-            if (calloutText) calloutText.innerText = 'HOVER BARS TO INSPECT COMBAT SESSION BREAKDOWN';
+            if (calloutText) calloutText.innerHTML = activeVolumeCalloutState.text;
             if (calloutBadge) {
-                calloutBadge.className = "text-[10px] bg-black text-[#FACC15] px-2 py-0.5 rounded border border-black shrink-0 font-mono font-bold";
-                calloutBadge.innerText = "CADENCE";
+                calloutBadge.className = activeVolumeCalloutState.badgeClass;
+                calloutBadge.innerText = activeVolumeCalloutState.badgeText;
             }
         }
 
@@ -571,15 +577,13 @@
             const dailyAvgSub = document.getElementById('volume-daily-avg-sub');
             const timelineAxis = document.getElementById('volume-timeline-axis');
             const activeCadenceEl = document.getElementById('volume-active-cadence');
-            const inspectCalloutText = document.getElementById('volume-inspect-text');
-            const inspectCalloutBadge = document.getElementById('volume-inspect-badge');
             if (!container) return;
 
             const mode = tacticalArchiveData.volumeViewMode || 'BARS';
             const days = tacticalArchiveData.volumeRangeDays || 7;
             const is30 = (days === 30);
 
-            // Build complete 60-day date map for calculations
+            // Build complete date map for calculations in Asia/Dhaka
             const dateMap = {};
             tacticalArchiveData.workLogs.forEach(l => {
                 if (l.completed_at) {
@@ -613,18 +617,20 @@
                 }
 
                 const waveDays = 14;
-                const now = Date.now();
+                const todayKey = typeof getDhakaDateKey === 'function' ? getDhakaDateKey(new Date()) : new Date().toLocaleDateString('en-CA');
+                const [ty, tm, td] = todayKey.split('-').map(Number);
+                const todayNoon = new Date(Date.UTC(ty, tm - 1, td, 12, 0, 0));
                 const dayItems = [];
 
                 for (let i = waveDays - 1; i >= 0; i--) {
-                    const d = new Date(now - i * 24 * 60 * 60 * 1000);
+                    const d = new Date(todayNoon.getTime() - i * 86400000);
                     const key = typeof getDhakaDateKey === 'function' ? getDhakaDateKey(d) : d.toLocaleDateString('en-CA');
                     const stats = dateMap[key] || { count: 0, mins: 0, workCount: 0, specialCount: 0, specialMins: 0, workMins: 0 };
 
-                    // Calculate 7-day rolling moving average up to day d
+                    // Calculate 7-day rolling moving average up to day d (7 days ending on day d)
                     let rollingSum = 0;
                     for (let k = 0; k < 7; k++) {
-                        const pastD = new Date(d.getTime() - k * 24 * 60 * 60 * 1000);
+                        const pastD = new Date(d.getTime() - k * 86400000);
                         const pastKey = typeof getDhakaDateKey === 'function' ? getDhakaDateKey(pastD) : pastD.toLocaleDateString('en-CA');
                         if (dateMap[pastKey]) {
                             rollingSum += dateMap[pastKey].mins;
@@ -657,12 +663,14 @@
                     : "bg-[#FB923C] text-black font-black border border-black px-2 py-0.5 rounded shadow-[1px_1px_0px_#000]";
 
                 if (rangeLabel) rangeLabel.innerText = "7-DAY ROLLING MOMENTUM WAVE";
-                if (peakLabel) peakLabel.innerText = `ROLLING AVG: ${currentSMA} MINS/DAY`;
-                if (inspectCalloutText) inspectCalloutText.innerText = `7-DAY ROLLING AVERAGE: ${currentSMA} MINS/DAY • ${momentumTag}`;
-                if (inspectCalloutBadge) {
-                    inspectCalloutBadge.className = `text-[10px] ${momentumClass} shrink-0 font-mono`;
-                    inspectCalloutBadge.innerText = momentumTag;
-                }
+                if (peakLabel) peakLabel.innerText = `7D ROLLING AVG: ${currentSMA} MINS/DAY`;
+
+                activeVolumeCalloutState = {
+                    text: `7-DAY ROLLING MOMENTUM: ${currentSMA} MINS/DAY • 7D SMA TRAJECTORY`,
+                    badgeText: momentumTag,
+                    badgeClass: `text-[10px] ${momentumClass} shrink-0 font-mono font-bold whitespace-nowrap`
+                };
+                resetVolumeInspect();
 
                 const maxVal = Math.max(...dayItems.map(d => Math.max(d.mins, d.sma7)), 60);
                 const yMax = Math.max(100, Math.ceil(maxVal / 25) * 25);
@@ -683,33 +691,36 @@
                 });
 
                 if (periodTotal) periodTotal.innerText = `14D TOTAL: ${(totalMins / 60).toFixed(1)} HOURS`;
-                if (dailyAvgSub) dailyAvgSub.innerText = `AVG: ${Math.round(totalMins / waveDays)} MINS/DAY`;
+                if (dailyAvgSub) dailyAvgSub.innerText = `14D AVG: ${Math.round(totalMins / waveDays)} MINS/DAY`;
                 if (activeCadenceEl) activeCadenceEl.innerText = `${activeDaysCount}/${waveDays} DAYS ACTIVE`;
 
-                // SVG Drawing dimensions
+                // SVG Drawing dimensions aligned with HTML Y-axis scale
                 const svgW = 500;
-                const svgH = 145;
-                const padBottom = 22;
-                const usableH = svgH - padBottom - 15;
+                const svgH = 144;
+                const padBottom = 24; // aligns with pb-6 (24px)
+                const padTop = 8;
+                const usableH = (svgH - padBottom) - padTop;
+                const yBase = svgH - padBottom;
+                const yMidGuide = yBase - usableH * 0.5;
                 const stepX = (svgW - 40) / (waveDays - 1);
 
                 // Map points for spline
                 const points = dayItems.map((item, idx) => {
                     const x = 20 + idx * stepX;
-                    const y = (svgH - padBottom) - (item.sma7 / yMax) * usableH;
+                    const y = yBase - (item.sma7 / yMax) * usableH;
                     return { x, y, item, idx };
                 });
 
                 const splinePath = generateSmoothSvgPath(points);
                 const areaPath = points.length > 0
-                    ? `${splinePath} L ${points[points.length - 1].x.toFixed(1)} ${svgH - padBottom} L ${points[0].x.toFixed(1)} ${svgH - padBottom} Z`
+                    ? `${splinePath} L ${points[points.length - 1].x.toFixed(1)} ${yBase} L ${points[0].x.toFixed(1)} ${yBase} Z`
                     : "";
 
                 // Background translucent bars
                 const barsSvg = dayItems.map((item, idx) => {
                     const x = 20 + idx * stepX;
                     const barH = item.mins > 0 ? Math.max(6, (item.mins / yMax) * usableH) : 3;
-                    const y = (svgH - padBottom) - barH;
+                    const y = yBase - barH;
                     return `<rect x="${(x - 9).toFixed(1)}" y="${y.toFixed(1)}" width="18" height="${barH.toFixed(1)}" rx="2" fill="#FACC15" opacity="0.32" stroke="#000" stroke-width="1.2" stroke-opacity="0.35"/>`;
                 }).join('');
 
@@ -717,11 +728,22 @@
                 const nodesSvg = points.map(pt => {
                     const dayLabel = pt.item.date.toLocaleDateString('en-US', { timeZone: 'Asia/Dhaka', weekday: 'narrow' });
                     const isToday = (pt.idx === waveDays - 1);
+                    const hoverAction = `
+                        const calloutText = document.getElementById('volume-inspect-text');
+                        const calloutBadge = document.getElementById('volume-inspect-badge');
+                        if (calloutText) {
+                            calloutText.innerHTML = '${pt.item.date.toLocaleDateString('en-US', { timeZone: 'Asia/Dhaka', weekday: 'short', month: 'short', day: 'numeric' })} • <b>${pt.item.mins}m</b> LOGGED • 7D SMA: <b>${pt.item.sma7}m/day</b>';
+                        }
+                        if (calloutBadge) {
+                            calloutBadge.className = 'text-[10px] bg-[#10B981] text-black font-bold px-2 py-0.5 rounded border border-black shrink-0 font-mono';
+                            calloutBadge.innerText = '7D SMA: ${pt.item.sma7}m';
+                        }
+                    `;
                     return `
                         <g class="cursor-pointer group" 
-                           onmouseenter="inspectVolumeBar('${pt.item.key}', ${pt.item.mins}, ${pt.item.count}, ${pt.item.workCount}, ${pt.item.specialCount}, ${pt.item.specialMins})"
+                           onmouseenter="${hoverAction}"
                            onmouseleave="resetVolumeInspect()"
-                           onclick="inspectVolumeBar('${pt.item.key}', ${pt.item.mins}, ${pt.item.count}, ${pt.item.workCount}, ${pt.item.specialCount}, ${pt.item.specialMins})">
+                           onclick="${hoverAction}">
                             <rect x="${(pt.x - 14).toFixed(1)}" y="0" width="28" height="${svgH}" fill="transparent"/>
                             <circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="5.5" fill="#000"/>
                             <circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="${isToday ? '4' : '3.2'}" fill="${isToday ? '#FACC15' : '#10B981'}"/>
@@ -733,8 +755,10 @@
                 container.className = "h-36 sm:h-40 flex items-center justify-center p-0 min-w-0 w-full overflow-hidden relative";
                 container.innerHTML = `
                     <svg viewBox="0 0 ${svgW} ${svgH}" class="w-full h-full select-none" preserveAspectRatio="none">
+                        <!-- Subtle Mid-level Guide Line -->
+                        <line x1="10" y1="${yMidGuide.toFixed(1)}" x2="${svgW - 10}" y2="${yMidGuide.toFixed(1)}" stroke="#E2E8F0" stroke-dasharray="3 3" stroke-width="1"/>
                         <!-- Horizontal Base Guide -->
-                        <line x1="10" y1="${svgH - padBottom}" x2="${svgW - 10}" y2="${svgH - padBottom}" stroke="#CBD5E1" stroke-width="1.5"/>
+                        <line x1="10" y1="${yBase}" x2="${svgW - 10}" y2="${yBase}" stroke="#CBD5E1" stroke-width="1.5"/>
                         <!-- Translucent Daily Output Bars -->
                         ${barsSvg}
                         <!-- Neon Emerald Translucent Area Fill -->
@@ -751,6 +775,7 @@
 
             // ==============================================================
             // MODE 2: THIS WEEK VS LAST WEEK GHOST COMPARATIVE LINE
+            // X-Axis: Monday through Sunday (Standard Weekly Battle)
             // ==============================================================
             if (mode === 'COMPARE') {
                 if (timelineAxis) {
@@ -759,15 +784,19 @@
                     timelineAxis.innerHTML = '';
                 }
 
-                const now = new Date();
-                const todayDOW = typeof getDhakaDayOfWeek === 'function' ? getDhakaDayOfWeek(now) : now.getDay();
-                const todayKey = typeof getDhakaDateKey === 'function' ? getDhakaDateKey(now) : now.toLocaleDateString('en-CA');
+                const todayKey = typeof getDhakaDateKey === 'function' ? getDhakaDateKey(new Date()) : new Date().toLocaleDateString('en-CA');
+                const [ty, tm, td] = todayKey.split('-').map(Number);
+                const todayNoon = new Date(Date.UTC(ty, tm - 1, td, 12, 0, 0));
+                const utcDay = todayNoon.getUTCDay();
+                // Monday-based index: Mon=0, Tue=1, Wed=2, Thu=3, Fri=4, Sat=5, Sun=6
+                const todayIndex = (utcDay + 6) % 7;
 
-                // Find Sunday of This Week (00:00 UTC)
-                const thisSunday = new Date(now.getTime() - todayDOW * 24 * 60 * 60 * 1000);
-                const lastSunday = new Date(thisSunday.getTime() - 7 * 24 * 60 * 60 * 1000);
+                // Monday of This Week
+                const thisMonday = new Date(todayNoon.getTime() - todayIndex * 86400000);
+                // Monday of Last Week
+                const lastMonday = new Date(thisMonday.getTime() - 7 * 86400000);
 
-                const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+                const dayNames = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
                 const thisWeekData = [];
                 const lastWeekData = [];
 
@@ -777,8 +806,8 @@
                 let lastTotalMins = 0;
 
                 for (let i = 0; i < 7; i++) {
-                    const twDate = new Date(thisSunday.getTime() + i * 24 * 60 * 60 * 1000);
-                    const lwDate = new Date(lastSunday.getTime() + i * 24 * 60 * 60 * 1000);
+                    const twDate = new Date(thisMonday.getTime() + i * 86400000);
+                    const lwDate = new Date(lastMonday.getTime() + i * 86400000);
 
                     const twKey = typeof getDhakaDateKey === 'function' ? getDhakaDateKey(twDate) : twDate.toLocaleDateString('en-CA');
                     const lwKey = typeof getDhakaDateKey === 'function' ? getDhakaDateKey(lwDate) : lwDate.toLocaleDateString('en-CA');
@@ -792,30 +821,45 @@
                     thisTotalMins += twStats.mins;
                     lastTotalMins += lwStats.mins;
 
-                    if (i <= todayDOW) {
+                    if (i <= todayIndex) {
                         thisCumulativeThroughToday += twStats.mins;
                         lastCumulativeThroughToday += lwStats.mins;
                     }
                 }
 
                 const deltaThroughToday = thisCumulativeThroughToday - lastCumulativeThroughToday;
-                const isAhead = deltaThroughToday >= 0;
-                const currentDayName = dayNames[todayDOW];
+                const isAhead = deltaThroughToday > 0;
+                const isTied = deltaThroughToday === 0;
+                const currentDayName = dayNames[todayIndex];
 
-                const deltaText = `${deltaThroughToday >= 0 ? '+' : ''}${deltaThroughToday} MINS`;
-                const statusCallout = `${currentDayName} STATUS: ${deltaText} ${isAhead ? 'AHEAD OF' : 'BEHIND'} LAST WEEK'S CADENCE`;
-                const statusBadgeClass = isAhead 
-                    ? "bg-[#10B981] text-black font-black border border-black px-2 py-0.5 rounded shadow-[1px_1px_0px_#000]"
-                    : "bg-[#FB923C] text-black font-black border border-black px-2 py-0.5 rounded shadow-[1px_1px_0px_#000]";
-                const statusBadgeText = isAhead ? "AHEAD OF PACE" : "RECOVERY NEEDED";
+                const deltaText = `${deltaThroughToday > 0 ? '+' : ''}${deltaThroughToday} MINS`;
+                let statusCallout = '';
+                let statusBadgeClass = '';
+                let statusBadgeText = '';
+
+                if (isTied) {
+                    statusCallout = `${currentDayName} STATUS: ON PACE WITH LAST WEEK'S CADENCE`;
+                    statusBadgeClass = "bg-[#FACC15] text-black font-black border border-black px-2 py-0.5 rounded shadow-[1px_1px_0px_#000]";
+                    statusBadgeText = "ON PACE (0m)";
+                } else if (isAhead) {
+                    statusCallout = `${currentDayName} STATUS: ${deltaText} AHEAD OF LAST WEEK'S CADENCE`;
+                    statusBadgeClass = "bg-[#10B981] text-black font-black border border-black px-2 py-0.5 rounded shadow-[1px_1px_0px_#000]";
+                    statusBadgeText = `▲ ${deltaText} AHEAD`;
+                } else {
+                    statusCallout = `${currentDayName} STATUS: ${deltaText} BEHIND LAST WEEK'S CADENCE`;
+                    statusBadgeClass = "bg-[#FB923C] text-black font-black border border-black px-2 py-0.5 rounded shadow-[1px_1px_0px_#000]";
+                    statusBadgeText = `▼ ${Math.abs(deltaThroughToday)}m BEHIND`;
+                }
 
                 if (rangeLabel) rangeLabel.innerText = "THIS WEEK VS LAST WEEK GHOST COMPARISON";
-                if (peakLabel) peakLabel.innerText = `DELTA: ${deltaText}`;
-                if (inspectCalloutText) inspectCalloutText.innerText = statusCallout;
-                if (inspectCalloutBadge) {
-                    inspectCalloutBadge.className = `text-[10px] ${statusBadgeClass} shrink-0 font-mono`;
-                    inspectCalloutBadge.innerText = statusBadgeText;
-                }
+                if (peakLabel) peakLabel.innerText = `PACE DELTA: ${isTied ? '0 MINS' : deltaText}`;
+
+                activeVolumeCalloutState = {
+                    text: statusCallout,
+                    badgeText: statusBadgeText,
+                    badgeClass: `text-[10px] ${statusBadgeClass} shrink-0 font-mono font-bold whitespace-nowrap`
+                };
+                resetVolumeInspect();
 
                 const maxVal = Math.max(...thisWeekData.map(d => d.mins), ...lastWeekData.map(d => d.mins), 60);
                 const yMax = Math.max(100, Math.ceil(maxVal / 25) * 25);
@@ -828,27 +872,30 @@
                 if (yMidEl) yMidEl.innerText = `${yMid}m`;
                 if (yBaseEl) yBaseEl.innerText = `0m`;
 
-                if (periodTotal) periodTotal.innerText = `THIS WEEK: ${(thisTotalMins / 60).toFixed(1)}h • LAST WEEK: ${(lastTotalMins / 60).toFixed(1)}h`;
-                if (dailyAvgSub) dailyAvgSub.innerText = `PACE DELTA: ${deltaText}`;
-                if (activeCadenceEl) activeCadenceEl.innerText = `${thisWeekData.filter(d => d.mins > 0).length}/7 DAYS ACTIVE`;
+                if (periodTotal) periodTotal.innerText = `THIS WEEK: ${(thisTotalMins / 60).toFixed(1)}H • LAST WEEK: ${(lastTotalMins / 60).toFixed(1)}H`;
+                if (dailyAvgSub) dailyAvgSub.innerText = `PACE DELTA: ${isTied ? '0 MINS' : deltaText}`;
+                if (activeCadenceEl) activeCadenceEl.innerText = `${thisWeekData.filter(d => d.mins > 0).length}/${todayIndex + 1} DAYS ACTIVE`;
 
                 const svgW = 500;
-                const svgH = 145;
-                const padBottom = 22;
-                const usableH = svgH - padBottom - 15;
+                const svgH = 144;
+                const padBottom = 24;
+                const padTop = 8;
+                const usableH = (svgH - padBottom) - padTop;
+                const yBase = svgH - padBottom;
+                const yMidGuide = yBase - usableH * 0.5;
                 const stepX = (svgW - 50) / 6;
 
                 // Points for Last Week (full 7 days)
                 const lastPoints = lastWeekData.map((d, i) => {
                     const x = 25 + i * stepX;
-                    const y = (svgH - padBottom) - (d.mins / yMax) * usableH;
+                    const y = yBase - (d.mins / yMax) * usableH;
                     return { x, y, d };
                 });
 
-                // Points for This Week (only up to todayDOW)
-                const thisPoints = thisWeekData.filter(d => d.dow <= todayDOW).map(d => {
+                // Points for This Week (only up to todayIndex)
+                const thisPoints = thisWeekData.filter(d => d.dow <= todayIndex).map(d => {
                     const x = 25 + d.dow * stepX;
-                    const y = (svgH - padBottom) - (d.mins / yMax) * usableH;
+                    const y = yBase - (d.mins / yMax) * usableH;
                     return { x, y, d };
                 });
 
@@ -860,23 +907,24 @@
                     const x = 25 + i * stepX;
                     const tw = thisWeekData[i];
                     const lw = lastWeekData[i];
-                    const isToday = (i === todayDOW);
+                    const isToday = (i === todayIndex);
+                    const isFuture = (i > todayIndex);
                     const dayDelta = tw.mins - lw.mins;
 
                     const hoverAction = `
                         const calloutText = document.getElementById('volume-inspect-text');
                         const calloutBadge = document.getElementById('volume-inspect-badge');
                         if (calloutText) {
-                            calloutText.innerHTML = '${name} • THIS WEEK: <b>${tw.mins}m</b> vs LAST WEEK: <b>${lw.mins}m</b> (${dayDelta >= 0 ? '+' : ''}${dayDelta}m DELTA)';
+                            calloutText.innerHTML = '${name} • THIS WEEK: <b>${isFuture ? 'UPCOMING' : tw.mins + 'm'}</b> vs LAST WEEK: <b>${lw.mins}m</b>${!isFuture ? ' (' + (dayDelta >= 0 ? '+' : '') + dayDelta + 'm DELTA)' : ''}';
                         }
                         if (calloutBadge) {
-                            calloutBadge.className = 'text-[10px] ${dayDelta >= 0 ? 'bg-[#10B981]' : 'bg-[#FB923C]'} text-black px-2 py-0.5 rounded border border-black shrink-0 font-mono font-bold';
-                            calloutBadge.innerText = '${dayDelta >= 0 ? '+' : ''}${dayDelta}m';
+                            calloutBadge.className = 'text-[10px] ${!isFuture ? (dayDelta >= 0 ? 'bg-[#10B981]' : 'bg-[#FB923C]') : 'bg-zinc-200'} text-black px-2 py-0.5 rounded border border-black shrink-0 font-mono font-bold';
+                            calloutBadge.innerText = '${!isFuture ? (dayDelta >= 0 ? '+' : '') + dayDelta + 'm' : 'PENDING'}';
                         }
                     `;
 
                     return `
-                        <g class="cursor-pointer group" onmouseenter="${hoverAction}" onmouseleave="renderVolumeChart()">
+                        <g class="cursor-pointer group" onmouseenter="${hoverAction}" onmouseleave="resetVolumeInspect()" onclick="${hoverAction}">
                             <rect x="${(x - 20).toFixed(1)}" y="0" width="40" height="${svgH}" fill="transparent"/>
                             <!-- Day Label text -->
                             <text x="${x.toFixed(1)}" y="${svgH - 6}" text-anchor="middle" font-family="monospace" font-size="10" font-weight="bold" fill="${isToday ? '#E11D48' : '#334155'}">${name}</text>
@@ -896,19 +944,25 @@
                     `;
                 }).join('');
 
+                const thisPathSvg = thisPoints.length > 1 ? `
+                    <path d="${thisPath}" fill="none" stroke="#000" stroke-width="5.5" stroke-linecap="round"/>
+                    <path d="${thisPath}" fill="none" stroke="#FACC15" stroke-width="3.5" stroke-linecap="round"/>
+                ` : '';
+
                 container.className = "h-36 sm:h-40 flex items-center justify-center p-0 min-w-0 w-full overflow-hidden relative";
                 container.innerHTML = `
                     <svg viewBox="0 0 ${svgW} ${svgH}" class="w-full h-full select-none" preserveAspectRatio="none">
+                        <!-- Subtle Mid-level Guide Line -->
+                        <line x1="15" y1="${yMidGuide.toFixed(1)}" x2="${svgW - 15}" y2="${yMidGuide.toFixed(1)}" stroke="#E2E8F0" stroke-dasharray="3 3" stroke-width="1"/>
                         <!-- Horizontal Base Guide -->
-                        <line x1="15" y1="${svgH - padBottom}" x2="${svgW - 15}" y2="${svgH - padBottom}" stroke="#CBD5E1" stroke-width="1.5"/>
+                        <line x1="15" y1="${yBase}" x2="${svgW - 15}" y2="${yBase}" stroke="#CBD5E1" stroke-width="1.5"/>
 
                         <!-- Ghost Benchmark Line: Last Week (Dashed Slate) -->
                         <path d="${lastPath}" fill="none" stroke="#94A3B8" stroke-width="2.5" stroke-dasharray="5 4" stroke-linecap="round"/>
                         ${lastDotsSvg}
 
                         <!-- Active Combat Line: This Week (Bold Stark Yellow + Black Outline) -->
-                        <path d="${thisPath}" fill="none" stroke="#000" stroke-width="5.5" stroke-linecap="round"/>
-                        <path d="${thisPath}" fill="none" stroke="#FACC15" stroke-width="3.5" stroke-linecap="round"/>
+                        ${thisPathSvg}
                         ${thisDotsSvg}
 
                         <!-- Transparent Hover Hitboxes & Day Labels -->
@@ -921,6 +975,13 @@
             // ==============================================================
             // MODE 3: STANDARD BARS (7D OR 30D MODE)
             // ==============================================================
+            activeVolumeCalloutState = {
+                text: 'HOVER BARS TO INSPECT COMBAT SESSION BREAKDOWN',
+                badgeText: 'CADENCE',
+                badgeClass: 'text-[10px] bg-black text-[#FACC15] px-2 py-0.5 rounded border border-black shrink-0 font-mono font-bold'
+            };
+            resetVolumeInspect();
+
             if (rangeLabel) rangeLabel.innerText = `PAST ${days} DAYS COMBAT MINUTES`;
 
             const dayItems = [];
@@ -1122,17 +1183,40 @@
 
             const days = tacticalArchiveData.volumeRangeDays || 7;
             const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+            const spectrumMode = tacticalArchiveData.peakSpectrumMode || 'ALL';
 
-            // Filter by the active period (7 or 30 days) to accurately reflect Focus Volume Drill
-            const logsToUse = customLogs || (tacticalArchiveData.workLogs || []).filter(l => {
+            // 1. Filter by the active period (7 or 30 days) to accurately reflect Focus Volume Drill
+            let logsToUse = customLogs || (tacticalArchiveData.workLogs || []).filter(l => {
                 if (!l.completed_at) return false;
                 return new Date(l.completed_at).getTime() >= cutoff;
             });
 
+            // 2. Filter by Spectrum Mode: Weekend (Fri & Sat) vs Weekday (Sun - Thu) in Asia/Dhaka
+            if (spectrumMode === 'WEEKDAYS') {
+                logsToUse = logsToUse.filter(l => {
+                    const dow = typeof getDhakaDayOfWeek === 'function' ? getDhakaDayOfWeek(l.completed_at) : new Date(l.completed_at).getDay();
+                    return dow >= 0 && dow <= 4; // Sunday through Thursday
+                });
+            } else if (spectrumMode === 'WEEKENDS') {
+                logsToUse = logsToUse.filter(l => {
+                    const dow = typeof getDhakaDayOfWeek === 'function' ? getDhakaDayOfWeek(l.completed_at) : new Date(l.completed_at).getDay();
+                    return dow === 5 || dow === 6; // Friday and Saturday
+                });
+            }
+
             const badgeTag = document.getElementById('peak-badge-tag');
             const footerLabel = document.getElementById('peak-spectrum-footer-label');
-            if (badgeTag) badgeTag.innerText = `${days}D SPECTRUM`;
+            const spectrumTitle = document.getElementById('peak-spectrum-title');
+
+            if (badgeTag) badgeTag.innerText = `${days}D ${spectrumMode === 'ALL' ? 'SPECTRUM' : spectrumMode}`;
             if (footerLabel) footerLabel.innerText = `PAST ${days} DAYS`;
+            if (spectrumTitle) {
+                spectrumTitle.innerText = spectrumMode === 'WEEKDAYS' 
+                    ? 'WEEKDAY RHYTHM (SUN-THU)' 
+                    : spectrumMode === 'WEEKENDS' 
+                        ? 'WEEKEND RHYTHM (FRI-SAT)' 
+                        : '24-HOUR COMBAT SPECTRUM';
+            }
 
             const hourlyCounts = new Array(24).fill(0);
             logsToUse.forEach(l => {
@@ -1142,8 +1226,8 @@
                 }
             });
 
-            const maxHourly = Math.max(...hourlyCounts, 1);
-            const yMaxHourly = Math.max(4, Math.ceil(maxHourly / 2) * 2);
+            const maxHourly = Math.max(...hourlyCounts, 0);
+            const yMaxHourly = Math.max(4, Math.ceil(Math.max(maxHourly, 4) / 2) * 2);
             const yMidHourly = Math.round(yMaxHourly / 2);
 
             const hourlyYTop = document.getElementById('hourly-y-top');
@@ -1162,7 +1246,8 @@
 
             const totalSessions = hourlyCounts.reduce((a, b) => a + b, 0);
             const peakHours = new Set();
-            let peakRangeStr = 'NO SESSIONS RECORDED YET';
+            const modeDesc = spectrumMode === 'WEEKENDS' ? 'WEEKEND' : spectrumMode === 'WEEKDAYS' ? 'WEEKDAY' : '';
+            let peakRangeStr = `NO ${modeDesc ? modeDesc + ' ' : ''}SESSIONS RECORDED YET`;
             let peakOps = 0;
 
             if (totalSessions > 0) {
