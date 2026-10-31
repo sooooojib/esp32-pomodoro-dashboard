@@ -52,6 +52,21 @@
             }
         }
 
+        // Get day of week (0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat) in Asia/Dhaka (UTC+6)
+        function getDhakaDayOfWeek(timestamp) {
+            if (!timestamp) return 0;
+            const d = new Date(timestamp);
+            if (isNaN(d.getTime())) return 0;
+            try {
+                const str = d.toLocaleString('en-US', { timeZone: TARGET_TIMEZONE, weekday: 'short' });
+                const map = { 'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6 };
+                return map[str] !== undefined ? map[str] : d.getDay();
+            } catch (e) {
+                const offsetMs = 6 * 60 * 60 * 1000;
+                return new Date(d.getTime() + offsetMs).getUTCDay();
+            }
+        }
+
         // Check if an ISO timestamp belongs to "today" in Asia/Dhaka (UTC+6)
         function isDhakaToday(timestamp) {
             const key = getDhakaDateKey(timestamp);

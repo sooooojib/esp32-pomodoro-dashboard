@@ -14,6 +14,8 @@
             allLogs: [],
             workLogs: [],
             volumeRangeDays: 7,
+            volumeViewMode: 'BARS', // 'BARS', 'WAVE', 'COMPARE'
+            peakSpectrumMode: 'ALL', // 'ALL', 'WEEKDAYS', 'WEEKENDS'
             currentFilter: 'ALL',
             currentPage: 1,
             pageSize: 10
@@ -49,12 +51,15 @@
                     // Add occasional realistic custom standalone sessions with varying durations (5-60m)
                     const isCustom = (dayOffset % 5 === 1 && s === 0) || (dayOffset === 1 && s === 1);
                     const customDur = (s === 1) ? 40 : 15;
+                    const showcaseHeroKeys = ['ironman', 'ironman', 'cap', 'thor', 'spidey', 'hulk'];
+                    const sessionHero = showcaseHeroKeys[(s + dayOffset) % showcaseHeroKeys.length];
 
                     logs.push({
                         id: `log-${dayOffset}-${s}-w`,
                         phase: isCustom ? 'SPECIAL' : 'WORK',
                         duration_minutes: isCustom ? customDur : 25,
-                        completed_at: sessionTime.toISOString()
+                        completed_at: sessionTime.toISOString(),
+                        hero: sessionHero
                     });
 
                     // Break durations dynamically vary between 5 and 45 mins
@@ -421,6 +426,70 @@
             if (window.lucide) lucide.createIcons();
         }
 
+        function generateSmoothSvgPath(points) {
+            if (!points || points.length === 0) return "";
+            if (points.length === 1) return `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+
+            let path = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+            for (let i = 0; i < points.length - 1; i++) {
+                const p0 = points[i === 0 ? i : i - 1];
+                const p1 = points[i];
+                const p2 = points[i + 1];
+                const p3 = points[i + 2 < points.length ? i + 2 : i + 1];
+
+                const cp1x = p1.x + (p2.x - p0.x) / 6;
+                const cp1y = p1.y + (p2.y - p0.y) / 6;
+                const cp2x = p2.x - (p3.x - p1.x) / 6;
+                const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+                path += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+            }
+            return path;
+        }
+
+        function setVolumeViewMode(mode) {
+            tacticalArchiveData.volumeViewMode = mode;
+            const btnBars = document.getElementById('btn-mode-bars');
+            const btnWave = document.getElementById('btn-mode-wave');
+            const btnCompare = document.getElementById('btn-mode-compare');
+            const subToggle = document.getElementById('volume-sub-range-toggle');
+
+            const activeClass = "px-2 sm:px-2.5 py-1 text-[10px] sm:text-xs font-mono font-bold rounded border border-black bg-[#FACC15] text-black shadow-[1px_1px_0px_#000] cursor-pointer";
+            const inactiveClass = "px-2 sm:px-2.5 py-1 text-[10px] sm:text-xs font-mono font-bold rounded border border-transparent bg-transparent text-zinc-600 hover:text-black cursor-pointer";
+
+            if (btnBars) btnBars.className = (mode === 'BARS') ? activeClass : inactiveClass;
+            if (btnWave) btnWave.className = (mode === 'WAVE') ? activeClass : inactiveClass;
+            if (btnCompare) btnCompare.className = (mode === 'COMPARE') ? activeClass : inactiveClass;
+
+            if (subToggle) {
+                if (mode === 'BARS') {
+                    subToggle.classList.remove('hidden');
+                    subToggle.classList.add('inline-flex');
+                } else {
+                    subToggle.classList.add('hidden');
+                    subToggle.classList.remove('inline-flex');
+                }
+            }
+
+            renderVolumeChart();
+        }
+
+        function setPeakSpectrumMode(mode) {
+            tacticalArchiveData.peakSpectrumMode = mode;
+            const btnAll = document.getElementById('btn-spectrum-all');
+            const btnWeekdays = document.getElementById('btn-spectrum-weekdays');
+            const btnWeekends = document.getElementById('btn-spectrum-weekends');
+
+            const activeClass = "px-2 sm:px-2.5 py-1 text-[10px] sm:text-xs font-mono font-bold rounded border border-black bg-[#FACC15] text-black shadow-[1px_1px_0px_#000] cursor-pointer";
+            const inactiveClass = "px-2 sm:px-2.5 py-1 text-[10px] sm:text-xs font-mono font-bold rounded border border-transparent bg-transparent text-zinc-600 hover:text-black cursor-pointer";
+
+            if (btnAll) btnAll.className = (mode === 'ALL') ? activeClass : inactiveClass;
+            if (btnWeekdays) btnWeekdays.className = (mode === 'WEEKDAYS') ? activeClass : inactiveClass;
+            if (btnWeekends) btnWeekends.className = (mode === 'WEEKENDS') ? activeClass : inactiveClass;
+
+            renderPeakHours();
+        }
+
         function setVolumeRange(days) {
             tacticalArchiveData.volumeRangeDays = days;
             const btn7 = document.getElementById('btn-vol-7d');
@@ -502,12 +571,15 @@
             const dailyAvgSub = document.getElementById('volume-daily-avg-sub');
             const timelineAxis = document.getElementById('volume-timeline-axis');
             const activeCadenceEl = document.getElementById('volume-active-cadence');
+            const inspectCalloutText = document.getElementById('volume-inspect-text');
+            const inspectCalloutBadge = document.getElementById('volume-inspect-badge');
             if (!container) return;
 
+            const mode = tacticalArchiveData.volumeViewMode || 'BARS';
             const days = tacticalArchiveData.volumeRangeDays || 7;
             const is30 = (days === 30);
-            if (rangeLabel) rangeLabel.innerText = `PAST ${days} DAYS COMBAT MINUTES`;
 
+            // Build complete 60-day date map for calculations
             const dateMap = {};
             tacticalArchiveData.workLogs.forEach(l => {
                 if (l.completed_at) {
@@ -529,6 +601,327 @@
                     }
                 }
             });
+
+            // ==============================================================
+            // MODE 1: 7-DAY ROLLING MOMENTUM WAVE (Smooth Trend Spline)
+            // ==============================================================
+            if (mode === 'WAVE') {
+                if (timelineAxis) {
+                    timelineAxis.classList.add('hidden');
+                    timelineAxis.classList.remove('flex');
+                    timelineAxis.innerHTML = '';
+                }
+
+                const waveDays = 14;
+                const now = Date.now();
+                const dayItems = [];
+
+                for (let i = waveDays - 1; i >= 0; i--) {
+                    const d = new Date(now - i * 24 * 60 * 60 * 1000);
+                    const key = typeof getDhakaDateKey === 'function' ? getDhakaDateKey(d) : d.toLocaleDateString('en-CA');
+                    const stats = dateMap[key] || { count: 0, mins: 0, workCount: 0, specialCount: 0, specialMins: 0, workMins: 0 };
+
+                    // Calculate 7-day rolling moving average up to day d
+                    let rollingSum = 0;
+                    for (let k = 0; k < 7; k++) {
+                        const pastD = new Date(d.getTime() - k * 24 * 60 * 60 * 1000);
+                        const pastKey = typeof getDhakaDateKey === 'function' ? getDhakaDateKey(pastD) : pastD.toLocaleDateString('en-CA');
+                        if (dateMap[pastKey]) {
+                            rollingSum += dateMap[pastKey].mins;
+                        }
+                    }
+                    const sma7 = Math.round(rollingSum / 7);
+
+                    dayItems.push({
+                        date: d,
+                        key,
+                        mins: stats.mins,
+                        sma7: sma7,
+                        count: stats.count,
+                        workCount: stats.workCount,
+                        specialCount: stats.specialCount,
+                        specialMins: stats.specialMins
+                    });
+                }
+
+                // Momentum surge calculation: compare today's 7D SMA with 7 days ago's 7D SMA
+                const currentSMA = dayItems[dayItems.length - 1].sma7;
+                const priorSMA = dayItems[Math.max(0, dayItems.length - 8)].sma7;
+                const deltaSMA = currentSMA - priorSMA;
+                const pctChange = priorSMA > 0 ? Math.round((deltaSMA / priorSMA) * 100) : (currentSMA > 0 ? 100 : 0);
+                const isSurge = pctChange >= 0;
+
+                const momentumTag = isSurge ? `▲ +${Math.abs(pctChange)}% MOMENTUM SURGE` : `▼ -${Math.abs(pctChange)}% CADENCE DIP`;
+                const momentumClass = isSurge 
+                    ? "bg-[#10B981] text-black font-black border border-black px-2 py-0.5 rounded shadow-[1px_1px_0px_#000]"
+                    : "bg-[#FB923C] text-black font-black border border-black px-2 py-0.5 rounded shadow-[1px_1px_0px_#000]";
+
+                if (rangeLabel) rangeLabel.innerText = "7-DAY ROLLING MOMENTUM WAVE";
+                if (peakLabel) peakLabel.innerText = `ROLLING AVG: ${currentSMA} MINS/DAY`;
+                if (inspectCalloutText) inspectCalloutText.innerText = `7-DAY ROLLING AVERAGE: ${currentSMA} MINS/DAY • ${momentumTag}`;
+                if (inspectCalloutBadge) {
+                    inspectCalloutBadge.className = `text-[10px] ${momentumClass} shrink-0 font-mono`;
+                    inspectCalloutBadge.innerText = momentumTag;
+                }
+
+                const maxVal = Math.max(...dayItems.map(d => Math.max(d.mins, d.sma7)), 60);
+                const yMax = Math.max(100, Math.ceil(maxVal / 25) * 25);
+                const yMid = Math.round(yMax / 2);
+
+                const yTopEl = document.getElementById('volume-y-top');
+                const yMidEl = document.getElementById('volume-y-mid');
+                const yBaseEl = document.getElementById('volume-y-base');
+                if (yTopEl) yTopEl.innerText = `${yMax}m`;
+                if (yMidEl) yMidEl.innerText = `${yMid}m`;
+                if (yBaseEl) yBaseEl.innerText = `0m`;
+
+                let totalMins = 0;
+                let activeDaysCount = 0;
+                dayItems.forEach(d => {
+                    totalMins += d.mins;
+                    if (d.mins > 0) activeDaysCount++;
+                });
+
+                if (periodTotal) periodTotal.innerText = `14D TOTAL: ${(totalMins / 60).toFixed(1)} HOURS`;
+                if (dailyAvgSub) dailyAvgSub.innerText = `AVG: ${Math.round(totalMins / waveDays)} MINS/DAY`;
+                if (activeCadenceEl) activeCadenceEl.innerText = `${activeDaysCount}/${waveDays} DAYS ACTIVE`;
+
+                // SVG Drawing dimensions
+                const svgW = 500;
+                const svgH = 145;
+                const padBottom = 22;
+                const usableH = svgH - padBottom - 15;
+                const stepX = (svgW - 40) / (waveDays - 1);
+
+                // Map points for spline
+                const points = dayItems.map((item, idx) => {
+                    const x = 20 + idx * stepX;
+                    const y = (svgH - padBottom) - (item.sma7 / yMax) * usableH;
+                    return { x, y, item, idx };
+                });
+
+                const splinePath = generateSmoothSvgPath(points);
+                const areaPath = points.length > 0
+                    ? `${splinePath} L ${points[points.length - 1].x.toFixed(1)} ${svgH - padBottom} L ${points[0].x.toFixed(1)} ${svgH - padBottom} Z`
+                    : "";
+
+                // Background translucent bars
+                const barsSvg = dayItems.map((item, idx) => {
+                    const x = 20 + idx * stepX;
+                    const barH = item.mins > 0 ? Math.max(6, (item.mins / yMax) * usableH) : 3;
+                    const y = (svgH - padBottom) - barH;
+                    return `<rect x="${(x - 9).toFixed(1)}" y="${y.toFixed(1)}" width="18" height="${barH.toFixed(1)}" rx="2" fill="#FACC15" opacity="0.32" stroke="#000" stroke-width="1.2" stroke-opacity="0.35"/>`;
+                }).join('');
+
+                // Node dots & hitboxes
+                const nodesSvg = points.map(pt => {
+                    const dayLabel = pt.item.date.toLocaleDateString('en-US', { timeZone: 'Asia/Dhaka', weekday: 'narrow' });
+                    const isToday = (pt.idx === waveDays - 1);
+                    return `
+                        <g class="cursor-pointer group" 
+                           onmouseenter="inspectVolumeBar('${pt.item.key}', ${pt.item.mins}, ${pt.item.count}, ${pt.item.workCount}, ${pt.item.specialCount}, ${pt.item.specialMins})"
+                           onmouseleave="resetVolumeInspect()"
+                           onclick="inspectVolumeBar('${pt.item.key}', ${pt.item.mins}, ${pt.item.count}, ${pt.item.workCount}, ${pt.item.specialCount}, ${pt.item.specialMins})">
+                            <rect x="${(pt.x - 14).toFixed(1)}" y="0" width="28" height="${svgH}" fill="transparent"/>
+                            <circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="5.5" fill="#000"/>
+                            <circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="${isToday ? '4' : '3.2'}" fill="${isToday ? '#FACC15' : '#10B981'}"/>
+                            <text x="${pt.x.toFixed(1)}" y="${svgH - 6}" text-anchor="middle" font-family="monospace" font-size="9" font-weight="bold" fill="${isToday ? '#E11D48' : '#64748B'}">${dayLabel}</text>
+                        </g>
+                    `;
+                }).join('');
+
+                container.className = "h-36 sm:h-40 flex items-center justify-center p-0 min-w-0 w-full overflow-hidden relative";
+                container.innerHTML = `
+                    <svg viewBox="0 0 ${svgW} ${svgH}" class="w-full h-full select-none" preserveAspectRatio="none">
+                        <!-- Horizontal Base Guide -->
+                        <line x1="10" y1="${svgH - padBottom}" x2="${svgW - 10}" y2="${svgH - padBottom}" stroke="#CBD5E1" stroke-width="1.5"/>
+                        <!-- Translucent Daily Output Bars -->
+                        ${barsSvg}
+                        <!-- Neon Emerald Translucent Area Fill -->
+                        <path d="${areaPath}" fill="rgba(16, 185, 129, 0.22)"/>
+                        <!-- Bold High-Contrast Spline (Black Outline + Neon Emerald Core) -->
+                        <path d="${splinePath}" fill="none" stroke="#000" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="${splinePath}" fill="none" stroke="#10B981" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <!-- Interactive Data Nodes -->
+                        ${nodesSvg}
+                    </svg>
+                `;
+                return;
+            }
+
+            // ==============================================================
+            // MODE 2: THIS WEEK VS LAST WEEK GHOST COMPARATIVE LINE
+            // ==============================================================
+            if (mode === 'COMPARE') {
+                if (timelineAxis) {
+                    timelineAxis.classList.add('hidden');
+                    timelineAxis.classList.remove('flex');
+                    timelineAxis.innerHTML = '';
+                }
+
+                const now = new Date();
+                const todayDOW = typeof getDhakaDayOfWeek === 'function' ? getDhakaDayOfWeek(now) : now.getDay();
+                const todayKey = typeof getDhakaDateKey === 'function' ? getDhakaDateKey(now) : now.toLocaleDateString('en-CA');
+
+                // Find Sunday of This Week (00:00 UTC)
+                const thisSunday = new Date(now.getTime() - todayDOW * 24 * 60 * 60 * 1000);
+                const lastSunday = new Date(thisSunday.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+                const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+                const thisWeekData = [];
+                const lastWeekData = [];
+
+                let thisCumulativeThroughToday = 0;
+                let lastCumulativeThroughToday = 0;
+                let thisTotalMins = 0;
+                let lastTotalMins = 0;
+
+                for (let i = 0; i < 7; i++) {
+                    const twDate = new Date(thisSunday.getTime() + i * 24 * 60 * 60 * 1000);
+                    const lwDate = new Date(lastSunday.getTime() + i * 24 * 60 * 60 * 1000);
+
+                    const twKey = typeof getDhakaDateKey === 'function' ? getDhakaDateKey(twDate) : twDate.toLocaleDateString('en-CA');
+                    const lwKey = typeof getDhakaDateKey === 'function' ? getDhakaDateKey(lwDate) : lwDate.toLocaleDateString('en-CA');
+
+                    const twStats = dateMap[twKey] || { mins: 0, count: 0 };
+                    const lwStats = dateMap[lwKey] || { mins: 0, count: 0 };
+
+                    thisWeekData.push({ dow: i, name: dayNames[i], date: twDate, key: twKey, mins: twStats.mins, count: twStats.count });
+                    lastWeekData.push({ dow: i, name: dayNames[i], date: lwDate, key: lwKey, mins: lwStats.mins, count: lwStats.count });
+
+                    thisTotalMins += twStats.mins;
+                    lastTotalMins += lwStats.mins;
+
+                    if (i <= todayDOW) {
+                        thisCumulativeThroughToday += twStats.mins;
+                        lastCumulativeThroughToday += lwStats.mins;
+                    }
+                }
+
+                const deltaThroughToday = thisCumulativeThroughToday - lastCumulativeThroughToday;
+                const isAhead = deltaThroughToday >= 0;
+                const currentDayName = dayNames[todayDOW];
+
+                const deltaText = `${deltaThroughToday >= 0 ? '+' : ''}${deltaThroughToday} MINS`;
+                const statusCallout = `${currentDayName} STATUS: ${deltaText} ${isAhead ? 'AHEAD OF' : 'BEHIND'} LAST WEEK'S CADENCE`;
+                const statusBadgeClass = isAhead 
+                    ? "bg-[#10B981] text-black font-black border border-black px-2 py-0.5 rounded shadow-[1px_1px_0px_#000]"
+                    : "bg-[#FB923C] text-black font-black border border-black px-2 py-0.5 rounded shadow-[1px_1px_0px_#000]";
+                const statusBadgeText = isAhead ? "AHEAD OF PACE" : "RECOVERY NEEDED";
+
+                if (rangeLabel) rangeLabel.innerText = "THIS WEEK VS LAST WEEK GHOST COMPARISON";
+                if (peakLabel) peakLabel.innerText = `DELTA: ${deltaText}`;
+                if (inspectCalloutText) inspectCalloutText.innerText = statusCallout;
+                if (inspectCalloutBadge) {
+                    inspectCalloutBadge.className = `text-[10px] ${statusBadgeClass} shrink-0 font-mono`;
+                    inspectCalloutBadge.innerText = statusBadgeText;
+                }
+
+                const maxVal = Math.max(...thisWeekData.map(d => d.mins), ...lastWeekData.map(d => d.mins), 60);
+                const yMax = Math.max(100, Math.ceil(maxVal / 25) * 25);
+                const yMid = Math.round(yMax / 2);
+
+                const yTopEl = document.getElementById('volume-y-top');
+                const yMidEl = document.getElementById('volume-y-mid');
+                const yBaseEl = document.getElementById('volume-y-base');
+                if (yTopEl) yTopEl.innerText = `${yMax}m`;
+                if (yMidEl) yMidEl.innerText = `${yMid}m`;
+                if (yBaseEl) yBaseEl.innerText = `0m`;
+
+                if (periodTotal) periodTotal.innerText = `THIS WEEK: ${(thisTotalMins / 60).toFixed(1)}h • LAST WEEK: ${(lastTotalMins / 60).toFixed(1)}h`;
+                if (dailyAvgSub) dailyAvgSub.innerText = `PACE DELTA: ${deltaText}`;
+                if (activeCadenceEl) activeCadenceEl.innerText = `${thisWeekData.filter(d => d.mins > 0).length}/7 DAYS ACTIVE`;
+
+                const svgW = 500;
+                const svgH = 145;
+                const padBottom = 22;
+                const usableH = svgH - padBottom - 15;
+                const stepX = (svgW - 50) / 6;
+
+                // Points for Last Week (full 7 days)
+                const lastPoints = lastWeekData.map((d, i) => {
+                    const x = 25 + i * stepX;
+                    const y = (svgH - padBottom) - (d.mins / yMax) * usableH;
+                    return { x, y, d };
+                });
+
+                // Points for This Week (only up to todayDOW)
+                const thisPoints = thisWeekData.filter(d => d.dow <= todayDOW).map(d => {
+                    const x = 25 + d.dow * stepX;
+                    const y = (svgH - padBottom) - (d.mins / yMax) * usableH;
+                    return { x, y, d };
+                });
+
+                const lastPath = generateSmoothSvgPath(lastPoints);
+                const thisPath = generateSmoothSvgPath(thisPoints);
+
+                // Nodes & hitboxes
+                const hitboxesSvg = dayNames.map((name, i) => {
+                    const x = 25 + i * stepX;
+                    const tw = thisWeekData[i];
+                    const lw = lastWeekData[i];
+                    const isToday = (i === todayDOW);
+                    const dayDelta = tw.mins - lw.mins;
+
+                    const hoverAction = `
+                        const calloutText = document.getElementById('volume-inspect-text');
+                        const calloutBadge = document.getElementById('volume-inspect-badge');
+                        if (calloutText) {
+                            calloutText.innerHTML = '${name} • THIS WEEK: <b>${tw.mins}m</b> vs LAST WEEK: <b>${lw.mins}m</b> (${dayDelta >= 0 ? '+' : ''}${dayDelta}m DELTA)';
+                        }
+                        if (calloutBadge) {
+                            calloutBadge.className = 'text-[10px] ${dayDelta >= 0 ? 'bg-[#10B981]' : 'bg-[#FB923C]'} text-black px-2 py-0.5 rounded border border-black shrink-0 font-mono font-bold';
+                            calloutBadge.innerText = '${dayDelta >= 0 ? '+' : ''}${dayDelta}m';
+                        }
+                    `;
+
+                    return `
+                        <g class="cursor-pointer group" onmouseenter="${hoverAction}" onmouseleave="renderVolumeChart()">
+                            <rect x="${(x - 20).toFixed(1)}" y="0" width="40" height="${svgH}" fill="transparent"/>
+                            <!-- Day Label text -->
+                            <text x="${x.toFixed(1)}" y="${svgH - 6}" text-anchor="middle" font-family="monospace" font-size="10" font-weight="bold" fill="${isToday ? '#E11D48' : '#334155'}">${name}</text>
+                        </g>
+                    `;
+                }).join('');
+
+                const lastDotsSvg = lastPoints.map(p => `
+                    <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="#94A3B8"/>
+                `).join('');
+
+                const thisDotsSvg = thisPoints.map((p, idx) => {
+                    const isToday = (idx === thisPoints.length - 1);
+                    return `
+                        <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${isToday ? '6' : '5'}" fill="#000"/>
+                        <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${isToday ? '4.5' : '3.5'}" fill="${isToday ? '#E11D48' : '#FACC15'}"/>
+                    `;
+                }).join('');
+
+                container.className = "h-36 sm:h-40 flex items-center justify-center p-0 min-w-0 w-full overflow-hidden relative";
+                container.innerHTML = `
+                    <svg viewBox="0 0 ${svgW} ${svgH}" class="w-full h-full select-none" preserveAspectRatio="none">
+                        <!-- Horizontal Base Guide -->
+                        <line x1="15" y1="${svgH - padBottom}" x2="${svgW - 15}" y2="${svgH - padBottom}" stroke="#CBD5E1" stroke-width="1.5"/>
+
+                        <!-- Ghost Benchmark Line: Last Week (Dashed Slate) -->
+                        <path d="${lastPath}" fill="none" stroke="#94A3B8" stroke-width="2.5" stroke-dasharray="5 4" stroke-linecap="round"/>
+                        ${lastDotsSvg}
+
+                        <!-- Active Combat Line: This Week (Bold Stark Yellow + Black Outline) -->
+                        <path d="${thisPath}" fill="none" stroke="#000" stroke-width="5.5" stroke-linecap="round"/>
+                        <path d="${thisPath}" fill="none" stroke="#FACC15" stroke-width="3.5" stroke-linecap="round"/>
+                        ${thisDotsSvg}
+
+                        <!-- Transparent Hover Hitboxes & Day Labels -->
+                        ${hitboxesSvg}
+                    </svg>
+                `;
+                return;
+            }
+
+            // ==============================================================
+            // MODE 3: STANDARD BARS (7D OR 30D MODE)
+            // ==============================================================
+            if (rangeLabel) rangeLabel.innerText = `PAST ${days} DAYS COMBAT MINUTES`;
 
             const dayItems = [];
             const now = Date.now();
@@ -967,4 +1360,222 @@
 
             if (window.lucide) lucide.createIcons();
         }
+
+        // =========================================================================
+        // 7C. S.H.I.E.L.D. WEEKLY TACTICAL DEBRIEF CONTROLLER
+        // =========================================================================
+        let activeWeeklyDebriefData = null;
+
+        function openWeeklyDebriefModal() {
+            const modal = document.getElementById('weekly-debrief-modal');
+            if (!modal) return;
+
+            if (typeof AudioEngine !== 'undefined' && AudioEngine.repulsorZap) {
+                AudioEngine.repulsorZap();
+            }
+
+            // Calculate this week's metrics (past 7 days in Asia/Dhaka)
+            const now = new Date();
+            const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            
+            // Format date range (e.g. OCT 25 — NOV 01)
+            const startStr = sevenDaysAgo.toLocaleDateString('en-US', { timeZone: 'Asia/Dhaka', month: 'short', day: 'numeric' }).toUpperCase();
+            const endStr = now.toLocaleDateString('en-US', { timeZone: 'Asia/Dhaka', month: 'short', day: 'numeric' }).toUpperCase();
+            const rangeText = `${startStr} — ${endStr}`;
+
+            const weekLogs = (tacticalArchiveData.workLogs || []).filter(l => {
+                if (!l.completed_at) return false;
+                return new Date(l.completed_at).getTime() >= sevenDaysAgo.getTime();
+            });
+
+            // 1. Total Combat Output this week
+            const totalWeekMinutes = weekLogs.reduce((acc, l) => acc + (Number(l.duration_minutes) || 25), 0);
+            const totalWeekHours = (totalWeekMinutes / 60).toFixed(1);
+            const totalOps = weekLogs.length;
+
+            // 2. Most Productive Day
+            const dayMinsMap = {};
+            const dayOpsMap = {};
+            weekLogs.forEach(l => {
+                const key = typeof getDhakaDateKey === 'function' ? getDhakaDateKey(l.completed_at) : new Date(l.completed_at).toLocaleDateString('en-CA');
+                if (!key) return;
+                const dur = Number(l.duration_minutes) || 25;
+                dayMinsMap[key] = (dayMinsMap[key] || 0) + dur;
+                dayOpsMap[key] = (dayOpsMap[key] || 0) + 1;
+            });
+
+            let topDayKey = null;
+            let topDayMins = 0;
+            Object.keys(dayMinsMap).forEach(key => {
+                if (dayMinsMap[key] > topDayMins) {
+                    topDayMins = dayMinsMap[key];
+                    topDayKey = key;
+                }
+            });
+
+            let topDayName = "STANDBY";
+            let topDayDetail = "0 MINS PEAK";
+            if (topDayKey) {
+                const topDate = new Date(topDayKey + 'T12:00:00Z');
+                topDayName = topDate.toLocaleDateString('en-US', { timeZone: 'Asia/Dhaka', weekday: 'long' }).toUpperCase();
+                topDayDetail = `${topDayMins} MINS (${dayOpsMap[topDayKey] || 0} OPS)`;
+            }
+
+            // 3. Longest Active Streak during this week
+            const activeDates = Object.keys(dayMinsMap).sort();
+            const streakDays = activeDates.length;
+
+            // 4. Total XP Earned & Rank status
+            const totalXP = totalWeekMinutes * 10;
+            let currentRankName = "RANK 1 AGENT";
+            if (typeof window.SHIELD_RANKS !== 'undefined' && window.SHIELD_RANKS) {
+                const globalXP = window.latestTotalXP || totalXP;
+                let foundRank = window.SHIELD_RANKS[0];
+                for (let r of window.SHIELD_RANKS) {
+                    if (globalXP >= r.minXP) foundRank = r;
+                }
+                currentRankName = `RANK ${foundRank.level} ${foundRank.name}`;
+            }
+
+            // 5. Hero MVP
+            const heroCounts = {};
+            weekLogs.forEach(l => {
+                const h = l.hero || (typeof currentHeroKey !== 'undefined' ? currentHeroKey : 'ironman');
+                heroCounts[h] = (heroCounts[h] || 0) + 1;
+            });
+
+            let mvpHeroKey = (typeof currentHeroKey !== 'undefined' ? currentHeroKey : 'ironman');
+            let maxHeroOps = 0;
+            Object.keys(heroCounts).forEach(h => {
+                if (heroCounts[h] > maxHeroOps) {
+                    maxHeroOps = heroCounts[h];
+                    mvpHeroKey = h;
+                }
+            });
+
+            const heroProfile = (typeof HERO_PROFILES !== 'undefined' && HERO_PROFILES[mvpHeroKey]) 
+                ? HERO_PROFILES[mvpHeroKey] 
+                : { name: "IRON MAN (TONY STARK)", themeColor: "#E62429", emblemIcon: MARVEL_ICONS.arcReactor, quotes: { WORK: ["Suit power at 100%. Lock in!"] } };
+
+            const heroSharePct = totalOps > 0 ? Math.round((maxHeroOps / totalOps) * 100) : 100;
+            const heroWorkQuotes = heroProfile.quotes?.WORK || ["Suit systems operational."];
+            const heroQuote = heroWorkQuotes[Math.floor(Math.random() * heroWorkQuotes.length)];
+
+            // Tactical AI Assessment
+            let aiAssessment = "";
+            if (totalWeekHours >= 15) {
+                aiAssessment = `Exceptional combat momentum! Your 7-day focus throughput (${totalWeekHours}h) surpassed standard S.H.I.E.L.D. flight requirements. High wave completion with ${heroProfile.name.split(' ')[0]} as tactical MVP.`;
+            } else if (totalWeekHours >= 5) {
+                aiAssessment = `Solid operational cadence. You logged ${totalWeekHours}h of combat across ${streakDays} active days. Peak output achieved on ${topDayName}. Recommended protocol: Maintain 5-minute recharge intervals to push for clearance promotion.`;
+            } else {
+                aiAssessment = `Reconnaissance phase detected. Logged ${totalWeekHours}h across ${totalOps} sessions. Recommendation: Engage early morning combat slots with ${heroProfile.name.split(' ')[0]} to accelerate weekly rank ascension.`;
+            }
+
+            // Populate DOM
+            const elDateRange = document.getElementById('debrief-date-range');
+            const elTotalHours = document.getElementById('debrief-total-hours');
+            const elTotalOps = document.getElementById('debrief-total-ops');
+            const elTopDay = document.getElementById('debrief-top-day');
+            const elTopDayDetail = document.getElementById('debrief-top-day-detail');
+            const elStreakDays = document.getElementById('debrief-streak-days');
+            const elStreakSub = document.getElementById('debrief-streak-sub');
+            const elXPEarned = document.getElementById('debrief-xp-earned');
+            const elRankStatus = document.getElementById('debrief-rank-status');
+            const elHeroAvatar = document.getElementById('debrief-hero-avatar-wrap');
+            const elHeroShare = document.getElementById('debrief-hero-share');
+            const elHeroName = document.getElementById('debrief-hero-name');
+            const elHeroQuote = document.getElementById('debrief-hero-quote');
+            const elAssessment = document.getElementById('debrief-ai-assessment');
+
+            if (elDateRange) elDateRange.innerText = rangeText;
+            if (elTotalHours) elTotalHours.innerText = `${totalWeekHours}h`;
+            if (elTotalOps) elTotalOps.innerText = `${totalOps} SESSIONS COMPLETED`;
+            if (elTopDay) elTopDay.innerText = topDayName;
+            if (elTopDayDetail) elTopDayDetail.innerText = topDayDetail;
+            if (elStreakDays) elStreakDays.innerText = streakDays;
+            if (elStreakSub) elStreakSub.innerText = `${streakDays}/7 DAYS ACTIVE`;
+            if (elXPEarned) elXPEarned.innerText = `+${totalXP.toLocaleString()} XP`;
+            if (elRankStatus) elRankStatus.innerText = currentRankName;
+
+            if (elHeroAvatar) {
+                elHeroAvatar.style.backgroundColor = heroProfile.themeColor || '#000';
+                elHeroAvatar.innerHTML = heroProfile.emblemIcon || MARVEL_ICONS.arcReactor;
+            }
+            if (elHeroShare) elHeroShare.innerText = `${heroSharePct}% OF SESSIONS`;
+            if (elHeroName) elHeroName.innerText = heroProfile.name;
+            if (elHeroQuote) elHeroQuote.innerText = `"${heroQuote}"`;
+            if (elAssessment) elAssessment.innerText = aiAssessment;
+
+            activeWeeklyDebriefData = {
+                rangeText,
+                totalWeekHours,
+                totalOps,
+                topDayName,
+                topDayDetail,
+                streakDays,
+                totalXP,
+                currentRankName,
+                heroName: heroProfile.name,
+                heroSharePct,
+                heroQuote,
+                aiAssessment
+            };
+
+            modal.classList.remove('hidden');
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function closeWeeklyDebriefModal() {
+            const modal = document.getElementById('weekly-debrief-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function copyWeeklyDebriefToClipboard() {
+            if (!activeWeeklyDebriefData) return;
+            const d = activeWeeklyDebriefData;
+
+            const text = [
+                `🛡️ S.H.I.E.L.D. WEEKLY TACTICAL DEBRIEF 🛡️`,
+                `Cycle: ${d.rangeText}`,
+                `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+                `⏱️ Total Combat Output: ${d.totalWeekHours}h (${d.totalOps} sessions)`,
+                `🔥 Most Productive Day: ${d.topDayName} (${d.topDayDetail})`,
+                `⚡ Active Cadence: ${d.streakDays}/7 Days Active`,
+                `⭐ Combat XP Earned: +${d.totalXP.toLocaleString()} XP`,
+                `🎖️ Clearance Rank: ${d.currentRankName}`,
+                `🦸 Hero MVP: ${d.heroName} (${d.heroSharePct}% of missions)`,
+                `💬 "${d.heroQuote}"`,
+                `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+                `Tactical Assessment:`,
+                `${d.aiAssessment}`,
+                `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+                `Generated by S.H.I.E.L.D. Chrono-HUD`
+            ].join('\n');
+
+            navigator.clipboard.writeText(text).then(() => {
+                if (typeof showToast === 'function') {
+                    showToast("WEEKLY DEBRIEF COPIED TO CLIPBOARD!", "success");
+                }
+                if (typeof AudioEngine !== 'undefined' && AudioEngine.uiTick) {
+                    AudioEngine.uiTick();
+                }
+            }).catch(err => {
+                console.warn("Clipboard copy failed:", err);
+            });
+        }
+
+        window.openWeeklyDebriefModal = openWeeklyDebriefModal;
+        window.closeWeeklyDebriefModal = closeWeeklyDebriefModal;
+        window.copyWeeklyDebriefToClipboard = copyWeeklyDebriefToClipboard;
+        window.setVolumeViewMode = setVolumeViewMode;
+        window.setPeakSpectrumMode = setPeakSpectrumMode;
+        window.setVolumeRange = setVolumeRange;
+        window.inspectVolumeBar = inspectVolumeBar;
+        window.resetVolumeInspect = resetVolumeInspect;
+        window.inspectHourlyBar = inspectHourlyBar;
+        window.resetHourlyInspect = resetHourlyInspect;
+        window.setArchiveFilter = setArchiveFilter;
+        window.changeArchivePage = changeArchivePage;
+        window.inspectHeatmapTile = inspectHeatmapTile;
+        window.loadTacticalStats = loadTacticalStats;
 

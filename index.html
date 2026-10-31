@@ -881,13 +881,16 @@
                             </div>
                         </div>
 
-                        <!-- 7D / 30D Toggle Switch -->
-                        <div class="flex items-center gap-1 border-2 border-black p-1 rounded-lg bg-zinc-100 shadow-none shrink-0">
-                            <button id="btn-vol-7d" class="px-3 py-1 text-xs font-mono font-bold rounded border border-black bg-[#FACC15] text-black shadow-[1px_1px_0px_#000] cursor-pointer" onclick="setVolumeRange(7)">
-                                7 DAYS
+                        <!-- Volume View Modes Toggle Switch (BARS / 7D WAVE / VS LAST WEEK) -->
+                        <div class="flex items-center gap-1 border-2 border-black p-1 rounded-lg bg-zinc-100 shadow-none shrink-0" id="volume-mode-toggle-group">
+                            <button id="btn-mode-bars" class="px-2 sm:px-2.5 py-1 text-[10px] sm:text-xs font-mono font-bold rounded border border-black bg-[#FACC15] text-black shadow-[1px_1px_0px_#000] cursor-pointer" onclick="setVolumeViewMode('BARS')">
+                                BARS
                             </button>
-                            <button id="btn-vol-30d" class="px-3 py-1 text-xs font-mono font-bold rounded border border-transparent bg-transparent text-zinc-600 hover:text-black cursor-pointer" onclick="setVolumeRange(30)">
-                                30 DAYS
+                            <button id="btn-mode-wave" class="px-2 sm:px-2.5 py-1 text-[10px] sm:text-xs font-mono font-bold rounded border border-transparent bg-transparent text-zinc-600 hover:text-black cursor-pointer" onclick="setVolumeViewMode('WAVE')" title="7-Day Rolling Momentum Wave">
+                                7D WAVE
+                            </button>
+                            <button id="btn-mode-compare" class="px-2 sm:px-2.5 py-1 text-[10px] sm:text-xs font-mono font-bold rounded border border-transparent bg-transparent text-zinc-600 hover:text-black cursor-pointer" onclick="setVolumeViewMode('COMPARE')" title="This Week vs Last Week Ghost Line">
+                                VS LAST WEEK
                             </button>
                         </div>
                     </div>
@@ -908,7 +911,15 @@
                         </div>
 
                         <div class="flex items-center justify-between text-xs font-mono font-bold text-zinc-600 mb-2">
-                            <span id="volume-range-label">PAST 7 DAYS COMBAT MINUTES</span>
+                            <div class="flex items-center gap-2">
+                                <span id="volume-range-label">PAST 7 DAYS COMBAT MINUTES</span>
+                                <!-- Sub-range 7D/30D toggle, visible in BARS mode -->
+                                <span id="volume-sub-range-toggle" class="inline-flex items-center gap-1 border border-black/30 rounded px-1.5 py-0.5 bg-white text-[10px]">
+                                    <button id="btn-vol-7d" class="font-bold text-black cursor-pointer hover:underline" onclick="setVolumeRange(7)">7D</button>
+                                    <span class="text-zinc-300">|</span>
+                                    <button id="btn-vol-30d" class="font-bold text-zinc-500 cursor-pointer hover:underline" onclick="setVolumeRange(30)">30D</button>
+                                </span>
+                            </div>
                             <span id="volume-peak-label">PEAK: 0 MINS</span>
                         </div>
                         
@@ -966,9 +977,18 @@
                             </div>
                         </div>
 
-                        <span id="peak-badge-tag" class="border-2 border-black rounded-lg px-2.5 py-1 font-mono text-xs font-bold bg-[#FACC15] text-black shadow-none whitespace-nowrap">
-                            24H SPECTRUM
-                        </span>
+                        <!-- Weekend vs Weekday Spectrum Toggle Switch (Weekend = Fri & Sat) -->
+                        <div class="flex items-center gap-1 border-2 border-black p-1 rounded-lg bg-zinc-100 shadow-none shrink-0" id="peak-spectrum-toggle-group">
+                            <button id="btn-spectrum-all" class="px-2 sm:px-2.5 py-1 text-[10px] sm:text-xs font-mono font-bold rounded border border-black bg-[#FACC15] text-black shadow-[1px_1px_0px_#000] cursor-pointer" onclick="setPeakSpectrumMode('ALL')" title="All 7 Days">
+                                ALL
+                            </button>
+                            <button id="btn-spectrum-weekdays" class="px-2 sm:px-2.5 py-1 text-[10px] sm:text-xs font-mono font-bold rounded border border-transparent bg-transparent text-zinc-600 hover:text-black cursor-pointer" onclick="setPeakSpectrumMode('WEEKDAYS')" title="Sun - Thu (Work Days)">
+                                WEEKDAYS
+                            </button>
+                            <button id="btn-spectrum-weekends" class="px-2 sm:px-2.5 py-1 text-[10px] sm:text-xs font-mono font-bold rounded border border-transparent bg-transparent text-zinc-600 hover:text-black cursor-pointer" onclick="setPeakSpectrumMode('WEEKENDS')" title="Fri - Sat (Weekend Ops)">
+                                WEEKENDS
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Divider -->
@@ -1039,19 +1059,27 @@
                     </div>
                 </div>
 
-                <!-- Filter Buttons -->
-                <div class="flex items-center gap-1.5 flex-wrap" id="archive-filter-btns">
-                    <button class="archive-filter-btn px-3 py-1 text-xs font-mono font-bold rounded border-2 border-black bg-[#FACC15] text-black shadow-[2px_2px_0px_#000] cursor-pointer" data-filter="ALL" onclick="setArchiveFilter('ALL')">
-                        ALL SESSIONS
-                    </button>
-                    <button class="archive-filter-btn px-3 py-1 text-xs font-mono font-bold rounded border-2 border-black bg-white text-zinc-700 hover:bg-zinc-100 shadow-none cursor-pointer" data-filter="WORK" onclick="setArchiveFilter('WORK')">
-                        COMBAT ONLY
-                    </button>
-                    <button class="archive-filter-btn px-3 py-1 text-xs font-mono font-bold rounded border-2 border-black bg-white text-zinc-700 hover:bg-zinc-100 shadow-none cursor-pointer" data-filter="SPECIAL" onclick="setArchiveFilter('SPECIAL')">
-                        SPECIAL OPS ONLY
-                    </button>
-                    <button class="archive-filter-btn px-3 py-1 text-xs font-mono font-bold rounded border-2 border-black bg-white text-zinc-700 hover:bg-zinc-100 shadow-none cursor-pointer" data-filter="BREAK" onclick="setArchiveFilter('BREAK')">
-                        RECHARGE ONLY
+                <!-- Filter Buttons & Weekly Debrief Action -->
+                <div class="flex items-center gap-2 flex-wrap justify-between w-full sm:w-auto">
+                    <div class="flex items-center gap-1.5 flex-wrap" id="archive-filter-btns">
+                        <button class="archive-filter-btn px-3 py-1 text-xs font-mono font-bold rounded border-2 border-black bg-[#FACC15] text-black shadow-[2px_2px_0px_#000] cursor-pointer" data-filter="ALL" onclick="setArchiveFilter('ALL')">
+                            ALL SESSIONS
+                        </button>
+                        <button class="archive-filter-btn px-3 py-1 text-xs font-mono font-bold rounded border-2 border-black bg-white text-zinc-700 hover:bg-zinc-100 shadow-none cursor-pointer" data-filter="WORK" onclick="setArchiveFilter('WORK')">
+                            COMBAT ONLY
+                        </button>
+                        <button class="archive-filter-btn px-3 py-1 text-xs font-mono font-bold rounded border-2 border-black bg-white text-zinc-700 hover:bg-zinc-100 shadow-none cursor-pointer" data-filter="SPECIAL" onclick="setArchiveFilter('SPECIAL')">
+                            SPECIAL OPS ONLY
+                        </button>
+                        <button class="archive-filter-btn px-3 py-1 text-xs font-mono font-bold rounded border-2 border-black bg-white text-zinc-700 hover:bg-zinc-100 shadow-none cursor-pointer" data-filter="BREAK" onclick="setArchiveFilter('BREAK')">
+                            RECHARGE ONLY
+                        </button>
+                    </div>
+
+                    <!-- Generate Weekly Debrief Button -->
+                    <button id="btn-weekly-debrief" type="button" class="neo-btn px-3.5 py-1 text-xs font-comic font-bold tracking-wide rounded border-2 border-black bg-[#E11D48] text-white hover:bg-[#BE123C] shadow-[2px_2px_0px_#000] cursor-pointer flex items-center gap-1.5 transition-all" onclick="openWeeklyDebriefModal()" title="Generate S.H.I.E.L.D. Weekly Tactical Debrief Card">
+                        <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+                        <span>WEEKLY DEBRIEF</span>
                     </button>
                 </div>
             </div>
@@ -1233,6 +1261,123 @@
             <!-- Scrollable Ranks Grid / List -->
             <div id="dossier-ranks-list" class="p-4 overflow-y-auto space-y-2 flex-1 divide-y divide-slate-100">
                 <!-- Injected dynamically in missions.js -->
+            </div>
+        </div>
+    </div>
+
+    <!-- S.H.I.E.L.D. Weekly Tactical Debrief Modal (Shareable Comic Card) -->
+    <div id="weekly-debrief-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="neo-card bg-white w-full max-w-xl max-h-[90vh] flex flex-col border-4 border-black shadow-[8px_8px_0px_#000] p-0 overflow-hidden">
+            <!-- Modal Header -->
+            <div class="bg-black text-white p-4 border-b-4 border-black flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded bg-[#E11D48] border-2 border-white flex items-center justify-center text-white">
+                        <i data-lucide="file-text" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-mono text-[#94A3B8] font-bold uppercase tracking-widest block leading-none mb-0.5">TOP SECRET // CLASSIFIED INTEL</span>
+                        <h2 class="font-comic font-black text-xl text-[#FACC15] tracking-wide leading-none uppercase">S.H.I.E.L.D. WEEKLY TACTICAL DEBRIEF</h2>
+                    </div>
+                </div>
+                <button id="btn-close-debrief" type="button" class="w-8 h-8 bg-white text-black border-2 border-black rounded flex items-center justify-center hover:bg-[#EF4444] hover:text-white transition-colors font-bold text-lg leading-none cursor-pointer" onclick="closeWeeklyDebriefModal()">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <!-- Summary Banner -->
+            <div class="bg-[#FFFBEB] border-b-2 border-black px-5 py-2.5 flex items-center justify-between text-xs font-mono font-bold">
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-600">CYCLE PERIOD:</span>
+                    <span id="debrief-date-range" class="text-black bg-[#FACC15] px-2 py-0.5 border border-black rounded font-black">CURRENT WEEK</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-600">STATUS:</span>
+                    <span id="debrief-overall-status" class="text-emerald-700 font-black">OPERATIONAL ACTIVE</span>
+                </div>
+            </div>
+
+            <!-- Scrollable Debrief Body -->
+            <div class="p-4 sm:p-5 overflow-y-auto space-y-3.5 flex-1 bg-[#F7F5EE]">
+                <!-- Metric Grid (4 Cards) -->
+                <div class="grid grid-cols-2 gap-3 font-mono">
+                    <!-- 1. Total Combat Output this week -->
+                    <div class="bg-white border-2 border-black rounded-xl p-3 shadow-[2px_2px_0px_#000] flex flex-col justify-between">
+                        <span class="text-[9px] uppercase font-bold text-zinc-500 tracking-wider">COMBAT OUTPUT</span>
+                        <div class="my-1">
+                            <span id="debrief-total-hours" class="font-comic text-2xl sm:text-3xl font-black text-[#E11D48] leading-none">0.0h</span>
+                        </div>
+                        <span id="debrief-total-ops" class="text-[10px] text-zinc-700 font-bold">0 SESSIONS</span>
+                    </div>
+
+                    <!-- 2. Most Productive Day -->
+                    <div class="bg-white border-2 border-black rounded-xl p-3 shadow-[2px_2px_0px_#000] flex flex-col justify-between">
+                        <span class="text-[9px] uppercase font-bold text-zinc-500 tracking-wider">MOST PRODUCTIVE DAY</span>
+                        <div class="my-1 truncate">
+                            <span id="debrief-top-day" class="font-comic text-xl sm:text-2xl font-black text-black leading-none truncate block">WEDNESDAY</span>
+                        </div>
+                        <span id="debrief-top-day-detail" class="text-[10px] text-[#E11D48] font-bold">0 MINS PEAK</span>
+                    </div>
+
+                    <!-- 3. Longest Active Streak -->
+                    <div class="bg-white border-2 border-black rounded-xl p-3 shadow-[2px_2px_0px_#000] flex flex-col justify-between">
+                        <span class="text-[9px] uppercase font-bold text-zinc-500 tracking-wider">ACTIVE STREAK</span>
+                        <div class="my-1">
+                            <span id="debrief-streak-days" class="font-comic text-2xl sm:text-3xl font-black text-black leading-none">0</span>
+                            <span class="text-sm font-comic ml-0.5">DAYS</span>
+                        </div>
+                        <span id="debrief-streak-sub" class="text-[10px] text-emerald-700 font-bold">FRONTLINE CADENCE</span>
+                    </div>
+
+                    <!-- 4. Total XP Earned & Rank promotions -->
+                    <div class="bg-white border-2 border-black rounded-xl p-3 shadow-[2px_2px_0px_#000] flex flex-col justify-between">
+                        <span class="text-[9px] uppercase font-bold text-zinc-500 tracking-wider">COMBAT XP EARNED</span>
+                        <div class="my-1">
+                            <span id="debrief-xp-earned" class="font-comic text-2xl sm:text-3xl font-black text-amber-600 leading-none">+0 XP</span>
+                        </div>
+                        <span id="debrief-rank-status" class="text-[10px] text-zinc-700 font-bold truncate">RANK 1 AGENT</span>
+                    </div>
+                </div>
+
+                <!-- 5. Hero MVP Spotlight Card -->
+                <div class="bg-white border-2 border-black rounded-xl p-3.5 shadow-[3px_3px_0px_#000] flex items-center gap-3.5">
+                    <div id="debrief-hero-avatar-wrap" class="w-12 h-12 rounded-xl bg-black border-2 border-black flex items-center justify-center text-white shrink-0 shadow-[2px_2px_0px_#000]">
+                        <!-- Dynamic Hero Icon -->
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-1">
+                            <span class="hud-badge bg-black text-[#FACC15] text-[9px] py-0.5 px-2">HERO MVP</span>
+                            <span id="debrief-hero-share" class="font-mono text-[10px] font-bold text-zinc-500">65% OF OPS</span>
+                        </div>
+                        <h4 id="debrief-hero-name" class="font-comic text-lg sm:text-xl font-black text-black leading-tight uppercase truncate mt-0.5">
+                            TONY STARK (IRON MAN)
+                        </h4>
+                        <p id="debrief-hero-quote" class="font-mono text-[11px] text-zinc-700 italic truncate mt-0.5">
+                            "F.R.I.D.A.Y., divert auxiliary power to focus thrusters!"
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Tactical AI Summary Statement -->
+                <div class="bg-amber-100 border-2 border-black rounded-xl p-3 font-mono text-xs font-bold text-amber-950 shadow-[2px_2px_0px_#000]">
+                    <div class="flex items-center gap-2 mb-1 text-[10px] uppercase text-zinc-700">
+                        <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-600"></i>
+                        <span>S.H.I.E.L.D. TACTICAL ASSESSMENT</span>
+                    </div>
+                    <p id="debrief-ai-assessment" class="leading-relaxed text-[11px]">
+                        Operational stamina remained strong across the past 7 days. Break discipline maintained within optimal tolerances.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="bg-white border-t-2 border-black p-3.5 px-5 flex flex-wrap items-center justify-between gap-2.5 font-mono text-xs">
+                <button type="button" class="neo-btn bg-[#FACC15] hover:bg-[#EAB308] text-black px-4 py-2 border-2 border-black font-mono font-bold text-xs shadow-[2px_2px_0px_#000] cursor-pointer flex items-center gap-2 transition-all active:translate-y-0.5" onclick="copyWeeklyDebriefToClipboard()">
+                    <i data-lucide="copy" class="w-4 h-4"></i>
+                    <span>COPY CLASSIFIED INTEL</span>
+                </button>
+                <button type="button" class="neo-btn bg-white hover:bg-zinc-100 text-black px-4 py-2 border-2 border-black font-mono font-bold text-xs shadow-[2px_2px_0px_#000] cursor-pointer" onclick="closeWeeklyDebriefModal()">
+                    <span>DISMISS</span>
+                </button>
             </div>
         </div>
     </div>
